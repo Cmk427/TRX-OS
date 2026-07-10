@@ -85,8 +85,14 @@ Volatility (e.g. VIX)    :
 Macro events (next 5–10d):
 Sector rotation          :
 Market Score (0–100)     :               → Regime: Exceptional / Strong / Healthy / Weak / Defensive
-Recommended exposure     :               (per Market Score risk multiplier)
+Regime Transition (§15A) :               Detected? Yes/No — band vs. prior session
+  If Yes: Transition Period active; cap recommended exposure one Risk
+  Multiplier tier more conservative, and flag every Playbook assignment
+  from the prior regime for re-verification at State 10.
+Recommended exposure     :               (per Market Score risk multiplier, adjusted for any active Transition Period)
 Confidence               :
+Uncertainty tier         :               Low / Medium / High / Critical — reason(s)
+                                          (separate from Confidence; see MASTER_DECISION_ENGINE.md §14A)
 ```
 
 ---
@@ -99,6 +105,8 @@ Cash %                         :
 Buying power                   :
 Largest position (ticker, %)   :
 Sector / theme concentration   :
+Portfolio Construction check (§9A) :      Single stock ≤10%? __  Sector ≤30%? __  Theme ≤40%? __
+                                          (limits scale with Account Risk Profile — record any override)
 Correlation risk                :
 Constraints on new exposure    :
 ```
@@ -124,13 +132,19 @@ positions) if any positions exist.
 
 ## 8. State 08 — Existing Position Review
 
-Repeat per open position:
+Repeat per open position. Per `PORTFOLIO_ENGINE.md` §8A, check current
+conditions against the **originally recorded Invalidation Condition** in
+this position's Decision Snapshot — not a fresh, more lenient re-reading.
+A breach escalates to Risk Engine immediately, outside the normal review
+cadence.
 
 ```text
 Ticker           :
 Status           :          Healthy / At Risk / Invalidated
 Health / trend    :
 Risk             :
+Recorded Invalidation Condition (from entry Decision Snapshot) :
+Invalidation Condition breached?     :          Yes / No
 Action           :          HOLD / REDUCE / EXIT / WATCH
 Reason           :
 ```
@@ -178,8 +192,18 @@ Verified pricing / IV / Greeks                 :
 Liquidity (OI, spread)                          :
 Option Quality Score (0–100)                    :
 Bull thesis / Bear thesis                       :
-Maximum risk                                    :
+Named risk factors (§5A): theta decay, IV crush, gamma risk, expiration
+  risk, liquidity/spread risk — each stated, not implied :
+Time Risk Rules (§8A):
+  Min DTE ≥ 30 at entry?           :
+  Intended holding ≤ 60% of DTE?   :
+  Theta-loss review trigger (20% of premium) :   not yet reached / triggered
+  Exit-or-rejustify (DTE ≤ 5)?     :
+Maximum risk (Premium at Risk — not equity stop-distance, per RISK_ENGINE.md §28A) :
 ```
+
+This engine reports risk, it does not judge what risk is *acceptable* —
+that determination belongs to Risk Engine (§8 Prohibited Behaviour).
 
 ---
 

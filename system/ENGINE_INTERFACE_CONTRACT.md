@@ -63,6 +63,12 @@ otherwise. Any field whose value is unavailable SHALL be the literal string
   "macro_events": ["string"],
   "sector_rotation": "string",
   "recommended_exposure_pct": 75,
+  "regime_transition": {
+    "detected": "boolean (band crossed vs. prior session, per §15A)",
+    "transition_period_active": "boolean",
+    "exposure_cap_pct": "number | null (one Risk Multiplier tier more conservative while active)",
+    "playbooks_requiring_reverification": ["string"]
+  },
   "confidence": "High",
   "evidence_refs": ["verification-ledger-row-id"]
 }
@@ -80,6 +86,13 @@ otherwise. Any field whose value is unavailable SHALL be the literal string
   "buying_power": "number",
   "largest_position": {"ticker": "string", "pct": "number"},
   "sector_concentration": {"sector": "pct"},
+  "theme_concentration": {"theme": "pct"},
+  "construction_limits": {
+    "single_stock_max_pct": 10,
+    "sector_max_pct": 30,
+    "theme_max_pct": 40,
+    "breached": ["string (which limit, if any, per §9A)"]
+  },
   "correlation_flags": ["string"],
   "constraints": ["string"]
 }
@@ -158,6 +171,12 @@ combination as a contract violation.
     "gamma_risk_flag": "boolean",
     "expiration_risk": {"days_to_expiry": "number", "holding_period_days": "number"},
     "assignment_risk": "not_applicable_long_call_buyer"
+  },
+  "time_risk_rules": {
+    "min_dte_at_entry_ok": "boolean (DTE >= 30, per §8A)",
+    "holding_period_within_cap": "boolean (holding_period_days <= 0.6 * days_to_expiry)",
+    "theta_loss_review_triggered": "boolean (cumulative theta loss >= 20% of paid premium)",
+    "exit_or_rejustify_required": "boolean (current DTE <= 5)"
   },
   "max_risk_premium": "number"
 }
@@ -241,6 +260,14 @@ combination as a contract violation.
   "position_size": "number",
   "max_loss": "number",
   "slippage_assumption": "string",
+  "execution_gate": {
+    "quote_freshness_ok": "boolean",
+    "liquidity_ok": "boolean (<= 10% ADV or <= 10% OI, per §3B)",
+    "spread_ok": "boolean (order type matches §3A tier)",
+    "market_status_ok": "boolean (session verified, no unconfirmed halt)",
+    "order_size_validated": "boolean (matches Risk Engine-approved size, per §1A check 5)",
+    "human_approval_presented": "boolean"
+  },
   "status": "READY | DO NOT EXECUTE — REVERIFY | NOT APPLICABLE"
 }
 ```

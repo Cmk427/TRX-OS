@@ -4,23 +4,31 @@
 ```text
 Document ID      : TRX-EX-002
 Document Name    : Worked Example — EXECUTE Outcome (Long Call)
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Illustrative — fictional data
 Classification   : Example
 Dependencies     : templates/REPORT_TEMPLATE.md
                    system/OUTPUT_CONTRACT.md
                    engines/OPTIONS_ENGINE.md
+                   engines/RISK_ENGINE.md
+                   engines/COMMITTEE_ENGINE.md
+                   engines/RED_TEAM_ENGINE.md
+                   engines/MASTER_DECISION_ENGINE.md
                    playbooks/PLAYBOOK_LIBRARY.md
+                   system/DECISION_SNAPSHOT_POLICY.md
+                   system/FAILURE_TAXONOMY.md
 Applies To       : Demonstration only
 ```
 
 ---
 
 **這是一個虛構示範，用以展示一個完整走到 `EXECUTE` 結果、並包含 Long Call
-比較的分析報告結構。「ACME」為虛構代號，所有價格、Greeks、IV、財報日期與
-組合數值均為說明用途而編造，並非任何真實證券的真實資料，亦不構成交易建議。
-執行計劃中的所有數字僅示範欄位格式，人類交易者仍須在下單前重新核實所有
-即時數據。**
+比較的分析報告結構，並反映系統目前完整版本的規則（Committee 六選項投票、
+Consensus Score 公式、Red Team 攻擊類別、Confidence／Uncertainty 分離、
+Decision Snapshot、Execution Gate）。「ACME」為虛構代號，所有價格、Greeks、
+IV、財報日期與組合數值均為說明用途而編造，並非任何真實證券的真實資料，亦不
+構成交易建議。執行計劃中的所有數字僅示範欄位格式，人類交易者仍須在下單前
+重新核實所有即時數據。**
 
 ---
 
@@ -29,6 +37,8 @@ Applies To       : Demonstration only
 ```text
 結果：EXECUTE
 信心水平：Medium
+不確定性等級：Medium — 原因：下週次要就業數據對成長股情緒的影響尚未可知，
+  屬於已知但未解決的短期總經變數（非證據品質問題，故不影響 Confidence）
 市場制度：Strong（Market Score 84）
 最高優先行動：於 ACME 建立 Long Call 研究倉位，規模符合風險預算
 最大投資組合風險：本筆交易之最大損失為已付權利金，佔組合 1.2%
@@ -37,7 +47,7 @@ Applies To       : Demonstration only
 
 ---
 
-## 2. 證據狀態與時點
+## 2. 證據狀態、時點與 Decision Snapshot
 
 ```text
 市場時段：Regular（示範時間戳記 2026-07-10 14:35 UTC）
@@ -51,6 +61,20 @@ Applies To       : Demonstration only
   - IV Rank 38：V1（來源期權鏈計算值）
   - Opportunity Score 91：V3（計算值，見第 6 節權重）
 資料衝突：無
+
+Decision Snapshot（依 DECISION_SNAPSHOT_POLICY.md §2）：
+  Decision ID：DEC-EX002-ACME-001
+  Run ID／時戳：RUN-EX002 / 2026-07-10T14:35:00Z
+  市場資料時戳：2026-07-10T14:35:00Z
+  各引擎文件版本：Market 1.0.0 / Portfolio 1.0.0 / Risk 1.0.0 / Scanner 1.0.0 /
+    Playbook 1.0.0 / Options 1.0.0 / Decision 1.0.0 / Committee 1.0.0 /
+    Red Team 1.0.0 / Master Decision 1.0.0 / Execution 1.0.0
+  Confidence Model 版本：MASTER_DECISION_ENGINE.md §7, v1.0.0
+  Playbook Library 版本：1.0.0（PB-003 Post Earnings Continuation）
+  修正循環計數：0（無 State 間反覆修正）
+  Human Action：NO ACTION YET（示範文件，未有真實人類覆核）
+  Outcome：待後續 Position Review 補填（append-only）
+
 關鍵未知事項：後續一週總體經濟數據公布前，市場對成長股的反應仍有不確定性
 ```
 
@@ -65,6 +89,8 @@ Market Score（0–100）：84（Strong）
 波動性：VIX 位於近三個月低檔
 宏觀事件：本週無重大央行決議；下週有次要就業數據（示範用途）
 板塊輪動：資金持續流入半導體與科技成長股
+Regime Transition（§15A）：未偵測到——Market Score 已連續兩個交易日處於
+  Strong（80+）帶區間，非 Transition Period，曝險無需額外降級
 建議曝險：80+ 帶區間 — 建議風險乘數 75%
 信心：High
 ```
@@ -78,9 +104,14 @@ Portfolio Health Score（0–100）：88（Healthy）
 現金比例：31%
 可用購買力：等值於總組合的 40%
 最大持倉：ETF-CORE，佔組合 22%
-板塊曝險：科技股合計 29%，未達集中度上限
+板塊曝險：科技股合計 26%，未達集中度上限
+Portfolio Construction 檢查（§9A）：單一個股 ≤10%？是（ACME 執行後預估 4%）
+  板塊 ≤30%？是（科技類執行後預估 29%，接近但未突破 30% 上限，Portfolio
+  Manager 已於 Committee 標註為後續觀察重點）
+  主題 ≤40%？不適用（ACME 未歸類於現有追蹤主題）
 相關性風險：ACME 與現有持倉相關性低於 0.3，屬分散配置
-組合限制：無 — 本筆交易後科技曝險預估為 33%，仍在上限之內
+組合限制：無否決性限制，惟科技板塊集中度執行後將接近 §9A 30% 上限，後續
+  新增科技類部位須先減碼
 ```
 
 ---
@@ -92,6 +123,8 @@ Portfolio Health Score（0–100）：88（Healthy）
 狀態：Healthy
 健康度／趨勢：穩定上升，符合原始論點
 風險：低，維持既定停損
+原始 Decision Snapshot 記錄之失效條件：跌破 200 日均線且伴隨板塊輪動轉向
+失效條件是否觸發：否
 行動：HOLD
 原因：無新證據推翻原始論點，維持現狀
 
@@ -99,6 +132,8 @@ Portfolio Health Score（0–100）：88（Healthy）
 狀態：Healthy
 健康度／趨勢：符合防禦性配置目的
 風險：低
+原始 Decision Snapshot 記錄之失效條件：組合現金水位低於 15%
+失效條件是否觸發：否
 行動：HOLD
 原因：作為組合避險部位，功能未變
 ```
@@ -129,6 +164,7 @@ Match Score：92（Excellent）
       符合 PB-003 的情境與觸發條件
 預期行為：延續性上漲，伴隨成交量確認
 規則參照：playbooks/PLAYBOOK_LIBRARY.md — PB-003 情境、觸發、失效與風險規則
+Playbook 生命週期狀態（§5）：Active
 ```
 
 ---
@@ -143,30 +179,64 @@ Greeks：Delta 0.42，Theta -0.06，Vega 0.18（示範值）
 IV Rank：38（中性偏低，非過熱狀態）
 流動性：未平倉量 3,200 口，買賣價差 0.05（流動性良好）
 Option Quality Score（0–100）：83（Qualified）
-最大風險：已付權利金全額，即每口合約 420 美元（示範值）
+
+named risk factors（§5A）：
+  Theta decay：符合預期持有期，非過度衰減
+  IV crush 風險：無——持有期間無已知排定之 IV 敏感事件
+  Gamma risk：中性，未達近到期或極度價平之高 gamma 區間
+  Expiration risk：見下方 Time Risk Rules
+  Liquidity/spread risk：良好，價差 0.05 屬正常範圍
+  Assignment risk：不適用——本倉位為買入 Long Call，assignment 風險屬賣方，
+    不適用於買方
+
+Time Risk Rules（§8A）：
+  Min DTE ≥ 30 於入場時？：是（35 DTE）
+  預期持有 ≤ 60% of DTE（≤ 21 天）？：是（預估 5–10 個交易日）
+  Theta 損失覆核觸發（累計達權利金 20%）？：尚未觸發（入場時點）
+  Exit-or-rejustify（DTE ≤ 5）？：不適用（尚有 35 天）
+
+最大風險：已付權利金全額，即每口合約 420 美元（示範值；Premium at Risk，
+  非現股停損距離，見 RISK_ENGINE.md §28A）
 ```
 
 Long Call 相對現股的理由：以有限的已付權利金取得方向性曝險，同時保留現股
 配置額度供其他機會使用；下行風險鎖定於權利金，不會產生現股停損滑價風險。
+Options Engine 僅測量並回報上述風險，是否可接受由 Risk Engine 判定
+（`OPTIONS_ENGINE.md` §8 Prohibited Behaviour）。
 
 ---
 
 ## 9. 風險評估
 
 ```text
-Risk Score 定義與數值：87（Low Risk）
+Risk Score（依 RISK_ENGINE.md §24A 扣分模型計算，非估計值）：87（Low Risk）
 最大組合損失：本筆 Long Call 之已付權利金總額，佔組合 1.2%
 倉位大小：5 口合約（示範值），符合單一倉位風險預算上限
 報酬／風險比：約 2.8 : 1（以第一目標與權利金全損計算）
 回撤影響：即使全損，對組合整體回撤影響低於 1.5%
 風險預算佔用：科技板塊風險預算使用至 55%，仍有餘裕
-組合熱度（Heat）：中等，執行後仍在可接受範圍
-否決（Veto，如有）：無 — Preliminary 與 Final Risk Gate 均通過
+組合熱度 Heat（依 §7A 公式：Σ 各倉位止損最大損失 ÷ 組合總值；本倉位使用
+  Premium at Risk，見 §28A）：中等，執行後仍在可接受範圍
+否決（Veto，如有；Risk Engine 持 Constraint Authority，非 Publication
+  Authority）：無 — Preliminary 與 Final Risk Gate 均通過
 ```
 
 ---
 
 ## 10. Red Team 覆核
+
+每個必要攻擊類別均有明確結論（`RED_TEAM_ENGINE.md` §4A）：
+
+| 類別 | 發現 | 結果 |
+|---|---|---|
+| THESIS ATTACK | 財測上調後的動量延續論點本身可能只是短線反應，非結構性轉強 | 存活——已有連續兩日支撐確認，非單日反應 |
+| DATA ATTACK | 財測上調公告（S1）與期權鏈（S2）均為高層級來源，重新核對後無異常 | 存活 |
+| ASSUMPTION ATTACK | 隱含假設「市場對財測上調的正面反應將持續」未必成立 | 存活但降低韌性——已反映於 Medium 信心 |
+| VALUATION ATTACK | 入場價是否已反映大部分利多，追高風險存在 | 部分失敗——已建議提前失效條件確認時點以降低此風險 |
+| RISK ATTACK | 風險是否被低估——經檢視 Premium at Risk 模型與 §28A 橋接，未發現低估 | 存活 |
+| TIMING ATTACK | 現在是否為最佳進場時機，或應等待拉回 | 部分失敗——已於建議調整中納入分批進場替代方案 |
+| EXECUTION ATTACK | 流動性與價差是否支持此規模執行 | 存活——OI 3,200、價差 0.05，執行可行 |
+| CATALYST（專項） | 財測上調是否可能被市場視為已充分定價 | 存活——V1 事件 + 兩日確認，非單純消息面炒作 |
 
 ```text
 反方論點：財測上調後的追高風險，以及次要就業數據可能引發的短期逆風
@@ -182,39 +252,66 @@ Risk Score 定義與數值：87（Low Risk）
 
 ## 11. 投資委員會決策
 
-| 角色 | 投票 | 信心 | 支持證據 | 疑慮 |
-|---|---|---|---|---|
-| 首席市場策略師 | Buy | High | 市場制度 Strong，板塊輪動有利 | 次週總經數據為短期變數 |
-| 技術分析師 | Buy | High | 財報後延續型態明確，量能確認 | 追高風險需留意 |
-| 投資組合經理 | Buy | High | 分散度佳，不影響集中度上限 | 無重大疑慮 |
-| 風控經理 | Buy | Medium | 風險已鎖定於權利金，符合預算 | 建議提前失效條件確認時點 |
-| 期權專家 | Buy | High | IV Rank 中性、流動性良好、Greeks 合理 | 到期時間需覆蓋預期持有期 |
-| 執行專家 | Buy | Medium | 入場區間明確，流動性足夠分批執行 | 開盤跳空時應重新核價 |
+投票選項固定為 STRONG BUY／BUY／WATCH／PASS／REDUCE／REJECT
+(`COMMITTEE_ENGINE.md` §5)：
+
+| 角色 | 權重 | 投票 | 分數（§5A） | 信心 | 支持證據 | 疑慮 |
+|---|---|---|---|---|---|---|
+| 首席市場策略師 | 25% | BUY | 80 | High | 市場制度 Strong，板塊輪動有利 | 次週總經數據為短期變數 |
+| 風控經理 | 25% | BUY | 80 | Medium | 風險已鎖定於權利金，符合預算 | 建議提前失效條件確認時點；科技板塊集中度接近 §9A 上限 |
+| 投資組合經理 | 20% | BUY | 80 | High | 分散度佳，不影響單一個股上限 | 科技板塊集中度執行後接近 30% 上限，需留意後續新增部位 |
+| 技術分析師 | 15% | STRONG BUY | 100 | High | 財報後延續型態明確，量能確認 | 追高風險需留意 |
+| 執行專家 | 10% | BUY | 80 | Medium | 入場區間明確，流動性足夠分批執行 | 開盤跳空時應重新核價 |
+| 期權專家 | 5% | BUY | 80 | High | IV Rank 中性、流動性良好、Greeks 合理 | 到期時間需覆蓋預期持有期 |
 
 ```text
-共識：一致 Buy，無否決性異議
-異議（逐字保留）：風控經理建議將失效條件由「收盤確認」調整為「盤中確認」，
-                    已於 Red Team 建議中採納
+Consensus Score（Σ 權重 × 分數）：
+  0.25×80 + 0.25×80 + 0.20×80 + 0.15×100 + 0.10×80 + 0.05×80 = 83
+共識等級：Moderate Consensus（80+）
+異議（逐字保留）：風控經理與投資組合經理均標註科技板塊集中度接近 §9A 上限，
+  建議本倉位執行後暫緩任何新增科技類部位；已於「條件」中採納
+風控經理投 REDUCE 或 REJECT？：否——本次無強制升級觸發
 ```
 
 ---
 
-## 12. Master Decision（唯一最終結果）
+## 12. Master Decision（唯一最終結果，Publication Authority）
 
 ```text
 最終結果：EXECUTE
 理據：市場制度 Strong、組合健康且分散、候選具備 V1 級已驗證催化劑、
-      Playbook 高度吻合、Options 結構通過品質門檻、風險閘門全數通過，
-      Committee 一致同意且無否決性異議
-條件（如有）：失效條件採用 Red Team 建議之盤中即時確認版本；
+      Playbook 高度吻合、Options 結構通過品質門檻與 Time Risk Rules、
+      風險閘門全數通過，Committee 達 Moderate Consensus 且無否決性異議
+條件（如有）：失效條件採用 Red Team 建議之盤中即時確認版本；本倉位執行後
+              暫緩任何新增科技類部位（科技板塊集中度已接近 §9A 30% 上限）；
               若下單前價格、IV 或財測狀態已重大改變，須回到 State 04 重新驗證
+Weighted Composite Score（MASTER_DECISION_ENGINE.md §7，僅決定信心，不決定
+  結果）：介於 Confidence 與 Medium 帶區間對應之計算值
 信心：Medium（催化劑已驗證，但次週總經數據仍為未知變數，故未評為 High）
+不確定性等級（§14A，與信心為不同軸線）：Medium — 原因：下週總經數據結果
+  未知，屬情境本身的不確定性，非證據品質問題（故信心維持 Medium 而非降級）
 已遵守的約束閘門：驗證 ✅　風險 ✅　Red Team ✅（無否決，僅提出調整建議）
 ```
+
+Master Decision Engine 不持否決權；上列任一閘門為 ❌ 時，最終結果必須是該
+閘門要求的結果，不可由 Master Decision 覆寫（`CONSTITUTION.md` §4A）。
 
 ---
 
 ## 13. 執行計劃
+
+Execution Gate（§1A）— 以下六項均已通過，方標示為 `READY`：
+
+```text
+1. 報價時效性通過？：是（5 分鐘內）
+2. 流動性通過（≤ 日均量 10% 或未平倉量 10%）？：是（5 口合約遠低於未平倉量門檻）
+3. 價差通過（訂單類型符合 §3A 分級）？：是（現股價差 <0.10%，屬高流動性；
+   期權依規則仍採限價單）
+4. 市場狀態通過（時段已確認、無未確認停牌）？：是（Regular session，無停牌）
+5. 訂單規模已核對（與 Risk Engine 核准倉位一致）？：是（5 口合約，符合 §9
+   節核准規模，非事後調整）
+6. 已向人類呈現核准請求（非自我核准）？：是（見下方人手起飛前檢查）
+```
 
 ```text
 行動／合約：買入 ACME 135 Call，35 天後到期（示範合約，下單前需重新核實）
@@ -225,11 +322,13 @@ Risk Score 定義與數值：87（Low Risk）
 倉位大小／所需資金：5 口合約，預估總成本 2,100 美元（示範值）
 最大損失：2,100 美元（權利金全損），佔組合 1.2%
 時間範圍／覆核日：持有 5–10 個交易日；到期前至少 5 個交易日強制覆核
+  （§8A Time Risk Rules exit-or-rejustify）
 流動性／價差備註：買賣價差 0.05，建議避開開盤前 5 分鐘的價差擴大時段
 人手起飛前檢查：
   [ ] 已於下單前重新核實現股與期權即時報價
   [ ] 已確認帳戶保證金／權限足以執行本合約
   [ ] 已確認財測公告狀態未被撤回或澄清
+  [ ] 已確認執行後不再新增科技類部位（§9A 集中度條件）
 ```
 
 ---
@@ -240,8 +339,13 @@ Risk Score 定義與數值：87（Low Risk）
 - [x] 無虛構數值當作真實市場資料呈現 — 已於文首與各數值旁標明為示範
 - [x] 投資組合檢視先於機會掃描完成
 - [x] 倉位大小、風險、止損、失效條件與出場邏輯均已定義
-- [x] Committee、Red Team 與 Risk 結果均已呈現，包含風控經理之調整意見
+- [x] Committee、Red Team 與 Risk 結果均已呈現，包含風控經理與投資組合經理
+      之集中度疑慮
 - [x] Master Decision 未推翻驗證、風險或 Red Team 的任何否決（本例無否決）
+- [x] Decision Snapshot 各欄位已填妥（第 2 節）
+- [x] 信心與不確定性分開呈現，未混為一談
+- [x] Red Team 每個必要攻擊類別均有明確結論（第 10 節），無缺漏類別
+- [x] Committee 投票使用固定六選項，Consensus Score 已依公式計算（第 11 節）
 
 ---
 

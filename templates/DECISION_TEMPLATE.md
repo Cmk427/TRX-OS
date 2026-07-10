@@ -48,21 +48,26 @@ evidence is insufficient and record why.
 ## 3. State 13 — Committee Review
 
 Repeat this block per candidate. Each of the six roles evaluates
-independently — do not let one role's row anchor another's.
+independently — do not let one role's row anchor another's. Vote options
+are fixed per `COMMITTEE_ENGINE.md` §5 — do not substitute a simplified
+Buy/Hold/Avoid scale.
 
-| Role | Vote (Buy / Hold / Avoid) | Confidence | Supporting evidence | Concern |
-|---|---|---|---|---|
-| Chief Market Strategist | | | | |
-| Technical Analyst | | | | |
-| Portfolio Manager | | | | |
-| Risk Manager | | | | |
-| Options Specialist | | | | |
-| Execution Specialist | | | | |
+| Role | Weight (§6) | Vote (STRONG BUY / BUY / WATCH / PASS / REDUCE / REJECT) | Points (§5A) | Confidence | Supporting evidence | Concern |
+|---|---|---|---|---|---|---|
+| Chief Market Strategist | 25% | | | | | |
+| Risk Manager | 25% | | | | | |
+| Portfolio Manager | 20% | | | | | |
+| Technical Analyst | 15% | | | | | |
+| Execution Specialist | 10% | | | | | |
+| Options Specialist | 5% | | | | | |
 
 ```text
-Consensus            :          (majority direction, or "No consensus")
+Consensus Score (§10 formula: Σ weight × points) :
+Consensus Label      :          Unanimous (95+) / Strong (90+) / Moderate (80+) / Weak (70+) / No Consensus (<70)
 Dissent (verbatim)    :
-Risk Manager objection routed to Risk Engine? :   Yes / No
+Risk Manager voted REDUCE or REJECT? :   Yes / No
+  If Yes → mandatory Risk Engine escalation (§12) — this is an escalation,
+  not itself a veto; only Risk Engine's own evaluation can bind.
 ```
 
 No consensus → this candidate's provisional outcome is `WATCH` unless a
@@ -71,6 +76,21 @@ stricter gate below overrides it.
 ---
 
 ## 4. State 14 — Red Team Review
+
+Every mandatory attack category (`RED_TEAM_ENGINE.md` §4A) SHALL produce an
+explicit finding — a category with no row recorded is treated as not having
+been attacked at all (§4A, §22):
+
+| Category | Finding | Survived / Failed |
+|---|---|---|
+| THESIS ATTACK | | |
+| DATA ATTACK | | |
+| ASSUMPTION ATTACK | | |
+| VALUATION ATTACK | | |
+| RISK ATTACK | | |
+| TIMING ATTACK | | |
+| EXECUTION ATTACK | | |
+| Macro / Technical / Portfolio / Catalyst (specialised, §4A) | | |
 
 ```text
 Ticker                     :
@@ -120,6 +140,8 @@ Conditions (if any)        :
 Weighted Composite Score   :   (§7 formula in MASTER_DECISION_ENGINE.md; Confidence-only, never outcome-determining)
 Confidence                 :   Very High / High / Medium / Low / Very Low
                                (capped Low if any gate-linked input is UNKNOWN or WCS < 70 — see MDE §7)
+Uncertainty Tier (§14A)    :   Low / Medium / High / Critical — named reason(s)
+                               (separate axis from Confidence — the two may disagree)
 Gate results honoured      :   Verification ✅/❌   Risk ✅/❌   Red Team ✅/❌
 ```
 
@@ -142,22 +164,36 @@ Required per `DECISION_SNAPSHOT_POLICY.md` §2 — complete this before
 publication, not as an afterthought:
 
 ```text
-Run ID / timestamp              :
-Market data as-of timestamp     :
-Engine document versions used   :   Market __ / Portfolio __ / Risk __ / Scanner __
-                                     Playbook __ / Options __ / Decision __ / Committee __
-                                     Red Team __ / Master Decision __ / Execution __
-Confidence Model version        :   (MASTER_DECISION_ENGINE.md §7)
-Playbook Library version        :
-Prompt version                  :   NOT APPLICABLE — v1.0 document-driven analysis
-Model identifier                :   NOT APPLICABLE — v1.0 document-driven analysis
+Decision ID                      :   (unique per candidate/position — distinct from Run ID)
+Run ID / timestamp               :
+Market data as-of timestamp      :
+Engine document versions used    :   Market __ / Portfolio __ / Risk __ / Scanner __
+                                      Playbook __ / Options __ / Decision __ / Committee __
+                                      Red Team __ / Master Decision __ / Execution __
+Confidence Model version         :   (MASTER_DECISION_ENGINE.md §7)
+Playbook Library version         :
+Prompt version                   :   NOT APPLICABLE — v1.0 document-driven analysis
+Model identifier                 :   NOT APPLICABLE — v1.0 document-driven analysis
 Revision count (§6A State Machine) :
 Failure Taxonomy category (if not EXECUTE) : DATA_FAILURE / MODEL_FAILURE / CONFLICT_FAILURE / RISK_REJECTION / EXECUTION_INVALID / SYSTEM_ERROR
+Human Action (append after publication) :   EXECUTED AS PLANNED / EXECUTED DIFFERENTLY / DECLINED / NO ACTION YET / HUMAN OVERRIDE (see CONSTITUTION.md §6A)
+Outcome (append during later Position Review or Journal entry) :
 ```
 
 ## 7. State 17 — Execution Plan (conditional)
 
 `Not Applicable` unless Final Outcome is `EXECUTE`, `REDUCE`, or `EXIT`.
+
+Execution Gate (§1A) — all six SHALL pass before the plan is `READY`:
+
+```text
+1. Quote freshness ok?            :
+2. Liquidity ok (≤10% ADV/OI)?    :
+3. Spread ok (order type per §3A tier)? :
+4. Market status ok (session verified, no unconfirmed halt)? :
+5. Order size validated (matches Risk Engine-approved size, not silently rounded)? :
+6. Human approval presented (not self-approving)? :
+```
 
 ```text
 Action / contract           :
