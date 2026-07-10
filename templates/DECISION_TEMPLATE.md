@@ -15,6 +15,7 @@ Dependencies     : STATE_MACHINE.md
                    MASTER_DECISION_ENGINE.md
                    EXECUTION_ENGINE.md
                    ANALYSIS_TEMPLATE.md
+                   DECISION_SNAPSHOT_POLICY.md
 Applies To       : States 12–18 (Ranking through Self Audit)
 ```
 
@@ -113,17 +114,46 @@ One block per candidate carried this far, integrating everything above:
 ```text
 Ticker                     :
 Final Outcome              :   EXECUTE / WATCH / HOLD / REDUCE / EXIT / NO TRADE
+                               / INSUFFICIENT VERIFIED INFORMATION / SYSTEM REVIEW REQUIRED
 Rationale                  :
 Conditions (if any)        :
+Weighted Composite Score   :   (§7 formula in MASTER_DECISION_ENGINE.md; Confidence-only, never outcome-determining)
 Confidence                 :   Very High / High / Medium / Low / Very Low
+                               (capped Low if any gate-linked input is UNKNOWN or WCS < 70 — see MDE §7)
 Gate results honoured      :   Verification ✅/❌   Risk ✅/❌   Red Team ✅/❌
 ```
 
 If any gate above shows ❌, `Final Outcome` MUST be the outcome that gate
 requires, per `STATE_MACHINE.md` §4 Outcome Semantics — Master Decision
-integrates, it does not override.
+integrates, it does not override. `SYSTEM REVIEW REQUIRED` applies only when
+`STATE_MACHINE.md` §6A's revision-cycle limit (max 2) has been exceeded; do
+not use it as a substitute for `NO TRADE`.
+
+A full-gate-pass `EXECUTE` may still carry Low Confidence — this is expected,
+not an error, whenever the WCS is below 70 or a non-gate-linked input was
+`UNKNOWN`. Record both values; do not silently round Confidence up to match
+a passing outcome.
 
 ---
+
+## 6A. Decision Snapshot
+
+Required per `DECISION_SNAPSHOT_POLICY.md` §2 — complete this before
+publication, not as an afterthought:
+
+```text
+Run ID / timestamp              :
+Market data as-of timestamp     :
+Engine document versions used   :   Market __ / Portfolio __ / Risk __ / Scanner __
+                                     Playbook __ / Options __ / Decision __ / Committee __
+                                     Red Team __ / Master Decision __ / Execution __
+Confidence Model version        :   (MASTER_DECISION_ENGINE.md §7)
+Playbook Library version        :
+Prompt version                  :   NOT APPLICABLE — v1.0 document-driven analysis
+Model identifier                :   NOT APPLICABLE — v1.0 document-driven analysis
+Revision count (§6A State Machine) :
+Failure Taxonomy category (if not EXECUTE) : DATA_FAILURE / MODEL_FAILURE / CONFLICT_FAILURE / RISK_REJECTION / EXECUTION_INVALID / SYSTEM_ERROR
+```
 
 ## 7. State 17 — Execution Plan (conditional)
 
@@ -131,18 +161,23 @@ integrates, it does not override.
 
 ```text
 Action / contract           :
-Order type                  :
+Order type (per EXECUTION_ENGINE.md §3A spread/liquidity table) :
 Entry zone (timestamped)    :
 Stop / invalidation         :
 Target / partial-exit logic :
 Position size / capital     :
 Maximum loss                :
 Time horizon / review date  :
-Liquidity / spread notes    :
+Liquidity check (§3B: ≤10% ADV / ≤10% OI) :
+Slippage assumption (§3C: half-spread + volatility buffer) :
+Market session assumed / halt status (§3D) :
+Options-only: bid-ask, IV, OI, days-to-expiry buffer (§3E) :
 Human pre-flight checklist  :   [ ] reviewed live order screen  [ ] reviewed account constraints
 ```
 
-If any critical execution input is stale: `DO NOT EXECUTE — REVERIFY`.
+If any critical execution input is stale: `DO NOT EXECUTE — REVERIFY`
+(`EXECUTION_ENGINE.md` §3D; classified `EXECUTION_INVALID` per
+`FAILURE_TAXONOMY.md`).
 
 ---
 

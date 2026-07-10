@@ -34,6 +34,28 @@ Engine.
 
 ---
 
+# Prohibited Outputs
+
+To prevent two competing decision-makers in any future implementation, the
+Decision Engine SHALL NOT produce:
+
+- **NO FINAL RECOMMENDATION** — only `MASTER_DECISION_ENGINE.md` may publish
+  `EXECUTE`, `NO TRADE`, `WATCH`, `HOLD`, `REDUCE`, or `EXIT` as a final,
+  reportable outcome (`MASTER_DECISION_ENGINE.md` §1).
+- **NO EXECUTION DECISION** — a BUY/SELL determination, or any statement that
+  reads as authorization to act, belongs to Master Decision (§8 Decision
+  Matrix) and, downstream of that, `EXECUTION_ENGINE.md`.
+- **NO CAPITAL ALLOCATION** — position sizing and capital deployment belong
+  to `RISK_ENGINE.md` (sizing) and `MASTER_DECISION_ENGINE.md` §11 (allocation
+  priority). The Decision Engine's Opportunity Score ranks candidates; it
+  does not decide how much capital, if any, is committed to them.
+
+The Decision Engine's sole output is the ranked Opportunity Score package
+(§ Opportunity Score) handed to Committee Review — a *candidate* disposition,
+never a *final* one.
+
+---
+
 # Decision Philosophy
 
 Every recommendation SHALL satisfy three requirements.

@@ -15,14 +15,21 @@ Applies To       : Final Recommendation Generation
 1. PURPOSE
 -------------------------------------------------------------------------------
 
-The Master Decision Engine (MDE) is the central decision authority of
-TRX Trading OS.
+The Master Decision Engine (MDE) is the sole integrator and publisher of the
+final outcome in TRX Trading OS. Per `CONSTITUTION.md` §4A, it holds
+**Publication Authority** — not Constraint Authority, and not "the central
+decision authority" in the sense of being able to overrule a veto. It has no
+veto power of its own.
 
 All analytical engines report to the MDE.
 
 Only the MDE may generate a Final Recommendation.
 
 No engine may independently recommend execution.
+
+The MDE's authority is entirely downstream of Constraint Authority: it
+publishes what Verification, Risk, and Red Team allow, integrated with the
+analysis from every other engine. See §21 Final Output Authority.
 
 -------------------------------------------------------------------------------
 2. SYSTEM ROLE
@@ -41,6 +48,11 @@ Decision Coordinator
 The MDE does not perform analysis.
 
 It integrates analysis.
+
+These role titles describe the scope of integration and reporting the MDE
+performs — they do not grant authority over risk, data validity, or
+counter-evidence. A "Chief Investment Officer" framing never implies the MDE
+can decide a rejected trade is acceptable anyway.
 
 The MDE may publish one final outcome only after the required states in
 `STATE_MACHINE.md` complete. It has no authority to override a critical-data
@@ -121,42 +133,57 @@ Options outputs provide analysis and evidence. The MDE integrates the valid
 outputs but cannot relax a binding constraint.
 
 -------------------------------------------------------------------------------
-7. WEIGHTING MODEL
+7. CONFIDENCE MODEL (WEIGHTED COMPOSITE SCORE)
 -------------------------------------------------------------------------------
 
-Suggested Weight
+This model computes Confidence only. It has no power to select an outcome —
+outcome selection is entirely the job of the gate-based Decision Matrix in
+§8. A high Weighted Composite Score (WCS) can never convert a failed gate
+into EXECUTE, and a low WCS can cap Confidence even when every gate in §8
+passes. This separation is intentional: gates are pass/fail because risk and
+evidence failures are not something a good score elsewhere should be able to
+buy off.
 
-Verification Confidence
+Weight table:
 
-20%
+| Input | Weight | Kind |
+|---|---:|---|
+| Verification Confidence | 20% | Gate-linked |
+| Risk Score | 20% | Gate-linked |
+| Market Score | 15% | Non-gate-linked |
+| Portfolio Score | 15% | Non-gate-linked |
+| Opportunity Score | 15% | Non-gate-linked |
+| Committee Score | 10% | Non-gate-linked |
+| Red Team Score | 5% | Gate-linked |
+| Total | 100% | |
 
-Risk Score
+Formula:
 
-20%
+`WCS = Σ (weight_i × score_i)`, summed over the inputs above, each score
+already normalised to 0–100.
 
-Market Score
+Missing-value handling (an input may never be silently dropped or defaulted):
 
-15%
+- **Gate-linked input is `UNKNOWN`** (Verification Confidence, Risk Score, or
+  Red Team Score): the corresponding gate in §8 is treated as FAILED for
+  outcome purposes — this was already true before any WCS is computed, since
+  §8's gates are binary pass/fail, not WCS-derived. For the WCS itself, an
+  `UNKNOWN` gate-linked input caps Confidence at **Low**, regardless of the
+  numeric value the remaining inputs would otherwise produce.
+- **Non-gate-linked input is `UNKNOWN`** (Market, Portfolio, Opportunity, or
+  Committee Score): redistribute that input's weight proportionally across
+  the remaining present inputs, compute WCS over what remains, and drop the
+  resulting Confidence one level from what a full-input WCS of the same
+  value would imply (e.g. what would read High reads Medium).
 
-Portfolio Score
+Minimum threshold: **WCS < 70 caps Confidence at Low**, even when the §8
+Decision Matrix is a full PASS. A full-gate-pass EXECUTE can therefore still
+carry Low Confidence — this is a valid, expected combination, not a
+contradiction; it tells the human trader "this clears every binding
+constraint, but the supporting evidence is thin."
 
-15%
-
-Opportunity Score
-
-15%
-
-Committee Score
-
-10%
-
-Red Team Score
-
-5%
-
-Total
-
-100%
+Every published WCS SHALL cite the Confidence Model (this section's)
+document version, per `system/DECISION_SNAPSHOT_POLICY.md`.
 
 -------------------------------------------------------------------------------
 8. DECISION MATRIX
@@ -329,13 +356,16 @@ WATCH
 
 Risk always overrides.
 
+All examples above are resolved by the gate-based Decision Matrix (§8), not
+by the Confidence Model (§7). No Weighted Composite Score, however high,
+appears anywhere in this conflict-resolution logic.
+
 -------------------------------------------------------------------------------
-14. CONFIDENCE MODEL
+14. CONFIDENCE LEVELS AND QUALITATIVE INPUTS
 -------------------------------------------------------------------------------
 
-Overall Confidence
-
-Derived from
+Overall Confidence is computed by the Weighted Composite Score formula in
+§7, not re-derived independently here. Qualitatively, it reflects
 
 Verification
 
@@ -349,7 +379,7 @@ Market Clarity
 
 Portfolio Quality
 
-Levels
+Levels (bands the WCS in §7 maps to)
 
 Very High
 
@@ -360,6 +390,42 @@ Medium
 Low
 
 Very Low
+
+-------------------------------------------------------------------------------
+14A. UNCERTAINTY TIER (SEPARATE FROM CONFIDENCE)
+-------------------------------------------------------------------------------
+
+Confidence (§7, §14) measures evidence quality and clarity. Uncertainty
+measures something different: whether the situation itself is one where
+even clear evidence may not generalise. The two SHALL be reported
+separately and are never merged into a single number, per
+`OUTPUT_CONTRACT.md` §5.
+
+Uncertainty Tier
+
+Low
+
+Medium
+
+High
+
+Critical
+
+Each tier SHALL be accompanied by its specific named reason(s), for example:
+
+Insufficient historical sample for the assigned Playbook
+
+Unclassified or transitioning market regime (see `MARKET_ENGINE.md` §
+Regime Transition Control)
+
+A source is close to its freshness limit without having breached it
+
+An unresolved same-tier data conflict (`DATA_SOURCE_POLICY.md` §5)
+
+High Confidence and High Uncertainty are not contradictory. A thesis can be
+built on clear, well-verified evidence (High Confidence) about a genuinely
+unprecedented situation (High Uncertainty) — both facts belong in the
+report.
 
 -------------------------------------------------------------------------------
 15. FINAL REPORT
@@ -498,7 +564,7 @@ Not by
 Win Rate Alone
 
 -------------------------------------------------------------------------------
-21. FINAL OUTPUT AUTHORITY
+21. FINAL OUTPUT (PUBLICATION) AUTHORITY
 -------------------------------------------------------------------------------
 
 The Master Decision Engine is the only module authorized to produce
@@ -507,8 +573,12 @@ FINAL RECOMMENDATION
 
 All downstream outputs SHALL originate from this engine.
 
-This authority is limited to integration and publication; it is not authority to
-override the constraints named in `CONSTITUTION.md`.
+This is Publication Authority as defined in `CONSTITUTION.md` §4A — the sole
+right to integrate and emit the one final report. It is explicitly not
+Constraint Authority: the MDE holds no veto, cannot override a critical-data
+failure, a Risk Engine hard veto, or a Red Team critical-risk veto, and
+cannot use a high Confidence Model score (§7) to relax any of the above. See
+`RISK_ENGINE.md` §28 for the corresponding Constraint Authority definition.
 
 -------------------------------------------------------------------------------
 22. END OF DOCUMENT

@@ -73,6 +73,17 @@ A critical item at V5 fails the critical-data gate. A non-critical V5 item may
 remain in the report only as an explicit unknown and must reduce confidence.
 An `EXECUTE` outcome may not depend on a V5 critical item.
 
+**Criticality is decided solely by the §3 table above.** No engine —
+Market, Portfolio, Scanner, Options, Decision, Committee, Red Team, or
+Master Decision — may independently reclassify a data item as critical or
+non-critical to justify stopping or proceeding. If an engine believes a data
+item's criticality is wrong for its use case, that is a proposed change to
+this document (subject to `CONSTITUTION.md` §7 change control), not a
+per-run judgment call. This exists specifically to prevent the scenario
+where, e.g., the Market Engine halts on missing macro data while the
+Decision Engine proceeds to rank candidates anyway — both SHALL apply the
+same §3 classification.
+
 ---
 
 ## 5. Conflict Resolution
@@ -82,6 +93,22 @@ value; prefer the more authoritative and timely source; explain the remaining
 uncertainty; and lower the verification level when the conflict is material.
 The system SHALL not average contradictory values or silently select the more
 convenient claim.
+
+The precedence order for "more authoritative" is fixed, not judged case by
+case:
+
+1. **Tier priority** — a higher §2 source tier always wins over a lower one
+   (S1 > S2 > S3 > S4 > S5), regardless of which is more recent.
+2. **Same-tier tie-break** — if two sources share the same tier, the one
+   with the more recent verified timestamp wins.
+3. **Still unresolved** — if tier and timestamp are both tied (or the
+   conflict is between two independently material claims that cannot be
+   reduced to one "winning" value, e.g. genuinely conflicting news
+   sentiment), the system SHALL NOT silently pick one. Label the fact V2
+   (Partially Verified), state both values with their sources, and disclose
+   the conflict explicitly in the report's Evidence Status section
+   (`OUTPUT_CONTRACT.md` §3 item 2). A conflict resolved this way SHALL
+   reduce confidence; it is never treated as if only one value existed.
 
 ---
 

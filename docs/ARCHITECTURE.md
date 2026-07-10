@@ -19,6 +19,11 @@ system/                           Governance, principles, policies, workflow, ou
   STATE_MACHINE.md                Sole workflow source of truth
   VERIFICATION_POLICY.md          V1–V5 evidence classification
   DATA_SOURCE_POLICY.md           Source quality, freshness, critical-data rules
+  DECISION_SNAPSHOT_POLICY.md     What is locked/recorded per published decision
+  ENGINE_INTERFACE_CONTRACT.md    Structured engine-to-engine schema (naming/shape only)
+  FAILURE_TAXONOMY.md             Classification of every non-EXECUTE outcome
+  PARAMETER_REGISTRY.md           Numeric-threshold index (derived view; owning engine wins on conflict)
+  DOCUMENTATION_GOVERNANCE.md     Header standard (Owner/Last Updated) for new documents only
 engines/                          Specialist research and decision components
 playbooks/                        Repeatable, rule-based setup definitions
 docs/                             Architecture, roadmap, and cross-reference maps
@@ -52,19 +57,29 @@ invented substitute.
 
 ## Authority Model
 
-| Layer | Authority |
-|---|---|
-| Human trader | Sole capital and order-execution authority |
-| Core Principles / data controls | Non-negotiable safety and evidence constraints |
-| Risk Engine | Binding preliminary and final risk veto |
-| Red Team Engine | Binding veto for a documented critical risk |
-| State Machine | Valid order of work and recovery transitions |
-| Master Decision Engine | Only publisher of the final integrated outcome |
-| Committee Engine | Independent multi-role assessment; preserves dissent |
-| Specialist engines | Evidence, analysis, classification, and proposed plans |
+Per `CONSTITUTION.md` §4A, "authority" splits into two non-competing kinds:
+**Constraint Authority** (the binding power to forbid an outcome) and
+**Publication Authority** (the sole right to integrate and emit the one
+final report). A component never holds both meaningfully — Risk Engine's
+Constraint Authority does not make it a publisher, and Master Decision
+Engine's Publication Authority does not make it a constraint.
+
+| Layer | Kind | Authority |
+|---|---|---|
+| Human trader | — (outside the system) | Sole capital and order-execution authority |
+| Core Principles / data controls | Constraint | Non-negotiable safety and evidence constraints |
+| Risk Engine | Constraint | Binding preliminary and final risk veto |
+| Red Team Engine | Constraint | Binding veto for a documented critical risk |
+| State Machine | Constraint (procedural) | Valid order of work, recovery transitions, and the §6A revision-cycle limit |
+| Master Decision Engine | Publication | Only publisher of the final integrated outcome; holds no veto |
+| Committee Engine | Neither | Independent multi-role assessment; preserves dissent |
+| Specialist engines | Neither | Evidence, analysis, classification, and proposed plans |
 
 The Master Decision Engine integrates outputs but cannot override an upstream
 critical-data failure, Risk Engine hard veto, or Red Team critical-risk veto.
+`CONSTITUTION.md` §4B Conflict Resolution Protocol states this as one fixed
+priority order (Risk veto > Red Team veto > Committee majority > Master
+Decision integration) for the case where these disagree.
 
 ## Engine Boundaries
 
@@ -87,8 +102,11 @@ critical-data failure, Risk Engine hard veto, or Red Team critical-risk veto.
 Every material factual claim is classified V1–V5 and governed by source tier,
 timestamp, freshness, and conflict rules. Each completed analysis retains an
 evidence ledger, engine outcomes, gate results, assumptions, dissent, outcome,
-invalidation, review triggers, and document versions. Historical analyses are
-append-only; future learning may alter future rules but not past records.
+invalidation, review triggers, and document versions — collected into one
+Decision Snapshot per `DECISION_SNAPSHOT_POLICY.md`. Historical analyses are
+append-only; future learning may alter future rules but not past records. Any
+non-`EXECUTE` outcome is additionally classified under
+`FAILURE_TAXONOMY.md` for audit purposes.
 
 ## Consistency Checklist
 
@@ -100,7 +118,12 @@ Any material document change must confirm:
 - output fields have an evidence and freshness policy;
 - no duplicate engine becomes a competing final-decision authority;
 - no new dependency creates a cycle or points to a later State Machine state
-  — see `docs/DEPENDENCY_MAP.md` §1 and its checklist; and
+  — see `docs/DEPENDENCY_MAP.md` §1 and its checklist;
+- any use of the word "authority" names Constraint or Publication Authority
+  per `CONSTITUTION.md` §4A — never an unqualified "final authority";
+- a change to `STATE_MACHINE.md` §6A's revision-cycle limit, or to any
+  terminal status, stays consistent across `OUTPUT_CONTRACT.md`,
+  `FAILURE_TAXONOMY.md`, and `docs/RESPONSIBILITY_MATRIX.md`; and
 - README architecture matches the repository structure.
 
 ## Extension Rules

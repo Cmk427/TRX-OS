@@ -78,6 +78,29 @@ hierarchy that breaks their intentionally shared authority over State 04.
 
 ---
 
+## 3A. New Cross-Cutting System Documents (Decision Snapshot, Engine Interface, Failure Taxonomy, Parameter Registry, Documentation Governance)
+
+These five documents are deliberately **downstream of everything** — they
+observe, classify, or index the pipeline's outputs and rules, they never
+feed a decision:
+
+| Document | Declared dependencies | Forward-dependency check |
+|---|---|---|
+| `DECISION_SNAPSHOT_POLICY.md` | Verification, Data Source, Master Decision (16) | Pass — reads engine version fields after the fact; not a dependency *of* any engine |
+| `ENGINE_INTERFACE_CONTRACT.md` | State Machine, all engines (05–17) | Pass by design, same shape as Master Decision's aggregator role — but unlike Master Decision, no document declares this contract as a dependency, so no cycle is possible |
+| `FAILURE_TAXONOMY.md` | State Machine, Output Contract, Risk, Data Source | Pass — classifies outcomes State Machine and Output Contract already define; does not originate a new outcome |
+| `PARAMETER_REGISTRY.md` | Risk, Portfolio, Market, Scanner, Playbook, Options, Committee, Master Decision, Execution, State Machine | Pass by design — indexes numbers already owned elsewhere; explicitly non-authoritative on conflict (§1 of that document) |
+| `DOCUMENTATION_GOVERNANCE.md` | Constitution | Pass — governs future document headers only, applies to nothing retroactively |
+
+None of the five may ever become a declared dependency of an engine
+document (Market, Portfolio, Risk, Scanner, Playbook, Options, Decision,
+Committee, Red Team, Master Decision, Execution). If a future change adds
+such a dependency, treat it the same as the Playbook → Master Decision cycle
+in §5 — remove it, because it would let a purely observational document
+retroactively constrain the pipeline it only reports on.
+
+---
+
 ## 4. Reverse Index — "who depends on me"
 
 | Document | Depended on by |
@@ -94,8 +117,11 @@ hierarchy that breaks their intentionally shared authority over State 04.
 | `PLAYBOOK_ENGINE.md` | Options |
 | `DECISION_ENGINE.md` | Committee, Red Team |
 | `COMMITTEE_ENGINE.md` | Red Team |
-| `MASTER_DECISION_ENGINE.md` | Execution |
-| `OUTPUT_CONTRACT.md` | Execution (and every final report) |
+| `MASTER_DECISION_ENGINE.md` | Execution, Decision Snapshot Policy |
+| `OUTPUT_CONTRACT.md` | Execution (and every final report), Decision Snapshot Policy, Failure Taxonomy |
+| `DECISION_SNAPSHOT_POLICY.md` | Output Contract (references it, does not gate it) |
+| `ENGINE_INTERFACE_CONTRACT.md` | Nothing (v1.0) — reserved for `workflows/` |
+| `FAILURE_TAXONOMY.md` | Output Contract, State Machine (references, does not gate) |
 
 No document in this index is depended on by anything upstream of its own
 State Machine position — this is what keeps the graph acyclic outside the
@@ -133,6 +159,10 @@ dependencies are now Market Engine (05), Scanner Engine (09), and
       foundational to every engine, never the reverse).
 - [ ] `docs/ARCHITECTURE.md` and `docs/RESPONSIBILITY_MATRIX.md` still match
       the corrected authority and dependency picture.
+- [ ] `DECISION_SNAPSHOT_POLICY.md`, `ENGINE_INTERFACE_CONTRACT.md`,
+      `FAILURE_TAXONOMY.md`, `PARAMETER_REGISTRY.md`, and
+      `DOCUMENTATION_GOVERNANCE.md` remain purely downstream/observational
+      per §3A — none has become a declared dependency of an engine.
 
 ---
 

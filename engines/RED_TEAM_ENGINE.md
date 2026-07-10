@@ -60,9 +60,19 @@ Prevent emotional trading
 4. REVIEW PROCESS
 -------------------------------------------------------------------------------
 
-Every recommendation SHALL undergo
+Every recommendation SHALL undergo, in order, every mandatory attack category
+in §4A — not a free-form bearish opinion, and not a subset chosen by the Red
+Team itself:
 
-Bear Thesis Review
+Bear Thesis Review (Thesis Attack)
+
+↓
+
+Data Attack (§4A)
+
+↓
+
+Assumption Audit
 
 ↓
 
@@ -82,6 +92,14 @@ Risk Challenge
 
 ↓
 
+Valuation Challenge
+
+↓
+
+Timing Challenge
+
+↓
+
 Execution Challenge
 
 ↓
@@ -91,6 +109,41 @@ Alternative Comparison
 ↓
 
 Final Verdict
+
+-------------------------------------------------------------------------------
+4A. MANDATORY ATTACK CATEGORY INDEX
+-------------------------------------------------------------------------------
+
+Seven baseline categories are required for every review, mapped to sections
+below. Four additional specialised attacks (Macro, Technical, Portfolio,
+Catalyst) are also mandatory per the sequence above — they exist because
+this system's original design already went further than a minimal
+seven-category framework, and removing them would be a regression, not a
+simplification.
+
+| Category | Section | What it attacks |
+|---|---|---|
+| THESIS ATTACK | §4 Bear Thesis Review | The core investment thesis itself — why the directional or setup call could simply be wrong |
+| DATA ATTACK | this section, below | Whether the verified facts the thesis relies on are actually as solid as claimed |
+| ASSUMPTION ATTACK | §5 Assumption Audit | Hidden or unstated assumptions behind the thesis |
+| VALUATION ATTACK | §12 Valuation Challenge | Whether the entry price/strike already reflects the good news |
+| RISK ATTACK | §9 Risk Challenge | Whether stated risk is understated relative to `RISK_ENGINE.md`'s models |
+| TIMING ATTACK | §13 Timing Challenge | Whether "now" is actually the right time, independent of direction being correct |
+| EXECUTION ATTACK | §10 Execution Challenge | Whether the plan is actually executable at the stated size/liquidity/spread |
+
+**Data Attack** (new, this section): the Red Team SHALL independently
+re-check whether each material fact the thesis depends on is genuinely at
+the V-label claimed in the Verification ledger (`VERIFICATION_POLICY.md`),
+not merely assume the upstream engines labelled it correctly. This is
+distinct from the Assumption Audit, which attacks *reasoning*, not *evidence
+quality*. A V3 estimate quietly treated as if it were V1 fact anywhere in the
+upstream analysis is a Data Attack finding, reported here even if no
+downstream engine flagged it.
+
+Every attack category above SHALL produce an explicit finding — "survived"
+or "failed," with the specific reason — in the Output Format (§20). A
+category with no finding recorded is treated as not having been attacked at
+all, per §22 Final Rule.
 
 -------------------------------------------------------------------------------
 5. ASSUMPTION AUDIT
@@ -423,6 +476,11 @@ Reject
 Every Red Team Report SHALL contain
 
 Original Thesis
+
+**Attack Category Results** — one row per §4A category (Thesis, Data,
+Assumption, Valuation, Risk, Timing, Execution, plus Macro/Technical/
+Portfolio/Catalyst): category name, finding, survived / failed. A report
+missing any required category's row is incomplete per §22.
 
 Primary Weakness
 

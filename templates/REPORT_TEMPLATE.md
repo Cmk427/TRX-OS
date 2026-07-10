@@ -11,6 +11,8 @@ Dependencies     : OUTPUT_CONTRACT.md
                    VERIFICATION_POLICY.md
                    DATA_SOURCE_POLICY.md
                    DECISION_TEMPLATE.md
+                   DECISION_SNAPSHOT_POLICY.md
+                   FAILURE_TAXONOMY.md
 Applies To       : Every final report (State 19)
 ```
 
@@ -33,6 +35,7 @@ Applies To       : Every final report (State 19)
 
 ```text
 狀態：INSUFFICIENT VERIFIED INFORMATION
+Failure Taxonomy 分類：DATA_FAILURE
 
 未能驗證的關鍵項目：
 來源／時效狀態：
@@ -42,20 +45,38 @@ Applies To       : Every final report (State 19)
 
 ---
 
+## A2. 系統覆核要求（僅在修正循環超過上限時使用）
+
+```text
+狀態：SYSTEM REVIEW REQUIRED
+Failure Taxonomy 分類：CONFLICT_FAILURE
+
+觸發此結果的 State（依 STATE_MACHINE.md §6A 修正循環計數，已達上限 2 次）：
+每次修正嘗試的內容：
+未能收斂的原因：
+建議人類覆核的重點：
+```
+
+不得以 `NO TRADE` 取代此狀態——誠實呈現「系統未能收斂」，而非把它包裝成一個
+保守的結論。
+
+---
+
 ## B. 完整決策報告
 
 ### 1. 執行摘要
 
 ```text
 結果（EXECUTE / WATCH / HOLD / REDUCE / EXIT / NO TRADE）：
-信心水平（Very High / High / Medium / Low / Very Low）：
+信心水平（Very High / High / Medium / Low / Very Low，由 Weighted Composite
+  Score 計算，見第 12 節；信心與結果分開判定，滿分通過所有閘門仍可為 Low）：
 市場制度（Regime）：
 最高優先行動：
 最大投資組合風險：
 是否允許承擔新風險：
 ```
 
-### 2. 證據狀態與時點
+### 2. 證據狀態、時點與 Decision Snapshot
 
 ```text
 市場時段：
@@ -63,6 +84,14 @@ Applies To       : Every final report (State 19)
 重要事實 V1–V5 標籤：
 資料衝突（如有）：
 關鍵未知事項：
+
+Decision Snapshot（依 DECISION_SNAPSHOT_POLICY.md §2）：
+  市場資料時戳：
+  各引擎文件版本（Market/Portfolio/Risk/Scanner/Playbook/Options/Decision/
+    Committee/Red Team/Master Decision/Execution）：
+  Confidence Model 版本（MASTER_DECISION_ENGINE.md §7）：
+  Playbook Library 版本：
+  修正循環計數（STATE_MACHINE.md §6A）：
 ```
 
 ### 3. 市場制度
@@ -147,14 +176,15 @@ Option Quality Score：
 ### 9. 風險評估
 
 ```text
-Risk Score 定義與數值：
+Risk Score（依 RISK_ENGINE.md §24A 扣分模型計算，非估計值）：
 最大組合損失：
 倉位大小：
 報酬／風險比：
 回撤影響：
 風險預算佔用：
-組合熱度（Heat）：
-否決（Veto，如有）：
+組合熱度 Heat（依 §7A 公式：Σ 各倉位止損最大損失 ÷ 組合總值；
+  期權倉位使用 Premium at Risk，見 RISK_ENGINE.md §28A）：
+否決（Veto，如有；Risk Engine 持 Constraint Authority，非 Publication Authority）：
 ```
 
 ### 10. Red Team 覆核
@@ -185,15 +215,20 @@ Risk Score 定義與數值：
 異議（逐字保留）：
 ```
 
-### 12. Master Decision（唯一最終結果）
+### 12. Master Decision（唯一最終結果，Publication Authority）
 
 ```text
-最終結果：
+最終結果（EXECUTE / WATCH / HOLD / REDUCE / EXIT / NO TRADE /
+  INSUFFICIENT VERIFIED INFORMATION / SYSTEM REVIEW REQUIRED）：
 理據：
 條件（如有）：
+Weighted Composite Score（MASTER_DECISION_ENGINE.md §7，僅決定信心，不決定結果）：
 信心：
 已遵守的約束閘門：驗證 ✅/❌　風險 ✅/❌　Red Team ✅/❌
 ```
+
+Master Decision Engine 不持否決權；上列任一閘門為 ❌ 時，最終結果必須是該閘門
+要求的結果，不可由 Master Decision 覆寫（`CONSTITUTION.md` §4A）。
 
 ### 13. 執行計劃
 
@@ -201,16 +236,22 @@ Risk Score 定義與數值：
 
 ```text
 行動／合約：
-訂單類型：
+訂單類型（依 EXECUTION_ENGINE.md §3A 價差／流動性分級表決定）：
 入場區間（含時間戳記）：
 止損／失效條件：
 目標／分批出場邏輯：
 倉位大小／所需資金：
 最大損失：
 時間範圍／覆核日：
-流動性／價差備註：
+流動性檢查（§3B：≤ 日均量 10% 或 ≤ 未平倉量 10%）：
+滑價假設（§3C：半價差 + 波動緩衝）：
+假定市場時段／停牌狀態（§3D）：
+期權專用：買賣價差、IV、未平倉量、距到期日緩衝（§3E）：
 人手起飛前檢查：　[ ] 已檢視即時下單畫面　[ ] 已檢視帳戶限制
 ```
+
+若關鍵執行資料已過時：`DO NOT EXECUTE — REVERIFY`
+（分類為 Failure Taxonomy 的 `EXECUTION_INVALID`）。
 
 ### 14. 自我審核
 
@@ -220,13 +261,18 @@ Risk Score 定義與數值：
 - [ ] 有行動建議時，倉位大小、風險、止損、失效條件與出場均已定義
 - [ ] Committee、Red Team 與 Risk 結果均已呈現（含異議）
 - [ ] Master Decision 未推翻驗證、風險或 Red Team 的否決
+- [ ] Decision Snapshot 各欄位已填妥（第 2 節）；若有缺漏已在此標記為缺陷
 
 ---
 
 ## 2. 信心與用語提醒
 
-信心是對證據品質與清晰度的陳述，不是對未來機率的預測。報告不得承諾回報、
-不得暗示系統可自動執行交易，且必須保留 `NO TRADE` 作為有效結果的可能性。
+信心是對證據品質與清晰度的陳述，不是對未來機率的預測。信心由 Weighted
+Composite Score 計算（`MASTER_DECISION_ENGINE.md` §7），與「結果」完全分開判
+定——結果只由第 12 節的約束閘門決定。因此「所有閘門皆通過的 EXECUTE」仍可能
+是 Low Confidence，這是預期中的組合，不是矛盾，必須如實呈現，不可為了與結果
+「配對好看」而調高信心。報告不得承諾回報、不得暗示系統可自動執行交易，且必須
+保留 `NO TRADE` 作為有效結果的可能性。
 
 ---
 

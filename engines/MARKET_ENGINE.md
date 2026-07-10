@@ -394,6 +394,35 @@ Below 60
 Defensive
 
 -------------------------------------------------------------------------------
+15A. REGIME TRANSITION CONTROL
+-------------------------------------------------------------------------------
+
+A Regime Transition is detected whenever this session's Market Score band
+(Exceptional/Strong/Healthy/Weak/Defensive, per §15) differs from the prior
+session's band — in either direction, not only downgrades. This is a
+mechanical, band-crossing detection, not a subjective "does it feel
+different" judgment.
+
+On a detected transition, the current session becomes a mandatory
+Transition Period. During a Transition Period:
+
+Recommended exposure is capped one Risk Multiplier tier (§16) more
+conservative than the raw Market Score alone would imply — e.g. a Market
+Score newly at 82 (raw tier: 75% per §16) is capped at the 70+ tier's 50%
+during the Transition Period.
+
+Every Playbook assignment made under the prior regime SHALL be re-verified
+against current conditions at `PLAYBOOK_ENGINE.md` State 10 before being
+reused — a playbook match from before the transition is not carried forward
+automatically, because regime-dependent setups (e.g. PB-010 Defense
+Rotation assumes risk-off; PB-001 Momentum Breakout assumes a supportive
+regime) may no longer fit.
+
+The Transition Period ends, and the one-tier exposure cap lifts, at the next
+session in which the Market Score band matches the current session's band
+(i.e., the band has held for two consecutive sessions).
+
+-------------------------------------------------------------------------------
 16. RISK MULTIPLIER
 -------------------------------------------------------------------------------
 

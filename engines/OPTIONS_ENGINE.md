@@ -94,6 +94,30 @@ The reward model states the verified premium, break-even, target-price basis,
 expected-return assumptions, and risk/reward ratio. It does not invent a
 probability or claim that a target will be reached.
 
+### 5A. Named Option Risk Factors
+
+Options carry risk shapes an equity stop-loss model cannot express. This
+engine, not `RISK_ENGINE.md`, owns the following, each of which SHALL be
+explicitly assessed and reported (not merely implied by the Greeks table in
+§4):
+
+| Factor | What it is | Requirement |
+|---|---|---|
+| Theta decay | Time value lost per day as expiry approaches | Already assessed in §4; confirm decay rate remains acceptable across the full intended holding period, not just at entry |
+| IV crush risk | A sharp implied-volatility drop immediately after a known catalyst (e.g. earnings) that reduces premium independent of price direction | Explicitly flag when the position is held through a scheduled IV-moving event; state expected pre/post-event IV if known, or mark unknown |
+| Delta exposure | Directional sensitivity to the underlying | Already scored in §4; restate here as the position's effective directional risk for portfolio-level aggregation |
+| Gamma risk | Rate of change of delta — how quickly directional exposure can accelerate near the strike as expiry nears | Already assessed in §4; flag when gamma risk is elevated (near-the-money, near expiry) as a distinct line item, not folded silently into "Greeks look fine" |
+| Expiration risk | Risk that time runs out before the thesis plays out, and mechanics at/near expiry | State days-to-expiry versus intended holding period explicitly; a Long Call bought under this engine's rules is never held through exercise by assignment risk to the buyer — assignment risk applies to option *sellers*, not buyers, and does not apply here. State this explicitly per contract so it is never silently assumed to be a live risk that was overlooked, nor silently applied where it does not belong |
+| Liquidity / spread risk | Cost and feasibility of exiting before expiry | Already assessed via the Liquidity Score above; restate as a named risk line, not just a score |
+
+Maximum premium risk and Portfolio Heat roll-up for this position use
+**Premium at Risk**, not equity stop-distance — see `RISK_ENGINE.md` §28A
+Options Risk Bridge for the exact aggregation rule. This document defines
+the risk factors above; `RISK_ENGINE.md` only aggregates the resulting
+number into portfolio-level Heat and the Risk Score deduction model. Neither
+document may assume the other has covered a factor it has not itself
+assessed.
+
 ---
 
 ## 6. Option Quality Score
@@ -120,7 +144,10 @@ Portfolio, Risk, or Red Team veto.
 For every eligible contract, report the underlying, current price and timestamp,
 contract, strike, expiry, premium, delta, gamma, theta, vega, IV Rank,
 Liquidity Score, Option Quality Score, bull thesis, bear thesis, maximum risk,
-expected holding period, and evidence status.
+expected holding period, and evidence status, plus the named risk factors in
+§5A: IV crush exposure (or "none — no scheduled event in holding window"),
+gamma risk flag, expiration risk (days-to-expiry vs. holding period), and an
+explicit assignment-risk statement (not applicable to a bought Long Call).
 
 The proposed plan SHALL include profit exit, time exit, stop or thesis-break
 criteria, catalyst exit, volatility exit, and the condition that invalidates the
@@ -134,6 +161,44 @@ final Risk and Red Team review.
 The engine SHALL NOT recommend illiquid contracts, ignore theta, IV, or spread,
 or present unverified option values as facts. It cannot issue a final
 recommendation or bypass the Master Decision Engine.
+
+The Options Engine additionally SHALL NOT judge what maximum risk is
+*acceptable* for the account — it only measures and reports maximum risk
+(§5, §5A, §7). Whether a given Premium at Risk is acceptable is decided
+solely by `RISK_ENGINE.md` (via the Options Risk Bridge, §28A of that
+document) against the account's actual risk budget. An Options Engine
+output that says "high win-rate Long Call" without the full §7 handoff
+(premium, delta, gamma, theta, vega, IV Rank, liquidity, named risk factors)
+is incomplete and cannot reach the Risk Gate — Risk Engine has nothing to
+evaluate acceptability against otherwise.
+
+---
+
+## 8A. Time Risk Rules
+
+Direction can be correct and a Long Call can still lose to time. These
+rules apply for the life of the position, distinct from the entry-only
+minimum-DTE-buffer rule in `EXECUTION_ENGINE.md` §3E:
+
+- **Minimum DTE at entry**: no new Long Call entry with fewer than 30 days
+  to expiration, regardless of Playbook or catalyst timing.
+- **Maximum intended holding period**: the stated holding period SHALL NOT
+  exceed 60% of the contract's DTE at entry (e.g., a 30 DTE contract's
+  intended hold is capped at 18 calendar days), leaving a decay buffer
+  before expiry mechanics dominate.
+- **Theta loss review trigger**: if cumulative theta-driven premium loss
+  reaches 20% of the originally paid premium while the underlying thesis is
+  not yet confirmed invalid, this SHALL force a mandatory Position Review
+  (per `RISK_ENGINE.md` §23) specifically evaluating whether time decay has
+  made continued holding unfavorable even though the directional thesis is
+  intact — this is a distinct exit trigger from thesis invalidation.
+- **Exit before expiry**: `EXECUTION_ENGINE.md` §3E's 5-calendar-day
+  minimum-DTE-for-new-entry rule also governs continued holding — a Long
+  Call SHALL be exited or explicitly re-justified once DTE falls to 5 or
+  below, independent of thesis status.
+
+These numbers are v1.0 defaults, not a claim of optimality; they exist so
+"direction was right" is never silently treated as "the trade worked."
 
 ---
 

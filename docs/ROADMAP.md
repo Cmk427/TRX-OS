@@ -26,6 +26,24 @@ Status: completed in this repository.
 - A reserved, rule-bound `workflows/` folder for future tool-level
   orchestration, with no workflow implemented yet.
 - No live broker integration, autonomous trading, or fabricated market data.
+- Second-review hardening: Constraint/Publication Authority split
+  (`CONSTITUTION.md` §4A), a named Conflict Resolution Protocol (§4B), a
+  Human Override recording contract (§6A), computable Risk formulas
+  (`RISK_ENGINE.md` §7A/§8A/§24A), a Confidence/Uncertainty split
+  (`OUTPUT_CONTRACT.md` §5, `MASTER_DECISION_ENGINE.md` §14A), a fixed
+  Red Team attack-category framework (`RED_TEAM_ENGINE.md` §4A), a
+  Committee Consensus Score formula (`COMMITTEE_ENGINE.md` §10), a bounded
+  State Machine revision cycle (§6A, `SYSTEM REVIEW REQUIRED`), an explicit
+  per-state Owner/Input/Result/Failure contract (`STATE_MACHINE.md` §3), a
+  locked data-criticality and conflict-resolution rule
+  (`DATA_SOURCE_POLICY.md`), Portfolio Construction limits
+  (`PORTFOLIO_ENGINE.md` §9A), Long Call time-risk rules
+  (`OPTIONS_ENGINE.md` §8A), an explicit Execution Gate
+  (`EXECUTION_ENGINE.md` §1A), a Playbook Lifecycle
+  (`PLAYBOOK_LIBRARY.md` §5), and three new reference documents —
+  `system/PARAMETER_REGISTRY.md`, `system/DOCUMENTATION_GOVERNANCE.md`, and
+  the round-1 Decision Snapshot / Engine Interface / Failure Taxonomy
+  documents, extended with Decision ID / Human Action / Outcome fields.
 
 ## v1.1 — Operational Research Schemas
 
@@ -47,9 +65,25 @@ without recorded data, methodology, and verification.
 
 Potential next step after v1.1:
 
-- Human-supplied trade journal schema and immutable decision-to-outcome link.
-- Post-trade review of thesis quality, execution discipline, risk, and
-  invalidation handling.
+- Human-supplied trade journal schema and immutable decision-to-outcome link,
+  built on the Decision Snapshot's Human Action and Outcome fields
+  (`system/DECISION_SNAPSHOT_POLICY.md` §2).
+- A Post-Trade Review process (prediction vs. actual outcome, mistake type,
+  improvement) — this is the "learning loop" the document architecture
+  intentionally does not close in v1.0: Analysis → Decision → Execution
+  exists today; Outcome → Review → Improve requires the journal data this
+  version produces first.
+- A Historical Validation / backtesting layer for the Playbook Library: win
+  rate, drawdown, sample size, and market-regime-conditional performance per
+  playbook, with explicit sampling-size caveats. Until this exists, no
+  playbook may be described as validated — `PLAYBOOK_LIBRARY.md` §4 already
+  prohibits representing an untested result as historical edge, and
+  `OUTPUT_CONTRACT.md` §5 prohibits treating Confidence as a calibrated
+  probability for the same reason.
+- Confidence calibration: once sufficient journal data exists, compare
+  stated Confidence against actual outcome frequency and report the
+  divergence — this is what finally lets `OUTPUT_CONTRACT.md` §5's current
+  "not yet calibrated" caveat be lifted, and not before.
 - Playbook tracking and performance analytics with explicit sampling limits and
   no retrospective alteration of original decisions.
 
@@ -63,6 +97,31 @@ Potential future work:
   LEAPS, and sector rotation research, each with separate risk and data rules.
 - Comparative research of personalised strategy weighting without weakening the
   constitutional vetoes or creating automated execution.
+- A Research Memory layer surfacing prior thesis, prior decision, and
+  recorded outcome for a ticker/setup at analysis time — built on the
+  append-only Decision Snapshot history accumulated since v1.0; this is a
+  retrieval feature over existing records, not a new authority or veto.
+
+## v2.1 — Implementation-Layer Concerns (once a tool-level system exists)
+
+These items only become relevant once something in `workflows/` actually
+executes this document system automatically; none are meaningful for a
+purely document-driven v1.0–v2.0 and are listed here so they are not lost,
+not because they are scheduled:
+
+- Event-driven triggering (price breakout, volatility spike, earnings,
+  macro release) as an alternative to running the full pipeline on a fixed
+  schedule.
+- An Evaluation Framework measuring each engine's accuracy, consistency,
+  calibration, and false-positive rate release over release — distinct from
+  Confidence Calibration above, which measures the *system's* stated
+  confidence, not each engine's individual reliability.
+- A Security / Access Model (read/execute/admin permissions) — relevant only
+  if a future version connects to a broker or external data API, which
+  itself requires a `CONSTITUTION.md` amendment before any such connection,
+  not merely an engineering task.
+- Environment separation (development/testing/production) so a Playbook or
+  parameter change cannot silently affect a live analysis mid-edit.
 
 ## Promotion Criteria
 

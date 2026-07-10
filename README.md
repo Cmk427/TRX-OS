@@ -43,8 +43,9 @@ TRX 以以下規則運作：
 4. 每個看法均需反方論點；Red Team 可因重大風險否決。
 5. 事實、分析、推論、假設、未知與建議不可混為一談。
 6. Master Decision Engine 是唯一可發布最終整合結果的模組，但不得推翻資料、風險或 Red Team 的否決。
+7. 「權限」分為兩種且互不競爭：Risk / Red Team / 驗證閘門持有的是**否決性約束權**（Constraint Authority），Master Decision Engine 持有的是**發布權**（Publication Authority）——後者從不能凌駕前者。
 
-完整規範見 [Core Principles](system/CORE_PRINCIPLES.md)、[Constitution](system/CONSTITUTION.md) 及 [System Governance](system/SYSTEM.md)。
+完整規範見 [Core Principles](system/CORE_PRINCIPLES.md)、[Constitution](system/CONSTITUTION.md)（§4A 定義兩種權限）及 [System Governance](system/SYSTEM.md)。
 
 ---
 
@@ -60,7 +61,12 @@ TRX-Trading-Research-eXecution--main/
 │   ├── OUTPUT_CONTRACT.md
 │   ├── STATE_MACHINE.md
 │   ├── VERIFICATION_POLICY.md
-│   └── DATA_SOURCE_POLICY.md
+│   ├── DATA_SOURCE_POLICY.md
+│   ├── DECISION_SNAPSHOT_POLICY.md   # 每次決策鎖定的資料／版本快照
+│   ├── ENGINE_INTERFACE_CONTRACT.md  # 引擎間結構化介面（僅命名/格式，不改權限）
+│   ├── FAILURE_TAXONOMY.md           # 非 EXECUTE 結果的分類法
+│   ├── PARAMETER_REGISTRY.md         # 數值參數索引（僅供查閱，衝突時以原文件為準）
+│   └── DOCUMENTATION_GOVERNANCE.md   # 新文件標頭標準（Owner/Last Updated），不追溯舊文件
 ├── engines/
 │   ├── MARKET_ENGINE.md
 │   ├── PORTFOLIO_ENGINE.md
@@ -107,7 +113,7 @@ TRX-Trading-Research-eXecution--main/
 → 自我審核 → 最終報告
 ```
 
-如關鍵資料未能驗證，系統以 `INSUFFICIENT VERIFIED INFORMATION` 結束，並說明缺少什麼。若資料完整但市場、組合或風險不支持新部署，系統產出 `NO TRADE`、`WATCH`、`HOLD`、`REDUCE` 或 `EXIT`；這些均是完成的保護性結果。
+如關鍵資料未能驗證，系統以 `INSUFFICIENT VERIFIED INFORMATION` 結束，並說明缺少什麼。若資料完整但市場、組合或風險不支持新部署，系統產出 `NO TRADE`、`WATCH`、`HOLD`、`REDUCE` 或 `EXIT`；這些均是完成的保護性結果。若 Master Decision 與 Risk／Self Audit 之間的修正循環超過上限（最多 2 次全流程修正，見 [State Machine](system/STATE_MACHINE.md) §6A），系統以 `SYSTEM REVIEW REQUIRED` 結束並列出未能收斂的原因——這同樣是完成、可審計的結果，而非靜默卡住。
 
 ---
 
@@ -119,10 +125,10 @@ TRX-Trading-Research-eXecution--main/
 | Verification / Data Source | V1–V5 證據標籤、來源質量、時效及衝突處理 |
 | Market / Portfolio | 市場制度、宏觀、持倉、集中度、買入能力及組合相容性 |
 | Scanner / Playbook / Options | 候選宇宙、可重複 setup 分類，以及 Long Call 與現股比較 |
-| Risk | 倉位、最大損失、熱度、回撤、事件與硬性否決 |
-| Committee / Red Team | 多角色獨立評估、保留異議、反證及替代方案 |
-| Decision / Master Decision | 候選排序，以及唯一最終結果整合與報告發布 |
-| Execution | 人類覆核的入場、止損、目標、退出及再驗證清單；不下單 |
+| Risk | 倉位、最大損失（可計算的 Portfolio Heat／Risk Score 公式）、回撤、事件與硬性否決（Constraint Authority） |
+| Committee / Red Team | 多角色獨立評估、保留異議、反證及替代方案（Red Team 持 Constraint Authority） |
+| Decision / Master Decision | 候選排序，以及唯一最終結果整合與報告發布（Publication Authority，不持否決權） |
+| Execution | 人類覆核的入場、止損、目標、退出、下單類型／流動性／滑價與再驗證清單；不下單 |
 
 詳見 [Architecture](docs/ARCHITECTURE.md)、[Responsibility Matrix](docs/RESPONSIBILITY_MATRIX.md)（誰可以做什麼的速查表）及 [Dependency Map](docs/DEPENDENCY_MAP.md)（文件間依賴關係，避免循環依賴）。
 

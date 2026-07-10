@@ -54,6 +54,24 @@ Every recommendation SHALL belong to exactly ONE Playbook.
 Multiple Playbooks are prohibited.
 
 -------------------------------------------------------------------------------
+3A. NO INVENTION — MATCH ONLY
+-------------------------------------------------------------------------------
+
+The Playbook Engine SHALL NOT invent a new playbook, improvise a variant of
+an existing one, or modify a playbook's rules to fit a candidate. Its sole
+function is to match a candidate against `playbooks/PLAYBOOK_LIBRARY.md` as
+currently versioned (§4 below is this engine's index into that Library, not
+an independent rule source).
+
+If no playbook in the Library fits, the correct output is "no match" —
+routing the candidate to `NO TRADE` or `WATCH` — never a freshly-authored
+setup description that resembles a playbook but isn't one. Introducing a
+genuinely new, repeatable setup requires the Library Governance review in
+`PLAYBOOK_LIBRARY.md` §4 (documented rule fields, data requirements, risk
+logic, failure conditions, and an architecture consistency review) before it
+may ever be matched against.
+
+-------------------------------------------------------------------------------
 4. PLAYBOOK INDEX
 -------------------------------------------------------------------------------
 

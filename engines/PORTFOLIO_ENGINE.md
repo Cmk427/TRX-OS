@@ -239,6 +239,27 @@ Correlation
 Exit Trigger
 
 -------------------------------------------------------------------------------
+8A. INVALIDATION-LINKED REVIEW
+-------------------------------------------------------------------------------
+
+"Exit Trigger" above SHALL NOT be reinterpreted freely at review time. Each
+open position has an Invalidation Condition recorded at entry in that
+position's Decision Snapshot (`DECISION_SNAPSHOT_POLICY.md` §2). Position
+Review SHALL check current conditions specifically against that originally
+recorded condition — not a fresh, potentially more lenient re-reading of
+"does this still look okay."
+
+If the recorded Invalidation Condition is breached, this escalates to
+`RISK_ENGINE.md` immediately, outside the position's normal review cadence
+(`RISK_ENGINE.md` §23: Before Market Open / During Market Hours / After
+Market Close / Before Major Events). A breach discovered off-cycle does not
+wait for the next scheduled review.
+
+The Decision Snapshot's Outcome field (`DECISION_SNAPSHOT_POLICY.md` §2) is
+updated at this point if the position is closed or materially changed as a
+result.
+
+-------------------------------------------------------------------------------
 9. CONCENTRATION RISK
 -------------------------------------------------------------------------------
 
@@ -257,6 +278,32 @@ Single Theme Concentration
 If concentration exceeds acceptable limits
 
 Portfolio Risk increases.
+
+-------------------------------------------------------------------------------
+9A. PORTFOLIO CONSTRUCTION RULES
+-------------------------------------------------------------------------------
+
+"Acceptable limits" above are defined here, as default maximum
+concentration percentages of total portfolio value:
+
+Single Stock: 10%
+
+Sector: 30%
+
+Theme (a cross-sector grouping such as "AI" or "EV" — see §10 Correlation
+Review for how hidden theme overlap is identified): 40%
+
+These defaults are modified by the account's Risk Profile
+(`RISK_ENGINE.md` §4 Account Risk Profile) the same way Position Size and
+Portfolio Exposure limits already are — a Conservative profile SHALL use
+tighter limits, not looser ones, and any profile-specific override SHALL be
+recorded explicitly rather than silently assumed.
+
+The Portfolio Fit Score and New Position Compatibility check (§17) SHALL
+reject or flag any candidate whose addition would breach these limits,
+before Risk Engine sizing is even attempted — this is a portfolio-shape
+constraint, distinct from and prior to Risk Engine's position-level sizing
+math.
 
 -------------------------------------------------------------------------------
 10. CORRELATION REVIEW

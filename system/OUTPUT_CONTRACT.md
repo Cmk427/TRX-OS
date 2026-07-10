@@ -10,6 +10,8 @@ Classification   : Core
 Dependencies     : STATE_MACHINE.md
                    VERIFICATION_POLICY.md
                    DATA_SOURCE_POLICY.md
+                   DECISION_SNAPSHOT_POLICY.md
+                   FAILURE_TAXONOMY.md
 Applies To       : Every final report
 ```
 
@@ -35,7 +37,22 @@ When State 03 or 04 cannot complete, the report SHALL state:
 
 It SHALL list the failed critical input, source / freshness status, decision
 impact, and exact information required to resume. It SHALL NOT produce a trade
-recommendation or simulate missing values.
+recommendation or simulate missing values. Classify this outcome as
+`DATA_FAILURE` per `FAILURE_TAXONOMY.md`.
+
+### A2. System Review Required
+
+When `STATE_MACHINE.md` §6A's revision-cycle limit is exceeded, the report
+SHALL state:
+
+`STATUS: SYSTEM REVIEW REQUIRED`
+
+It SHALL name every state involved in the unresolved revision loop, what each
+revision attempted, and why the disagreement could not be resolved
+automatically. It SHALL NOT publish `NO TRADE` or any other outcome in place
+of this status — the honest report is that the system could not converge,
+not that it converged on caution. Classify as `CONFLICT_FAILURE` per
+`FAILURE_TAXONOMY.md`.
 
 ### B. Completed Decision Report
 
@@ -43,14 +60,29 @@ Every completed analysis — including `NO TRADE`, `WATCH`, `HOLD`, `REDUCE`,
 and `EXIT` — SHALL contain all sections below. A non-applicable section MUST be
 shown as `Not Applicable` with a reason, never silently omitted.
 
+The report structure itself SHALL NOT create pressure to populate every
+section with a positive finding. Section 6 (New Opportunities) with zero
+candidates and `Not Applicable` is exactly as complete a report as one
+listing three — the mandatory-structure requirement is about *completeness
+of consideration*, not about *finding something to recommend*. A Scanner
+returning `NO ELIGIBLE CANDIDATE` (`STATE_MACHINE.md` §3, State 09) is a
+successful, complete run of that state, not a shortfall to compensate for
+elsewhere in the report.
+
 ---
 
 ## 3. Mandatory Completed-Report Structure
 
-1. **Executive Summary** — outcome, confidence, market regime, highest-priority
-   action, largest portfolio risk, and whether new risk is permitted.
-2. **Evidence Status and As-of Time** — market session, source / freshness
-   summary, material V1–V5 labels, conflicts, and critical unknowns.
+1. **Executive Summary** — outcome, confidence, **uncertainty tier** (Low /
+   Medium / High / Critical, with named reasons — see §5; a separate axis
+   from confidence, not a restatement of it), market regime, highest-priority
+   action, largest portfolio risk, whether new risk is permitted, and (for any
+   non-`EXECUTE` outcome) the `FAILURE_TAXONOMY.md` category.
+2. **Evidence Status, As-of Time, and Decision Snapshot** — market session,
+   source / freshness summary, material V1–V5 labels, conflicts, critical
+   unknowns, and the required `DECISION_SNAPSHOT_POLICY.md` §2 fields (engine
+   document versions used, Confidence Model version, Playbook Library
+   version, and revision count).
 3. **Market Regime** — Market Score, trend, breadth, volatility, macro events,
    sector rotation, recommended exposure, and confidence.
 4. **Portfolio Health** — health score, cash, buying power, largest position,
@@ -71,7 +103,8 @@ shown as `Not Applicable` with a reason, never silently omitted.
 11. **Investment Committee Decision** — each role's vote, confidence,
     supporting evidence, concern, consensus, and dissent.
 12. **Master Decision** — the sole final outcome, rationale, conditions,
-    confidence, and all binding gate results.
+    confidence, uncertainty tier and named reasons, and all binding gate
+    results.
 13. **Execution Plan** — `Not Applicable` or action, order type, entry, stop,
     target, size, capital, exit conditions, human pre-flight checks, and review
     schedule.
@@ -94,12 +127,39 @@ The final report SHALL verify:
 
 ---
 
-## 5. Confidence and Language
+## 5. Confidence, Uncertainty, and Language
 
 Overall confidence SHALL be Very High, High, Medium, Low, or Very Low and
-explain why. Confidence is a statement about evidence quality and clarity, not
-a forecast probability. The report must never promise returns, claim autonomous
-execution, or obscure that `NO TRADE` is valid.
+explain why, computed via the Weighted Composite Score in
+`MASTER_DECISION_ENGINE.md` §7. Confidence is a statement about evidence
+quality and clarity, not a forecast probability, and it is entirely separate
+from outcome selection: an `EXECUTE` outcome that passed every binding gate
+may still carry Low Confidence, and the report SHALL show this combination
+plainly rather than inflate Confidence to match a passing outcome.
+
+**Confidence is not yet calibrated against historical outcomes.** TRX v1.0
+has no backtesting or trade-journal layer (see `docs/ROADMAP.md` v1.2
+Journal and Performance Review), so a stated Confidence of "High" is not a
+claim that similarly-labelled past analyses succeeded at a correspondingly
+high rate — it has not been measured. The report SHALL NOT imply Confidence
+is a validated success probability until that calibration data exists.
+
+**Uncertainty is a separate, mandatory field, not a synonym for low
+confidence.** It is one of four qualitative tiers — Low, Medium, High,
+Critical — each stated with its specific named reason(s): e.g., insufficient
+historical sample size for the assigned Playbook, an unprecedented or
+unclassified market regime (`MARKET_ENGINE.md` § Regime Transition Control),
+a source-freshness edge case that passed verification but is close to its
+freshness limit, or an unresolved same-tier data conflict
+(`DATA_SOURCE_POLICY.md` §5). Confidence and Uncertainty MAY disagree: High
+Confidence with High Uncertainty is a valid, expected combination meaning
+"the available evidence is clear and consistent, but the situation itself
+(e.g. the regime) is sufficiently novel that clear evidence may not
+generalise."
+Never collapse the two into one number.
+
+The report must never promise returns, claim autonomous execution, or
+obscure that `NO TRADE` is valid.
 
 ---
 

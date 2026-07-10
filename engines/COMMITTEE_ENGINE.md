@@ -247,6 +247,25 @@ REDUCE
 REJECT
 
 -------------------------------------------------------------------------------
+5A. VOTE-TO-POINTS MAPPING
+-------------------------------------------------------------------------------
+
+Each of the six voting options in §5 maps to a fixed point value used to
+compute the Consensus / Committee Score in §10:
+
+STRONG BUY = 100
+
+BUY = 80
+
+WATCH = 60
+
+PASS = 40
+
+REDUCE = 20
+
+REJECT = 0
+
+-------------------------------------------------------------------------------
 6. WEIGHTED VOTING
 -------------------------------------------------------------------------------
 
@@ -325,6 +344,19 @@ Risk Level
 10. CONSENSUS LEVEL
 -------------------------------------------------------------------------------
 
+Consensus Score formula (this is the "Committee Score" referenced as an
+input in `MASTER_DECISION_ENGINE.md` §7 — one name, one number, defined only
+here):
+
+Consensus Score = Σ (role weight from §6 × vote points from §5A)
+
+Example: if the Market Strategist (25%) and Portfolio Manager (20%) vote BUY
+(80 pts), Risk Manager (25%) votes WATCH (60 pts), Technical Analyst (15%)
+votes STRONG BUY (100 pts), Execution Specialist (10%) votes BUY (80 pts),
+and Options Specialist (5%) votes PASS (40 pts), the score is
+(0.25×80)+(0.20×80)+(0.25×60)+(0.15×100)+(0.10×80)+(0.05×40) = 76 — Moderate
+Consensus per the bands below.
+
 Consensus Score
 
 95+
@@ -374,6 +406,16 @@ Recommendation
 WATCH
 
 No immediate execution.
+
+Independently of the overall Consensus Score: if the Risk Manager votes
+REDUCE or REJECT, this SHALL force a mandatory escalation to
+`RISK_ENGINE.md` for a formal re-evaluation, regardless of how the other
+five roles voted or what the weighted Consensus Score computes to. This is
+an escalation, not an automatic veto — the Committee itself has no veto
+power (`CONSTITUTION.md` §4A); only `RISK_ENGINE.md`'s own subsequent
+evaluation can turn this into a binding rejection. A high Consensus Score
+achieved by outvoting a dissenting Risk Manager does not skip this
+escalation.
 
 -------------------------------------------------------------------------------
 13. COMMITTEE FAILURE
