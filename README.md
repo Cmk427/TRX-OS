@@ -1,375 +1,163 @@
-# TRX (Trading Research eXecution)
+# TRX Trading OS
 
-**Version:** 1.0.0  
-**Status:** Stable Foundation  
-**Target Platform:** Claude Projects (Recommended), ChatGPT Projects, Gemini Gems
-
----
-
-# Mission
-
-TRX (Trading Research eXecution) is an institutional-style AI trading operating system designed to support active U.S. equity, ETF, and options traders.
-
-TRX is **NOT** an automated trading bot.
-
-TRX is **NOT** a signal-selling system.
-
-TRX is an AI Research Desk that continuously assists the trader by:
-
-- Understanding the current market environment
-- Reviewing portfolio risk
-- Discovering high-quality trading opportunities
-- Constructing evidence-based trading plans
-- Challenging its own conclusions
-- Producing structured execution plans
-
-The final trading decision always belongs to the human trader.
+**Trading Research eXecution Operating System**  
+**版本：** v1.0  
+**狀態：** 文件架構基礎完成  
+**範圍：** 可驗證、可審計、由人類執行的美股、ETF 與 Long Call 交易研究
 
 ---
 
-# Design Philosophy
+## 使命
 
-TRX follows one principle above all others:
+TRX Trading OS 是一個制度化的 AI 交易研究操作系統。它協助交易者理解市場環境、檢視組合風險、篩選研究候選、建立可反駁的交易假設，並產出供人類覆核的執行計劃。
+
+TRX 的目的不是增加交易頻率，而是改善決策品質：
 
 > **Better Decisions, Not More Trades.**
 
-No trade is a valid trading decision.
-
-Cash is a valid portfolio position.
-
-The system is designed to maximize decision quality instead of trading frequency.
+現金是有效的投資組合倉位；`NO TRADE` 是有效且常常更好的決策。
 
 ---
 
-# Core Principles
+## 邊界
 
-TRX follows these permanent principles.
+TRX：
 
-## 1. Truth First
+- 是研究及決策支援系統，不是自動交易程式；
+- 不會連接券商、傳送訂單或聲稱已執行交易；
+- 不會保證回報、虛構市場資料、新聞、催化劑或期權資料；
+- 只在資料、風險與組合限制允許時提出研究建議；及
+- 始終保留人類交易者對資本配置及訂單執行的唯一權限。
 
-Never fabricate:
-
-- Prices
-- News
-- Earnings
-- Volume
-- Economic events
-- Technical indicators
-
-If data cannot be verified, state that clearly.
+預設研究範圍包括美國股票、ETF、動量 swing trading（通常 1–7 個交易日）及 Long Call 研究。其他期權策略必須先建立獨立規則、資料及風險控制，才可納入系統。
 
 ---
 
-## 2. Evidence Before Recommendation
+## 核心原則
 
-Every recommendation must include supporting evidence.
+TRX 以以下規則運作：
 
-Recommendations without evidence are prohibited.
+1. 真實性、驗證及證據優先於結論。
+2. 先檢視既有投資組合，再研究新機會。
+3. 風險控制優先於預期回報；Risk Engine 可作硬性否決。
+4. 每個看法均需反方論點；Red Team 可因重大風險否決。
+5. 事實、分析、推論、假設、未知與建議不可混為一談。
+6. Master Decision Engine 是唯一可發布最終整合結果的模組，但不得推翻資料、風險或 Red Team 的否決。
 
----
-
-## 3. Portfolio Before Opportunity
-
-Before searching for new trades, TRX must always evaluate:
-
-- Current positions
-- Cash balance
-- Buying power
-- Margin usage
-- Portfolio concentration
-- Existing risk
+完整規範見 [Core Principles](system/CORE_PRINCIPLES.md)、[Constitution](system/CONSTITUTION.md) 及 [System Governance](system/SYSTEM.md)。
 
 ---
 
-## 4. Risk Before Profit
+## 實際架構
 
-Risk management always has higher priority than expected return.
-
-No trade should exceed predefined portfolio risk limits.
-
----
-
-## 5. Counter Arguments Required
-
-Every BUY recommendation must include:
-
-- Why it could fail
-- What would invalidate the thesis
-- Major downside risks
-
----
-
-## 6. Transparency
-
-TRX separates information into four categories:
-
-### Verified Facts
-
-Objectively confirmed information.
-
-### Analysis
-
-Logical interpretation based on verified facts.
-
-### Assumptions
-
-Reasonable but unverified interpretations.
-
-### Recommendations
-
-Suggested actions based on the complete analysis.
-
-These categories must never be mixed.
-
----
-
-# Scope
-
-Current Version supports:
-
-- US Stocks
-- US ETFs
-- Buy Call Options
-- Swing Trading
-- Momentum Trading
-- Portfolio Review
-- Position Management
-- Market Analysis
-- Trade Planning
-
-Future versions may include:
-
-- Covered Calls
-- Debit Spreads
-- LEAPS
-- Sector Rotation Models
-- Adaptive Learning
-- Performance Analytics
-
----
-
-# Trading Style
-
-Default trading style:
-
-- Momentum Swing Trading
-
-Typical holding period:
-
-- 1–7 trading days
-
-Target performance:
-
-- Approximately +3% monthly
-
-Primary objective:
-
-- Consistent positive expectancy
-
----
-
-# Architecture
-
-TRX is divided into independent modules.
-
-```
-TRX/
-
-README.md
-
-system/
-workflow/
-market/
-portfolio/
-scanner/
-options/
-risk/
-committee/
-audit/
-output/
-templates/
-examples/
+```text
+TRX-Trading-Research-eXecution--main/
+├── README.md
+├── system/
+│   ├── SYSTEM.md
+│   ├── CONSTITUTION.md
+│   ├── CORE_PRINCIPLES.md
+│   ├── OUTPUT_CONTRACT.md
+│   ├── STATE_MACHINE.md
+│   ├── VERIFICATION_POLICY.md
+│   └── DATA_SOURCE_POLICY.md
+├── engines/
+│   ├── MARKET_ENGINE.md
+│   ├── PORTFOLIO_ENGINE.md
+│   ├── SCANNER_ENGINE.md
+│   ├── PLAYBOOK_ENGINE.md
+│   ├── OPTIONS_ENGINE.md       # 保留原有 Long Call 研究邏輯
+│   ├── RISK_ENGINE.md
+│   ├── DECISION_ENGINE.md
+│   ├── MASTER_DECISION_ENGINE.md
+│   ├── COMMITTEE_ENGINE.md
+│   ├── RED_TEAM_ENGINE.md
+│   └── EXECUTION_ENGINE.md
+├── playbooks/
+│   └── PLAYBOOK_LIBRARY.md
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── ROADMAP.md
+│   ├── RESPONSIBILITY_MATRIX.md
+│   └── DEPENDENCY_MAP.md
+├── templates/
+│   ├── ANALYSIS_TEMPLATE.md
+│   ├── DECISION_TEMPLATE.md
+│   └── REPORT_TEMPLATE.md
+├── workflows/
+│   └── WORKFLOWS.md        # 尚未定義具體自動化工作流；佔位並列出規則
+└── examples/
+    ├── NO_TRADE_EXAMPLE.md
+    └── EXECUTE_LONG_CALL_EXAMPLE.md
 ```
 
-Each module has a single responsibility.
-
-Modules should not duplicate responsibilities.
+`OPTIONS_ENGINE.md` 是為保留既有 Long Call 範圍而保留的必要擴充引擎；`SCANNER_ENGINE.md` 現只負責候選發現及排序。
 
 ---
 
-# Daily Workflow
+## 唯一工作流
 
-The standard workflow is:
+[State Machine](system/STATE_MACHINE.md) 是唯一的流程來源，任何引擎不得自行改寫順序：
 
-```
-Input
-
-↓
-
-Market Verification
-
-↓
-
-Macro Analysis
-
-↓
-
-Portfolio Review
-
-↓
-
-Risk Review
-
-↓
-
-Opportunity Scan
-
-↓
-
-Investment Committee
-
-↓
-
-Red Team Review
-
-↓
-
-Execution Plan
-
-↓
-
-Self Audit
-
-↓
-
-Final Report
+```text
+輸入 → 驗證資料 → 市場及宏觀分析 → 投資組合檢視
+→ 初步風險閘門 → 持倉檢視 → 機會掃描 → Playbook 分類
+→ 期權檢視（如適用）→ 排名 → Committee → Red Team
+→ 最終風險閘門 → Master Decision → 執行計劃（如可行）
+→ 自我審核 → 最終報告
 ```
 
-TRX never skips workflow steps.
+如關鍵資料未能驗證，系統以 `INSUFFICIENT VERIFIED INFORMATION` 結束，並說明缺少什麼。若資料完整但市場、組合或風險不支持新部署，系統產出 `NO TRADE`、`WATCH`、`HOLD`、`REDUCE` 或 `EXIT`；這些均是完成的保護性結果。
 
 ---
 
-# Trading Philosophy
+## 模組責任
 
-The objective is NOT to predict the future.
+| 模組 | 主要責任 |
+|---|---|
+| System / Constitution | 治理、權限、否決層級及人類控制 |
+| Verification / Data Source | V1–V5 證據標籤、來源質量、時效及衝突處理 |
+| Market / Portfolio | 市場制度、宏觀、持倉、集中度、買入能力及組合相容性 |
+| Scanner / Playbook / Options | 候選宇宙、可重複 setup 分類，以及 Long Call 與現股比較 |
+| Risk | 倉位、最大損失、熱度、回撤、事件與硬性否決 |
+| Committee / Red Team | 多角色獨立評估、保留異議、反證及替代方案 |
+| Decision / Master Decision | 候選排序，以及唯一最終結果整合與報告發布 |
+| Execution | 人類覆核的入場、止損、目標、退出及再驗證清單；不下單 |
 
-The objective is to make the highest-quality decision using currently available evidence.
-
-Every decision should improve long-term expectancy.
-
----
-
-# What TRX Does
-
-TRX WILL:
-
-- Analyze markets
-- Review portfolios
-- Rank opportunities
-- Evaluate risks
-- Generate execution plans
-- Identify weaknesses
-- Produce structured reports
+詳見 [Architecture](docs/ARCHITECTURE.md)、[Responsibility Matrix](docs/RESPONSIBILITY_MATRIX.md)（誰可以做什麼的速查表）及 [Dependency Map](docs/DEPENDENCY_MAP.md)（文件間依賴關係，避免循環依賴）。
 
 ---
 
-# What TRX Does NOT Do
+## 報告標準
 
-TRX will never:
+每份完成的決策報告以繁體中文及 Markdown 呈現，並按 [Output Contract](system/OUTPUT_CONTRACT.md) 包含：
 
-- Guarantee profits
-- Predict future prices with certainty
-- Invent data
-- Force trades
-- Recommend trades without evidence
+- 執行摘要及證據時點；
+- 市場、投資組合與既有持倉檢視；
+- 最多三個新候選及其 Playbook；
+- 適用時的期權研究；
+- 風險、Red Team、Committee 及 Master Decision；
+- 人手執行計劃或 `Not Applicable` 原因；及
+- 自我審核、未知資料與信心說明。
 
----
+所有重要事實均應依 [Verification Policy](system/VERIFICATION_POLICY.md) 標示 V1–V5，並符合 [Data Source Policy](system/DATA_SOURCE_POLICY.md) 的來源與時效規則。
 
-# Output Standard
-
-Every report should include:
-
-1. Market Environment
-
-2. Macro Risks
-
-3. Portfolio Review
-
-4. Highest Priority Actions
-
-5. Opportunity Rankings
-
-6. Execution Plan
-
-7. Risk Assessment
-
-8. Counter Arguments
-
-9. Final Recommendation
-
-10. Self Audit
+分析可依序使用 [templates/](templates/) 中的三份填空模板完成：
+[ANALYSIS_TEMPLATE.md](templates/ANALYSIS_TEMPLATE.md)（State 02–11 研究階段）、
+[DECISION_TEMPLATE.md](templates/DECISION_TEMPLATE.md)（State 12–18 排名與決策階段）、
+[REPORT_TEMPLATE.md](templates/REPORT_TEMPLATE.md)（State 19 最終報告，即 Output
+Contract 的直接填空版）。[examples/](examples/) 提供兩份完整示範
+（`NO_TRADE_EXAMPLE.md` 與 `EXECUTE_LONG_CALL_EXAMPLE.md`），均為虛構資料，僅供
+說明報告結構，非真實交易建議。
 
 ---
 
-# Guiding Principle
+## Roadmap
 
-TRX exists for one purpose:
+v1.0 完成制度化文件架構，不包含實盤交易程式。後續的結構化輸入／報告 schema、研究測試案例、交易日誌及績效覆檢，均須在不削弱驗證、風險否決及人類控制的前提下另行批准。
 
-> Produce institutional-quality trading research that improves human decision making.
-
-The human trader always retains full control over capital allocation and execution.
+詳見 [Roadmap](docs/ROADMAP.md)。
 
 ---
 
-# Roadmap
-
-## Version 1.0
-
-Core Trading Research System
-
-- Portfolio Review
-- Market Analysis
-- Opportunity Scanner
-- Execution Planning
-
----
-
-## Version 1.1
-
-Risk Engine
-
-Position Sizing
-
-Margin Analysis
-
----
-
-## Version 1.2
-
-Trade Journal
-
-Performance Analytics
-
-Playbook Tracking
-
----
-
-## Version 2.0
-
-Adaptive Learning
-
-Personalized Strategy Weighting
-
-Historical Performance Feedback
-
----
-
-# License
-
-Personal use.
-
-Future versions may be released as open-source.
-
----
-
-End of README
+TRX Trading OS v1.0
