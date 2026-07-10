@@ -1,374 +1,334 @@
 # Atlas Trading OS
-## SCANNER_ENGINE.md
+## OPTIONS_ENGINE.md
 
 ```text
-Document ID      : ATO-SCN-001
-Document Name    : Scanner Engine
+Document ID      : ATO-OPT-001
+Document Name    : Options Engine
 Version          : 1.0.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : MARKET_ENGINE.md
                    PORTFOLIO_ENGINE.md
-                   VERIFICATION_POLICY.md
+                   SCANNER_ENGINE.md
                    DECISION_ENGINE.md
-Applies To       : Opportunity Discovery
+                   VERIFICATION_POLICY.md
+Applies To       : Buy Call Strategies
 ```
 
 -------------------------------------------------------------------------------
 1. PURPOSE
 -------------------------------------------------------------------------------
 
-The Scanner Engine discovers and ranks trading opportunities that satisfy
-Atlas Trading OS quality standards.
+The Options Engine evaluates whether purchasing Call Options provides a
+superior risk-adjusted opportunity compared to purchasing the underlying stock.
 
-The objective is NOT to find the most stocks.
+The objective is NOT to maximize leverage.
 
-The objective is to identify the highest-quality opportunities after market,
-portfolio and risk evaluation.
-
--------------------------------------------------------------------------------
-2. EXECUTION ORDER
--------------------------------------------------------------------------------
-
-Scanner Engine SHALL execute ONLY AFTER
-
-✓ Market Engine
-
-✓ Portfolio Engine
-
-✓ Risk Engine
-
-If any prerequisite fails,
-
-Scanner Engine SHALL NOT execute.
+The objective is to maximize asymmetric return while maintaining controlled
+portfolio risk.
 
 -------------------------------------------------------------------------------
-3. SCAN UNIVERSE
+2. SCOPE
 -------------------------------------------------------------------------------
 
-Supported Assets
+Supported
 
-• US Stocks
+✓ Long Call
 
-• US ETFs
+Future Versions
 
-• Buy Call Candidates
+Covered Call
 
-Default Exclusions
+Cash Secured Put
 
-• OTC
+Vertical Spread
 
-• Pink Sheets
+Calendar Spread
 
-• Delisted Securities
+Diagonal Spread
 
-• Extremely Illiquid Stocks
-
-• Average Daily Dollar Volume below configured threshold
+LEAPS
 
 -------------------------------------------------------------------------------
-4. INITIAL FILTER
+3. REQUIRED INPUTS
 -------------------------------------------------------------------------------
 
-Every candidate SHALL pass
+Underlying Price
 
-✓ Tradable
+Option Chain
 
-✓ Sufficient Liquidity
+Expiration Dates
 
-✓ Normal Spread
+Strike Prices
 
-✓ Valid Market Data
+Bid
 
-✓ No Trading Halt
+Ask
 
-Failure
+Open Interest
 
-Rejected
+Volume
 
--------------------------------------------------------------------------------
-5. MOMENTUM MODEL
--------------------------------------------------------------------------------
+Implied Volatility
 
-Evaluate
+Portfolio Information
 
-Price Momentum
-
-Relative Momentum
-
-Gap Strength
-
-Trend Continuation
-
-Breakout Quality
-
-Momentum Score
-
-0-100
-
-Weight
-
-20%
+Market Regime
 
 -------------------------------------------------------------------------------
-6. RELATIVE STRENGTH MODEL
+4. OPTION ELIGIBILITY
 -------------------------------------------------------------------------------
 
-Compare candidate against
+Before analysis the contract SHALL satisfy
 
-SPY
+Tradable
 
-QQQ
+Reasonable Spread
 
-Sector ETF
+Sufficient Open Interest
 
-Industry Group
+Sufficient Daily Volume
 
-Relative Strength Score
+Current Market Data Verified
 
-0-100
+Otherwise
 
-Weight
-
-15%
+Reject
 
 -------------------------------------------------------------------------------
-7. VOLUME EXPANSION MODEL
+5. UNDERLYING QUALITY SCORE
+-------------------------------------------------------------------------------
+
+The underlying asset SHALL first receive
+
+Opportunity Score
+
+from Scanner Engine.
+
+Minimum
+
+80
+
+Otherwise
+
+No option recommendation.
+
+-------------------------------------------------------------------------------
+6. DELTA MODEL
 -------------------------------------------------------------------------------
 
 Evaluate
 
-Current Volume
+Expected price participation.
 
-Relative Volume (RVOL)
+Preferred Delta
 
-Average Daily Volume
+0.55
 
-Dollar Volume
+to
 
-Accumulation
+0.75
 
-Distribution
+Higher Delta
 
-Volume Score
+Higher capital requirement
 
-0-100
+Lower leverage
 
-Weight
+Lower Gamma
 
-15%
-
--------------------------------------------------------------------------------
-8. INSTITUTIONAL PARTICIPATION MODEL
--------------------------------------------------------------------------------
-
-Evaluate
-
-Large Block Activity
-
-Dark Pool Activity (if available)
-
-Institutional Ownership
-
-Volume Quality
-
-Price Acceptance
-
-Institutional Score
-
-0-100
-
-Weight
-
-10%
+Lower Theta
 
 -------------------------------------------------------------------------------
-9. CATALYST MODEL
+7. GAMMA MODEL
 -------------------------------------------------------------------------------
 
 Evaluate
 
-Earnings
+Gamma sensitivity
 
-Guidance
+Acceleration potential
 
-FDA
+High Gamma
 
-Contracts
+Higher reward
 
-Product Launch
-
-AI
-
-Government Awards
-
-M&A
-
-Analyst Upgrades
-
-Macro Tailwind
-
-Catalyst Score
-
-0-100
-
-Weight
-
-15%
+Higher risk
 
 -------------------------------------------------------------------------------
-10. TECHNICAL STRUCTURE MODEL
+8. THETA MODEL
 -------------------------------------------------------------------------------
 
 Evaluate
 
-Trend
+Daily time decay.
 
-Support
+Preferred
 
-Resistance
+Lowest acceptable Theta
+for intended holding period.
 
-Moving Average Alignment
-
-Breakout Pattern
-
-Base Structure
-
-ATR
-
-VWAP Position
-
-Technical Score
-
-0-100
-
-Weight
-
-15%
+Holding period SHALL remain compatible with Theta loss.
 
 -------------------------------------------------------------------------------
-11. LIQUIDITY MODEL
+9. VEGA MODEL
 -------------------------------------------------------------------------------
 
 Evaluate
 
-Average Volume
+Sensitivity to implied volatility.
 
-Dollar Volume
+If IV expansion expected
+
+Higher Vega acceptable.
+
+If IV contraction expected
+
+Reduce recommendation quality.
+
+-------------------------------------------------------------------------------
+10. IMPLIED VOLATILITY MODEL
+-------------------------------------------------------------------------------
+
+Evaluate
+
+Current IV
+
+IV Rank
+
+IV Percentile
+
+Historical IV
+
+Relative IV
+
+High IV
+
+Premium expensive.
+
+Low IV
+
+Premium attractive.
+
+-------------------------------------------------------------------------------
+11. EXPIRATION ENGINE
+-------------------------------------------------------------------------------
+
+Select expiration using
+
+Expected Holding Period
+
+Expected Catalyst Date
+
+Theta
+
+Liquidity
+
+Preferred
+
+Avoid excessive Theta decay.
+
+-------------------------------------------------------------------------------
+12. STRIKE ENGINE
+-------------------------------------------------------------------------------
+
+Evaluate
+
+ATM
+
+ITM
+
+OTM
+
+Selection based on
+
+Probability
+
+Capital Efficiency
+
+Expected Move
+
+Portfolio Risk
+
+-------------------------------------------------------------------------------
+13. LIQUIDITY MODEL
+-------------------------------------------------------------------------------
+
+Evaluate
 
 Bid Ask Spread
 
-Option Liquidity
+Open Interest
 
-Exit Difficulty
+Daily Option Volume
+
+Execution Difficulty
 
 Liquidity Score
 
 0-100
 
-Weight
-
-5%
-
 -------------------------------------------------------------------------------
-12. RISK MODEL
+14. OPTION RISK MODEL
 -------------------------------------------------------------------------------
 
-Evaluate
+Measure
 
-ATR
+Maximum Premium Risk
+
+Probability of Total Loss
+
+Volatility Risk
 
 Gap Risk
 
-News Risk
+Liquidity Risk
 
-Volatility
-
-Correlation
-
-Sector Risk
-
-Maximum Drawdown
-
-Risk Score
-
-0-100
-
-Lower risk
-
-Higher score
-
-Weight
-
-5%
+Time Risk
 
 -------------------------------------------------------------------------------
-13. PORTFOLIO FIT MODEL
+15. REWARD MODEL
 -------------------------------------------------------------------------------
 
-Evaluate
+Estimate
 
-Sector Balance
+Expected Return
 
-Correlation
+Break-even
 
-Capital Requirement
+Target Price
 
-Position Size
+Risk Reward Ratio
 
-Cash Usage
-
-Existing Exposure
-
-Portfolio Fit Score
-
-0-100
-
-Weight
-
-10%
+Probability Range
 
 -------------------------------------------------------------------------------
-14. OPPORTUNITY SCORE
+16. OPTION QUALITY SCORE
 -------------------------------------------------------------------------------
 
-Overall Opportunity Score
+Components
 
-Formula
+Underlying Quality
 
-Momentum
-
-20%
-
-Relative Strength
-
-15%
-
-Volume
-
-15%
-
-Institutional
-
-10%
-
-Catalyst
-
-15%
-
-Technical
-
-15%
+30%
 
 Liquidity
 
-5%
+15%
+
+IV Environment
+
+15%
+
+Greeks
+
+15%
 
 Risk
 
-5%
+15%
 
-Portfolio Fit
+Catalyst
 
 10%
 
@@ -377,188 +337,160 @@ Maximum
 100
 
 -------------------------------------------------------------------------------
-15. QUALITY CLASSIFICATION
+17. QUALITY CLASSIFICATION
 -------------------------------------------------------------------------------
 
-95-100
+95+
 
 Institutional Grade
 
-90-94
+90+
 
-Elite
+Excellent
 
-85-89
+85+
 
-High Quality
+Strong
 
-80-84
+80+
 
 Qualified
 
-75-79
-
-Watchlist
-
-Below 75
+Below 80
 
 Reject
 
 -------------------------------------------------------------------------------
-16. RANKING ENGINE
+18. EXECUTION PLAN
 -------------------------------------------------------------------------------
 
-Candidates SHALL be ranked by
+Each recommendation SHALL include
 
-Opportunity Score
+Underlying
 
-Highest first
+Strike
 
-Only highest-ranked opportunities proceed.
+Expiration
 
--------------------------------------------------------------------------------
-17. EXECUTION ELIGIBILITY
--------------------------------------------------------------------------------
+Premium
 
-A candidate SHALL be eligible only if
+Maximum Risk
 
-Market supports risk
+Break-even
 
-Portfolio supports allocation
+Profit Target
 
-Risk acceptable
-
-Liquidity sufficient
-
-Catalyst present
-
-Data verified
-
-Otherwise
-
-Status
-
-NOT ELIGIBLE
-
--------------------------------------------------------------------------------
-18. OUTPUT FORMAT
--------------------------------------------------------------------------------
-
-Each candidate SHALL include
-
-Ticker
-
-Sector
-
-Industry
-
-Current Price
-
-Opportunity Score
-
-Confidence
-
-Momentum
-
-Catalyst
-
-Risk
-
-Entry Zone
-
-Stop
-
-Target
+Stop Criteria
 
 Holding Period
 
-Invalidation
-
 -------------------------------------------------------------------------------
-19. REJECTION RULES
+19. EXIT STRATEGY
 -------------------------------------------------------------------------------
 
-Reject candidates when
+Every position SHALL define
 
-No catalyst
+Profit Exit
 
-Weak liquidity
+Time Exit
 
-Poor structure
+Stop Exit
 
-High spread
+Catalyst Exit
 
-Low confidence
+Volatility Exit
 
-Weak market alignment
-
-Poor portfolio fit
+No option recommendation may omit an exit plan.
 
 -------------------------------------------------------------------------------
-20. TOP OPPORTUNITY
+20. INVALIDATION CONDITIONS
 -------------------------------------------------------------------------------
 
-The highest-ranked candidate SHALL include
+Recommendation becomes invalid if
 
-Investment Thesis
+Underlying thesis changes
 
-Bull Case
+Market regime deteriorates
 
-Bear Case
+Catalyst cancelled
 
-Catalyst
+Liquidity disappears
 
-Risk Factors
+Volatility changes materially
+
+-------------------------------------------------------------------------------
+21. PROHIBITED BEHAVIOUR
+-------------------------------------------------------------------------------
+
+The engine SHALL NOT
+
+Recommend illiquid contracts
+
+Ignore Theta
+
+Ignore IV
+
+Ignore Bid Ask Spread
+
+Recommend contracts with unknown pricing
+
+Recommend contracts without verified market data
+
+-------------------------------------------------------------------------------
+22. OUTPUT FORMAT
+-------------------------------------------------------------------------------
+
+Every recommendation SHALL include
+
+Underlying
+
+Current Price
+
+Option Contract
+
+Strike
+
+Expiration
+
+Premium
+
+Delta
+
+Gamma
+
+Theta
+
+Vega
+
+IV Rank
+
+Liquidity Score
+
+Option Quality Score
+
+Bull Thesis
+
+Bear Thesis
+
+Maximum Risk
+
+Expected Holding Period
 
 Execution Plan
-
-Exit Conditions
-
-Confidence
-
--------------------------------------------------------------------------------
-21. WATCHLIST
--------------------------------------------------------------------------------
-
-Candidates that fail execution but remain attractive SHALL enter Watchlist.
-
-Each Watchlist item SHALL specify
-
-Reason
-
-Required Trigger
-
-Review Date
-
--------------------------------------------------------------------------------
-22. FAILURE CONDITIONS
--------------------------------------------------------------------------------
-
-Scanner SHALL terminate if
-
-Market Engine failed
-
-Portfolio Engine failed
-
-Risk Engine failed
-
-Market data unavailable
-
-Required verification incomplete
 
 -------------------------------------------------------------------------------
 23. SUCCESS CRITERIA
 -------------------------------------------------------------------------------
 
-A successful Scanner Engine SHALL
+A successful recommendation SHALL
 
-Identify high-quality opportunities
+Provide asymmetric upside
 
-Avoid unnecessary trades
+Maintain acceptable downside
 
-Filter weak candidates
+Use liquid contracts
 
-Prioritize institutional-quality setups
+Fit the existing portfolio
 
 Remain fully auditable
 
@@ -567,7 +499,7 @@ End of Document
 
 Atlas Trading OS
 
-SCANNER_ENGINE.md
+OPTIONS_ENGINE.md
 
 Version 1.0.0
 ```
