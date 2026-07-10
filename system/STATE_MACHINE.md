@@ -1,675 +1,114 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## STATE_MACHINE.md
 
 ```text
-Document ID      : ATO-SM-001
+Document ID      : TRX-SM-001
 Document Name    : State Machine
 Version          : 1.0.0
-Status           : Stable
+Status           : Active
 Classification   : Critical
+Dependencies     : CORE_PRINCIPLES.md
+                   VERIFICATION_POLICY.md
+                   DATA_SOURCE_POLICY.md
+                   CONSTITUTION.md
 Applies To       : Entire System
-Dependencies      : CORE_PRINCIPLES.md
 ```
 
 ---
 
-# Purpose
+## 1. Purpose
 
-This document defines the execution lifecycle of Atlas Trading OS.
-
-Every analysis SHALL follow this state machine.
-
-No state may be skipped unless explicitly permitted.
-
-If a state fails, downstream states SHALL NOT execute.
+This is the sole authoritative workflow for TRX Trading OS. Engine documents
+define responsibilities inside a state; they SHALL NOT redefine the state
+order, skip a gate, or publish a final outcome. If a state fails, return only
+to the earliest state that can correct the failure.
 
 ---
 
-# Global Execution Flow
+## 2. Global Flow
 
-```
-WAIT
-
-↓
-
-RECEIVE INPUT
-
-↓
-
-VALIDATE INPUT
-
-↓
-
-VERIFY MARKET DATA
-
-↓
-
-MARKET ANALYSIS
-
-↓
-
-MACRO ANALYSIS
-
-↓
-
-PORTFOLIO REVIEW
-
-↓
-
-RISK REVIEW
-
-↓
-
-POSITION REVIEW
-
-↓
-
-OPPORTUNITY SCAN
-
-↓
-
-OPTIONS REVIEW
-
-↓
-
-RANKING
-
-↓
-
-INVESTMENT COMMITTEE
-
-↓
-
-RED TEAM REVIEW
-
-↓
-
-EXECUTION PLAN
-
-↓
-
-SELF AUDIT
-
-↓
-
-FINAL REPORT
-
-↓
-
-END
+```text
+WAIT → RECEIVE INPUT → VALIDATE INPUT → VERIFY DATA
+  → MARKET & MACRO ANALYSIS → PORTFOLIO REVIEW
+  → PRELIMINARY RISK GATE → POSITION REVIEW
+  → OPPORTUNITY SCAN → PLAYBOOK ASSIGNMENT → OPTIONS REVIEW (if applicable)
+  → RANKING → COMMITTEE REVIEW → RED TEAM REVIEW → FINAL RISK GATE
+  → MASTER DECISION → EXECUTION PLAN (if actionable) → SELF AUDIT
+  → FINAL REPORT → END
 ```
 
----
-
-# STATE 01
-
-## WAIT
-
-Purpose
-
-Remain idle until new user input is received.
-
-Entry Condition
-
-None.
-
-Exit Condition
-
-User provides a request.
-
-Failure
-
-None.
+The workflow never permits opportunity scanning before portfolio review.
+`OPTIONS REVIEW` is conditional and is reported as `Not Applicable` when no
+option structure is evaluated.
 
 ---
 
-# STATE 02
+## 3. States
 
-## RECEIVE INPUT
-
-Purpose
-
-Receive all information supplied by the user.
-
-Expected Inputs
-
-Portfolio
-
-Cash Balance
-
-Buying Power
-
-Trading Objective
-
-Questions
-
-Watchlist
-
-Output
-
-Raw User Input
+| State | Owner | Required result | Failure / transition |
+|---|---|---|---|
+| 01 WAIT | System | Await request | Receive user request |
+| 02 RECEIVE INPUT | System | Raw portfolio, objective, watchlist, constraints, questions | Proceed to validation |
+| 03 VALIDATE INPUT | System | Readable tickers, positive quantities, identifiable currency, numeric cash / buying power | Request clarification; stop downstream work |
+| 04 VERIFY DATA | Verification and Data Source policies | Evidence ledger, timestamps, V1–V5 status, critical-data gate | Critical V5: finalise `INSUFFICIENT VERIFIED INFORMATION` |
+| 05 MARKET & MACRO ANALYSIS | Market Engine | Regime, trend, stage, breadth, volatility, liquidity, sector rotation, macro risk | Reverify missing material market data |
+| 06 PORTFOLIO REVIEW | Portfolio Engine | Health, exposure, concentration, cash, buying capacity, position context | Request portfolio clarification before new-risk analysis |
+| 07 PRELIMINARY RISK GATE | Risk Engine | Existing exposure, risk budget, drawdown, event and correlation constraints | Restrict new risk or return `NO TRADE` |
+| 08 POSITION REVIEW | Portfolio + Risk Engines | HOLD / REDUCE / EXIT / WATCH status for each existing position | Resolve missing position data |
+| 09 OPPORTUNITY SCAN | Scanner Engine | Eligible candidate universe and exclusion reasons | `NO ELIGIBLE CANDIDATE` proceeds to final `NO TRADE` |
+| 10 PLAYBOOK ASSIGNMENT | Playbook Engine | Exactly one validated playbook or reject / watchlist | No match: remove candidate from actionable ranking |
+| 11 OPTIONS REVIEW | Options Engine | Stock-versus-Long-Call comparison when applicable | Option failure removes option structure; underlying may continue |
+| 12 RANKING | Decision Engine | Transparent candidate comparison and opportunity scores | Insufficient evidence: remove candidate |
+| 13 COMMITTEE REVIEW | Committee Engine | Independent votes, consensus, dissent, and concerns | No consensus: `WATCH`; risk objection routes to Risk Gate |
+| 14 RED TEAM REVIEW | Red Team Engine | Counter-thesis, alternatives, resilience, and critical-risk finding | Critical flaw: downgrade or veto |
+| 15 FINAL RISK GATE | Risk Engine | Final sizing, maximum loss, portfolio heat, stop and event-risk review | Binding `NO TRADE`, `REDUCE`, or `EXIT` |
+| 16 MASTER DECISION | Master Decision Engine | One final outcome integrating valid outputs | Must honour prior vetoes and data failures |
+| 17 EXECUTION PLAN | Execution Engine | Human-reviewable plan for EXECUTE / REDUCE / EXIT | Stale execution data: `DO NOT EXECUTE — REVERIFY` |
+| 18 SELF AUDIT | Master Decision Engine | Contract, consistency, evidence, and veto checklist | Return to earliest defective state |
+| 19 FINAL REPORT | Master Decision Engine | Output Contract-compliant report | End |
 
 ---
 
-# STATE 03
+## 4. Outcome Semantics
 
-## VALIDATE INPUT
+| Condition | Required result |
+|---|---|
+| Critical price, market-session, option, or required portfolio data cannot be verified | `INSUFFICIENT VERIFIED INFORMATION` |
+| Market, portfolio, or Risk Gate does not permit new exposure | `NO TRADE` or existing-position action |
+| No candidate meets criteria | `NO TRADE` |
+| Committee lacks consensus | `WATCH` unless another gate requires a stricter result |
+| Red Team identifies critical risk | `NO TRADE`, `WATCH`, `REDUCE`, or `EXIT` |
+| Risk Engine rejects | Binding `NO TRADE`, `REDUCE`, or `EXIT` |
 
-Purpose
-
-Validate user supplied information.
-
-Validation Rules
-
-Portfolio format valid
-
-Ticker symbols readable
-
-Share quantity positive
-
-Cash balance numeric
-
-Currency identifiable
-
-If validation fails
-
-Return clarification request.
-
-Abort remaining workflow.
+`NO TRADE` is a completed, valid report. It is not a workflow failure. Only a
+critical verification or input failure produces
+`INSUFFICIENT VERIFIED INFORMATION`.
 
 ---
 
-# STATE 04
+## 5. State Invariants
 
-## VERIFY MARKET DATA
-
-Purpose
-
-Verify every required market data item.
-
-Required Verification
-
-Current Price
-
-Market Session
-
-Index Status
-
-Volume
-
-News
-
-Economic Calendar
-
-If unavailable
-
-Mark as Unverified.
-
-Reduce confidence.
-
-Never fabricate values.
+- Facts, analysis, inferences, assumptions, and recommendations remain
+  separately labelled at every state.
+- A downstream state may add constraints but may not relax an upstream veto.
+- All decisions retain timestamps, verification state, inputs, and version IDs.
+- The Master Decision Engine is the only final-report publisher; the human is
+  the only execution authority.
+- A changed market price, market session, material event, portfolio position,
+  or option quote triggers re-entry at State 04 before execution.
 
 ---
 
-# STATE 05
+## 6. Recovery Rules
 
-## MARKET ANALYSIS
-
-Purpose
-
-Determine current market regime.
-
-Evaluate
-
-SPY
-
-QQQ
-
-IWM
-
-VIX
-
-Breadth
-
-Trend
-
-Output
-
-Bullish
-
-Neutral
-
-Bearish
-
-Transition
-
-Distribution
-
-Accumulation
+When a defect is found, return to State 03 for malformed user input, State 04
+for stale or contradictory data, State 05 for market/macro changes, State 06
+for portfolio changes, State 07 or 15 for risk changes, and the relevant
+candidate state for setup-specific evidence. Never continue with a cached
+result that has become materially stale.
 
 ---
 
-# STATE 06
+End of Document
 
-## MACRO ANALYSIS
-
-Purpose
-
-Review macroeconomic environment.
-
-Check
-
-FOMC
-
-CPI
-
-PPI
-
-PCE
-
-NFP
-
-Treasury Yield
-
-USD
-
-Major geopolitical events
-
-Output
-
-Macro Risk Level
-
-Low
-
-Medium
-
-High
-
-Extreme
-
----
-
-# STATE 07
-
-## PORTFOLIO REVIEW
-
-Purpose
-
-Review existing holdings.
-
-Evaluate
-
-Allocation
-
-Concentration
-
-Buying Power
-
-Cash
-
-Margin Usage
-
-Sector Exposure
-
-Largest Winners
-
-Largest Losers
-
-Output
-
-Portfolio Health Score
-
----
-
-# STATE 08
-
-## RISK REVIEW
-
-Purpose
-
-Determine portfolio risk.
-
-Evaluate
-
-Maximum Position Risk
-
-Portfolio Exposure
-
-Leverage
-
-Correlation
-
-Liquidity
-
-Gap Risk
-
-Output
-
-Risk Rating
-
----
-
-# STATE 09
-
-## POSITION REVIEW
-
-Purpose
-
-Review every existing holding.
-
-For each position
-
-Determine
-
-Trend
-
-Momentum
-
-Support
-
-Resistance
-
-Volume
-
-Catalyst
-
-Action
-
-Hold
-
-Reduce
-
-Exit
-
-Add
-
-Watch
-
----
-
-# STATE 10
-
-## OPPORTUNITY SCAN
-
-Purpose
-
-Search for new opportunities.
-
-Candidate Universe
-
-US Stocks
-
-ETFs
-
-Buy Call Candidates
-
-Filters
-
-Liquidity
-
-Relative Strength
-
-Momentum
-
-Catalyst
-
-Volume Expansion
-
-Institutional Participation
-
-Output
-
-Candidate List
-
----
-
-# STATE 11
-
-## OPTIONS REVIEW
-
-Purpose
-
-Evaluate option opportunities.
-
-Review
-
-IV
-
-IV Rank
-
-Open Interest
-
-Bid Ask Spread
-
-Expiration
-
-Strike Selection
-
-Break-even
-
-Risk
-
-Output
-
-Suitable
-
-Unsuitable
-
----
-
-# STATE 12
-
-## RANKING
-
-Purpose
-
-Rank all candidates.
-
-Ranking Factors
-
-Market Alignment
-
-Trend
-
-Volume
-
-Catalyst
-
-Risk
-
-Liquidity
-
-Relative Strength
-
-Portfolio Fit
-
-Output
-
-Ranked List
-
-Top 10
-
----
-
-# STATE 13
-
-## INVESTMENT COMMITTEE
-
-Purpose
-
-Challenge every candidate.
-
-Committee Members
-
-Market Analyst
-
-Technical Analyst
-
-Portfolio Manager
-
-Risk Manager
-
-Options Specialist
-
-Each member votes
-
-BUY
-
-WATCH
-
-PASS
-
-Output
-
-Committee Decision
-
----
-
-# STATE 14
-
-## RED TEAM REVIEW
-
-Purpose
-
-Attack every recommendation.
-
-Questions
-
-Why is this wrong?
-
-Why now?
-
-What if catalyst fails?
-
-What if market reverses?
-
-Would capital be better deployed elsewhere?
-
-Output
-
-Counter Thesis
-
----
-
-# STATE 15
-
-## EXECUTION PLAN
-
-Purpose
-
-Construct executable trade plan.
-
-Include
-
-Entry
-
-Stop
-
-Target
-
-Position Size
-
-Risk
-
-Holding Period
-
-Invalidation
-
-Execution Notes
-
----
-
-# STATE 16
-
-## SELF AUDIT
-
-Purpose
-
-Audit report quality.
-
-Checklist
-
-Facts verified
-
-Reasoning complete
-
-Risk included
-
-Counterargument included
-
-Missing data disclosed
-
-Portfolio reviewed first
-
-If audit fails
-
-Return to previous state.
-
----
-
-# STATE 17
-
-## FINAL REPORT
-
-Purpose
-
-Produce final report.
-
-Required Sections
-
-Executive Summary
-
-Market Environment
-
-Portfolio Review
-
-Risk Review
-
-Position Review
-
-Top Opportunities
-
-Execution Plans
-
-Counterarguments
-
-Confidence
-
-Self Audit
-
-End
-
----
-
-# Failure Rules
-
-The workflow SHALL immediately stop if:
-
-Critical market data cannot be verified.
-
-Portfolio information is unreadable.
-
-Risk assessment cannot be completed.
-
-Execution plan cannot be justified.
-
----
-
-# Recovery Rules
-
-If failure occurs
-
-Return to the earliest failed state.
-
-Never continue using incomplete information.
-
----
-
-# End of Document
-
-Atlas Trading OS
-
-STATE_MACHINE.md
-
-Version 1.0.0
-```
+TRX Trading OS v1.0

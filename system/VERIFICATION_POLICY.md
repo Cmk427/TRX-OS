@@ -1,493 +1,102 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## VERIFICATION_POLICY.md
 
 ```text
-Document ID      : ATO-VRF-001
+Document ID      : TRX-VRF-001
 Document Name    : Verification Policy
 Version          : 1.0.0
-Status           : Stable
+Status           : Active
 Classification   : Critical
-Dependencies      : CORE_PRINCIPLES.md
+Dependencies     : CORE_PRINCIPLES.md
+                   DATA_SOURCE_POLICY.md
+                   STATE_MACHINE.md
 Applies To       : Entire System
 ```
 
 ---
 
-# Purpose
+## 1. Purpose
 
-This document defines how Atlas Trading OS verifies information before producing any analysis or recommendation.
+This policy defines how TRX Trading OS classifies information before analysis
+or recommendation. `DATA_SOURCE_POLICY.md` defines source tiers, freshness, and
+critical-data treatment; this policy defines evidence labels and reporting
+behaviour.
 
-No recommendation may rely on information that has not been classified according to this policy.
-
----
-
-# Verification Philosophy
-
-Atlas Trading OS follows one rule above all others.
-
-> Every important statement must have a known confidence level.
-
-The system SHALL distinguish between:
-
-- Verified
-- Partially Verified
-- Estimated
-- Assumed
-- Unknown
-
-These classifications SHALL never be mixed.
+No important statement may appear without a known verification status.
 
 ---
 
-# Verification Levels
+## 2. Evidence Labels
 
-## Level V1 — Verified
+| Level | Meaning | Permitted presentation |
+|---|---|---|
+| V1 — Verified | Independently confirmed reliable, current information | State as a verified fact with source and timestamp |
+| V2 — Partially Verified | Most material details confirmed; one or more remain unavailable | State limitation and reduce confidence |
+| V3 — Estimated | Calculation derived from recorded inputs | Show method and input quality; never call it a fact |
+| V4 — Inferred | Logical conclusion from labelled facts | Label as analysis / inference |
+| V5 — Unknown | Materiality or value cannot be verified | List as unknown and explain impact |
 
-Definition
-
-Information independently confirmed from reliable sources available during the current session.
-
-Examples
-
-Current market price
-
-Current index level
-
-Current earnings date
-
-Official SEC filing
-
-Federal Reserve announcement
-
-Confidence
-
-100%
-
-May be used directly.
+The labels apply to market, company, financial, macro, news, technical,
+portfolio, and option data. A recommendation must separate facts, calculations,
+inferences, assumptions, and unknowns.
 
 ---
 
-## Level V2 — Partially Verified
+## 3. Verification Sequence
 
-Definition
+The State Machine requires verification in this order:
 
-Most information is confirmed but one or more important details remain unavailable.
+1. user input validity and portfolio identity;
+2. current date, market session, and required market prices;
+3. material scheduled events and macro context;
+4. company, technical, and catalyst evidence;
+5. option data when an option structure is considered; and
+6. derived analysis, sizing, and recommendation eligibility.
 
-Example
-
-Company confirms earnings date but guidance unavailable.
-
-Confidence
-
-80–95%
-
-Recommendation confidence SHALL be reduced.
+No downstream score compensates for a failed critical upstream check.
 
 ---
 
-## Level V3 — Estimated
+## 4. Recommendation Eligibility
 
-Definition
+An `EXECUTE` candidate is eligible only if required data is usable under
+`DATA_SOURCE_POLICY.md`, evidence is sufficient, risk is measurable, portfolio
+impact is understood, a counterargument is completed, and every binding gate
+passes. A critical V5 item produces `INSUFFICIENT VERIFIED INFORMATION`.
 
-Derived using calculations from verified data.
-
-Examples
-
-Risk/Reward Ratio
-
-Position Size
-
-ATR-based Stop
-
-Portfolio Allocation
-
-Confidence
-
-Depends on input quality.
+A non-critical unknown may be present only when it is explicitly declared,
+does not support the thesis, and reduces confidence. A no-trade conclusion may
+be reached with incomplete data when the uncertainty itself justifies not taking
+risk.
 
 ---
 
-## Level V4 — Inferred
+## 5. Contradictions and Missing Information
 
-Definition
-
-Logical conclusion drawn from verified facts.
-
-Examples
-
-Momentum improving
-
-Institutional accumulation likely
-
-Sector rotation beginning
-
-Confidence
-
-Variable.
-
-Must never be presented as fact.
+If sources disagree, the system SHALL identify the conflict, its source and
+time context, its decision impact, and the resulting lower confidence. It SHALL
+not quietly select a convenient source. Missing information appears in the
+Evidence Status section of the final report.
 
 ---
 
-## Level V5 — Unknown
+## 6. Prohibited Behaviour
 
-Definition
-
-Required information cannot be verified.
-
-Examples
-
-Unknown option flow
-
-Unknown insider activity
-
-Unknown catalyst
-
-Confidence
-
-Unknown.
-
-Recommendation quality MUST decrease.
+The system SHALL NOT invent prices, volume, earnings, catalysts, option flow,
+analyst ratings, macro events, technical indicators, probabilities, or portfolio
+values. It SHALL explicitly state when it cannot verify required information.
 
 ---
 
-# Data Categories
+## 7. Audit Requirement
 
-Every piece of information SHALL belong to one category.
-
-## Market Data
-
-Current Price
-
-Previous Close
-
-High
-
-Low
-
-Volume
-
-VWAP
-
-ATR
-
-Spread
+Before publication, the Master Decision Engine checks that every material
+factual claim has a verification label, every V3 calculation retains inputs,
+every V4 inference is not stated as fact, unknowns are disclosed, and no
+recommendation depends on a failed critical-data gate.
 
 ---
 
-## Company Data
+End of Document
 
-Market Cap
-
-Sector
-
-Industry
-
-Float
-
-Shares Outstanding
-
-Insider Ownership
-
-Institutional Ownership
-
----
-
-## Financial Data
-
-Revenue
-
-EPS
-
-Guidance
-
-Cash
-
-Debt
-
-Margins
-
----
-
-## Macro Data
-
-Interest Rates
-
-Treasury Yield
-
-CPI
-
-PPI
-
-PCE
-
-NFP
-
-Dollar Index
-
----
-
-## News
-
-Company News
-
-Sector News
-
-Macro News
-
-Regulatory News
-
-Geopolitical Events
-
----
-
-## Technical Data
-
-Trend
-
-Support
-
-Resistance
-
-Moving Averages
-
-Relative Strength
-
-Momentum
-
----
-
-# Verification Priority
-
-The system SHALL verify information in this order.
-
-1.
-
-Market Price
-
-↓
-
-2.
-
-Market Status
-
-↓
-
-3.
-
-Macro Events
-
-↓
-
-4.
-
-Portfolio Data
-
-↓
-
-5.
-
-News
-
-↓
-
-6.
-
-Technical Analysis
-
-↓
-
-7.
-
-Trade Recommendation
-
----
-
-# Mandatory Verification
-
-The following SHALL be verified whenever relevant.
-
-Current Price
-
-Market Session
-
-Current Date
-
-Current Earnings Status
-
-Ticker Symbol
-
-Position Size
-
-Cash Balance
-
-Buying Power
-
-Currency
-
-Margin Status
-
----
-
-# Recommendation Requirements
-
-No BUY recommendation may be produced unless all required items are either:
-
-Verified
-
-or
-
-Explicitly marked as unavailable.
-
----
-
-# Missing Information Policy
-
-If required information cannot be obtained
-
-the report SHALL contain a section called
-
-Missing Information
-
-Example
-
-Unable to verify today's option flow.
-
-Unable to confirm current implied volatility.
-
-Unable to retrieve current earnings calendar.
-
----
-
-# Contradictory Information
-
-If multiple sources disagree
-
-The system SHALL
-
-identify the disagreement
-
-explain its impact
-
-reduce confidence
-
-avoid false certainty
-
----
-
-# Confidence Calculation
-
-Overall confidence depends on
-
-Verification Quality
-
-Evidence Quality
-
-Market Clarity
-
-Portfolio Clarity
-
-Risk Clarity
-
-Every unknown reduces confidence.
-
----
-
-# Fabrication Policy
-
-The following are strictly prohibited.
-
-Inventing prices
-
-Inventing news
-
-Inventing option flow
-
-Inventing volume
-
-Inventing earnings
-
-Inventing analyst ratings
-
-Inventing macro events
-
-Inventing technical indicators
-
-If verification fails
-
-the system SHALL explicitly state
-
-"I cannot verify this information."
-
----
-
-# Recommendation Eligibility
-
-A recommendation is eligible only when
-
-Required data verified
-
-Evidence sufficient
-
-Risk measurable
-
-Portfolio impact understood
-
-Counterargument completed
-
-Otherwise
-
-Recommendation Status
-
-NOT ELIGIBLE
-
----
-
-# Transparency Rules
-
-Every recommendation SHALL include
-
-Verified Facts
-
-Analysis
-
-Assumptions
-
-Unknowns
-
-Recommendation
-
-Confidence
-
-These sections SHALL always remain separate.
-
----
-
-# Audit Checklist
-
-Before publishing
-
-The system SHALL verify
-
-✓ No fabricated values
-
-✓ No unsupported claims
-
-✓ Confidence assigned
-
-✓ Missing information disclosed
-
-✓ Recommendation justified
-
-✓ Counterargument included
-
----
-
-# End of Document
-
-Atlas Trading OS
-
-VERIFICATION_POLICY.md
-
-Version 1.0.0
-```
+TRX Trading OS v1.0

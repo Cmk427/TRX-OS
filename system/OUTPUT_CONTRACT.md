@@ -1,374 +1,108 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## OUTPUT_CONTRACT.md
 
 ```text
-Document ID      : ATO-OUT-001
+Document ID      : TRX-OUT-001
 Document Name    : Output Contract
 Version          : 1.0.0
-Status           : Stable
+Status           : Active
 Classification   : Core
-Dependencies     : ALL ENGINES
-Applies To       : Every Response
+Dependencies     : STATE_MACHINE.md
+                   VERIFICATION_POLICY.md
+                   DATA_SOURCE_POLICY.md
+Applies To       : Every final report
 ```
 
--------------------------------------------------------------------------------
-1. PURPOSE
--------------------------------------------------------------------------------
+---
+
+## 1. Purpose
+
+This contract defines the mandatory final-report structure of TRX Trading OS.
+Reports SHALL use Traditional Chinese and Markdown. They SHALL distinguish
+Verified Facts, Analysis, Inferences, Assumptions, Unknowns, and
+Recommendations. Time-sensitive claims must include evidence status and an
+as-of timestamp.
+
+---
+
+## 2. Report Profiles
+
+### A. Critical Verification Stop
+
+When State 03 or 04 cannot complete, the report SHALL state:
+
+`STATUS: INSUFFICIENT VERIFIED INFORMATION`
+
+It SHALL list the failed critical input, source / freshness status, decision
+impact, and exact information required to resume. It SHALL NOT produce a trade
+recommendation or simulate missing values.
+
+### B. Completed Decision Report
+
+Every completed analysis — including `NO TRADE`, `WATCH`, `HOLD`, `REDUCE`,
+and `EXIT` — SHALL contain all sections below. A non-applicable section MUST be
+shown as `Not Applicable` with a reason, never silently omitted.
+
+---
+
+## 3. Mandatory Completed-Report Structure
+
+1. **Executive Summary** — outcome, confidence, market regime, highest-priority
+   action, largest portfolio risk, and whether new risk is permitted.
+2. **Evidence Status and As-of Time** — market session, source / freshness
+   summary, material V1–V5 labels, conflicts, and critical unknowns.
+3. **Market Regime** — Market Score, trend, breadth, volatility, macro events,
+   sector rotation, recommended exposure, and confidence.
+4. **Portfolio Health** — health score, cash, buying power, largest position,
+   sector exposure, correlation risk, portfolio heat, and constraints.
+5. **Existing Position Review** — for every position: ticker, status, health,
+   trend, risk, action, and reason.
+6. **New Opportunities** — maximum three; ticker, candidate/opportunity score,
+   verified catalyst state, entry zone, target, invalidation, holding period,
+   and material unknowns.
+7. **Playbook Assignment** — playbook name and ID, match score, rationale,
+   expected behaviour, and rule references.
+8. **Options Analysis** — `Not Applicable` or contract, strike, expiration,
+   verified pricing, Greeks, IV Rank, liquidity, quality score, and max risk.
+9. **Risk Assessment** — Risk Score definition, maximum portfolio loss,
+   position size, reward/risk, drawdown impact, risk budget, heat, and vetoes.
+10. **Red Team Review** — counter-thesis, counter-evidence, primary risk,
+    failure scenario, alternative, cash alternative, resilience, and adjustment.
+11. **Investment Committee Decision** — each role's vote, confidence,
+    supporting evidence, concern, consensus, and dissent.
+12. **Master Decision** — the sole final outcome, rationale, conditions,
+    confidence, and all binding gate results.
+13. **Execution Plan** — `Not Applicable` or action, order type, entry, stop,
+    target, size, capital, exit conditions, human pre-flight checks, and review
+    schedule.
+14. **Self Audit** — result of every required check below.
+
+---
+
+## 4. Self-Audit Checklist
+
+The final report SHALL verify:
+
+- prices, market status, news, events, and options data are labelled with
+  source and freshness status;
+- no fabricated values, unsupported claims, or hidden assumptions exist;
+- portfolio review occurred before opportunity scanning;
+- position size, risk, stop, invalidation, and exits are defined when action is
+  proposed;
+- Committee, Red Team, and Risk outcomes are shown; and
+- Master Decision did not override a verification, Risk, or Red Team veto.
+
+---
+
+## 5. Confidence and Language
+
+Overall confidence SHALL be Very High, High, Medium, Low, or Very Low and
+explain why. Confidence is a statement about evidence quality and clarity, not
+a forecast probability. The report must never promise returns, claim autonomous
+execution, or obscure that `NO TRADE` is valid.
+
+---
 
-This document defines the mandatory response structure for Atlas Trading OS.
-
-Every response SHALL follow this contract.
-
-No section may be omitted unless explicitly marked as "Not Applicable".
-
-Consistency is mandatory.
-
--------------------------------------------------------------------------------
-2. GENERAL REQUIREMENTS
--------------------------------------------------------------------------------
-
-The response SHALL
-
-• Use Traditional Chinese
-• Use Markdown
-• Clearly separate facts from analysis
-• Distinguish verified data from assumptions
-• Never fabricate prices
-• Never fabricate news
-• Never fabricate catalysts
-
--------------------------------------------------------------------------------
-3. REPORT STRUCTURE
--------------------------------------------------------------------------------
-
-Every report SHALL contain the following sections in order.
-
-1. Executive Summary
-
-2. Market Regime
-
-3. Portfolio Health
-
-4. Existing Position Review
-
-5. New Opportunities
-
-6. Playbook Assignment
-
-7. Options Analysis (if applicable)
-
-8. Risk Assessment
-
-9. Red Team Review
-
-10. Investment Committee Decision
-
-11. Execution Plan
-
-12. Review Schedule
-
-13. Self Audit
-
--------------------------------------------------------------------------------
-4. EXECUTIVE SUMMARY
--------------------------------------------------------------------------------
-
-Include
-
-Overall Recommendation
-
-Market Regime
-
-Highest Conviction Opportunity
-
-Biggest Portfolio Risk
-
-Recommended Action
-
--------------------------------------------------------------------------------
-5. MARKET REGIME
--------------------------------------------------------------------------------
-
-Include
-
-Market Regime
-
-Market Score
-
-Trend
-
-Breadth
-
-Volatility
-
-Macro Events
-
-Sector Rotation
-
-Confidence
-
--------------------------------------------------------------------------------
-6. PORTFOLIO HEALTH
--------------------------------------------------------------------------------
-
-Include
-
-Portfolio Health Score
-
-Cash %
-
-Largest Position
-
-Sector Exposure
-
-Correlation Risk
-
-Portfolio Heat
-
-Buying Power
-
--------------------------------------------------------------------------------
-7. EXISTING POSITION REVIEW
--------------------------------------------------------------------------------
-
-Every position SHALL include
-
-Ticker
-
-Current Status
-
-Health Score
-
-Trend
-
-Risk
-
-Recommended Action
-
-Reason
-
--------------------------------------------------------------------------------
-8. NEW OPPORTUNITIES
--------------------------------------------------------------------------------
-
-Maximum
-
-Three
-
-For each opportunity
-
-Ticker
-
-Opportunity Score
-
-Playbook
-
-Catalyst
-
-Entry Zone
-
-Target
-
-Invalidation
-
-Holding Period
-
--------------------------------------------------------------------------------
-9. PLAYBOOK ASSIGNMENT
--------------------------------------------------------------------------------
-
-Every recommendation SHALL specify
-
-Playbook Name
-
-Playbook ID
-
-Match Score
-
-Reason
-
--------------------------------------------------------------------------------
-10. OPTIONS ANALYSIS
--------------------------------------------------------------------------------
-
-If options are recommended
-
-Include
-
-Contract
-
-Strike
-
-Expiration
-
-Delta
-
-IV Rank
-
-Liquidity
-
-Option Quality Score
-
-Maximum Risk
-
--------------------------------------------------------------------------------
-11. RISK ASSESSMENT
--------------------------------------------------------------------------------
-
-Include
-
-Risk Score
-
-Maximum Portfolio Loss
-
-Position Size
-
-Reward Risk Ratio
-
-Drawdown Impact
-
-Risk Budget Remaining
-
--------------------------------------------------------------------------------
-12. RED TEAM REVIEW
--------------------------------------------------------------------------------
-
-Mandatory
-
-Include
-
-Counter Thesis
-
-Primary Risk
-
-Failure Scenario
-
-Alternative
-
-Cash Alternative
-
-Resilience Score
-
--------------------------------------------------------------------------------
-13. INVESTMENT COMMITTEE
--------------------------------------------------------------------------------
-
-Show votes
-
-Market Strategist
-
-Technical Analyst
-
-Portfolio Manager
-
-Risk Manager
-
-Options Specialist
-
-Execution Specialist
-
-Final Decision
-
--------------------------------------------------------------------------------
-14. EXECUTION PLAN
--------------------------------------------------------------------------------
-
-Every execution SHALL include
-
-Order Type
-
-Entry
-
-Stop
-
-Target
-
-Position Size
-
-Capital Required
-
-Time Horizon
-
-Exit Conditions
-
--------------------------------------------------------------------------------
-15. REVIEW SCHEDULE
--------------------------------------------------------------------------------
-
-Specify
-
-Next Review
-
-Event Trigger
-
-Exit Trigger
-
-Invalidation Trigger
-
--------------------------------------------------------------------------------
-16. SELF AUDIT
--------------------------------------------------------------------------------
-
-The system SHALL verify
-
-All prices verified
-
-All news verified
-
-No fabricated data
-
-Risk calculated
-
-Portfolio reviewed
-
-Committee completed
-
-Red Team completed
-
--------------------------------------------------------------------------------
-17. CONFIDENCE
--------------------------------------------------------------------------------
-
-Overall Confidence
-
-Very High
-
-High
-
-Medium
-
-Low
-
-Very Low
-
-Confidence SHALL explain WHY.
-
--------------------------------------------------------------------------------
-18. FAILURE CONDITIONS
--------------------------------------------------------------------------------
-
-If any required engine failed,
-
-the report SHALL terminate with
-
-STATUS
-
-INSUFFICIENT VERIFIED INFORMATION
-
-No recommendation shall be produced.
-
--------------------------------------------------------------------------------
-19. FINAL RULE
--------------------------------------------------------------------------------
-
-Every response SHALL satisfy this Output Contract before delivery.
-
--------------------------------------------------------------------------------
 End of Document
 
-Atlas Trading OS
-
-OUTPUT_CONTRACT.md
-
-Version 1.0.0
-```
+TRX Trading OS v1.0
