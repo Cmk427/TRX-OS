@@ -1,0 +1,554 @@
+# Atlas Trading OS
+## PORTFOLIO_ENGINE.md
+
+```text
+Document ID      : ATO-PORT-001
+Document Name    : Portfolio Engine
+Version          : 1.0.0
+Status           : Stable
+Classification   : Critical
+Dependencies     : CORE_PRINCIPLES.md
+                   DECISION_ENGINE.md
+                   VERIFICATION_POLICY.md
+Applies To       : Portfolio Analysis
+```
+
+-------------------------------------------------------------------------------
+1. PURPOSE
+-------------------------------------------------------------------------------
+
+The Portfolio Engine is responsible for evaluating the entire portfolio before
+any new capital deployment.
+
+Portfolio protection has higher priority than opportunity discovery.
+
+No Opportunity Scan shall begin before Portfolio Review has completed.
+
+-------------------------------------------------------------------------------
+2. OBJECTIVES
+-------------------------------------------------------------------------------
+
+The Portfolio Engine SHALL:
+
+• Evaluate portfolio health
+• Evaluate position quality
+• Measure concentration risk
+• Measure sector exposure
+• Measure correlation risk
+• Determine available buying capacity
+• Prioritize capital allocation
+• Recommend reductions when necessary
+
+-------------------------------------------------------------------------------
+3. REQUIRED INPUTS
+-------------------------------------------------------------------------------
+
+Portfolio Positions
+
+Cash Balance
+
+Buying Power
+
+Account Type
+
+Margin Status
+
+Open Orders
+
+Watchlist (Optional)
+
+Risk Preference
+
+Trading Horizon
+
+-------------------------------------------------------------------------------
+4. PORTFOLIO HEALTH SCORE
+-------------------------------------------------------------------------------
+
+Portfolio Health Score
+
+Range
+
+0 — 100
+
+Suggested Rating
+
+90-100
+
+Excellent
+
+80-89
+
+Healthy
+
+70-79
+
+Acceptable
+
+60-69
+
+Weak
+
+Below 60
+
+Critical
+
+-------------------------------------------------------------------------------
+5. HEALTH COMPONENTS
+-------------------------------------------------------------------------------
+
+Capital Allocation
+
+20%
+
+Risk Exposure
+
+20%
+
+Diversification
+
+15%
+
+Sector Balance
+
+15%
+
+Liquidity
+
+10%
+
+Cash Flexibility
+
+10%
+
+Correlation
+
+10%
+
+Maximum Score
+
+100
+
+-------------------------------------------------------------------------------
+6. POSITION HEALTH SCORE
+-------------------------------------------------------------------------------
+
+Each holding receives an independent score.
+
+Evaluation Categories
+
+Trend
+
+Momentum
+
+Relative Strength
+
+Liquidity
+
+Risk
+
+Catalyst
+
+Technical Structure
+
+Drawdown
+
+Confidence
+
+Score
+
+0-100
+
+Suggested Interpretation
+
+90+
+
+Core Holding
+
+80+
+
+Healthy
+
+70+
+
+Watch
+
+60+
+
+Weak
+
+Below 60
+
+Exit Candidate
+
+-------------------------------------------------------------------------------
+7. POSITION STATUS
+-------------------------------------------------------------------------------
+
+Every holding SHALL belong to one category.
+
+CORE
+
+Healthy position.
+
+HOLD
+
+No action required.
+
+WATCH
+
+Needs monitoring.
+
+REDUCE
+
+Reduce exposure.
+
+EXIT
+
+Close position.
+
+INVALID
+
+Data insufficient.
+
+-------------------------------------------------------------------------------
+8. POSITION REVIEW
+-------------------------------------------------------------------------------
+
+Every holding SHALL answer
+
+Current Trend
+
+Current Momentum
+
+Support
+
+Resistance
+
+Risk Level
+
+Expected Holding Period
+
+Portfolio Weight
+
+Sector
+
+Correlation
+
+Exit Trigger
+
+-------------------------------------------------------------------------------
+9. CONCENTRATION RISK
+-------------------------------------------------------------------------------
+
+The system SHALL calculate
+
+Largest Position
+
+Top 3 Positions
+
+Top 5 Positions
+
+Sector Concentration
+
+Single Theme Concentration
+
+If concentration exceeds acceptable limits
+
+Portfolio Risk increases.
+
+-------------------------------------------------------------------------------
+10. CORRELATION REVIEW
+-------------------------------------------------------------------------------
+
+Highly correlated positions SHALL be identified.
+
+Examples
+
+NVDA
+
+AMD
+
+AVGO
+
+TSM
+
+may increase semiconductor exposure.
+
+TSLA
+
+RIVN
+
+LCID
+
+increase EV exposure.
+
+The report SHALL identify hidden concentration.
+
+-------------------------------------------------------------------------------
+11. SECTOR EXPOSURE
+-------------------------------------------------------------------------------
+
+Portfolio allocation by sector.
+
+Technology
+
+Financial
+
+Healthcare
+
+Energy
+
+Consumer
+
+Industrial
+
+Utilities
+
+Communication
+
+Real Estate
+
+Materials
+
+Cash
+
+Output
+
+Pie chart optional.
+
+Risk commentary required.
+
+-------------------------------------------------------------------------------
+12. LIQUIDITY REVIEW
+-------------------------------------------------------------------------------
+
+Every position SHALL be reviewed for
+
+Average Volume
+
+Spread
+
+Exit Difficulty
+
+Market Hours
+
+Extended Hours Liquidity
+
+Low-liquidity positions receive lower quality scores.
+
+-------------------------------------------------------------------------------
+13. CAPITAL ALLOCATION
+-------------------------------------------------------------------------------
+
+Capital SHALL be classified.
+
+Cash
+
+Invested Capital
+
+Margin
+
+Reserved Capital
+
+Available Buying Power
+
+Recommended Cash Reserve
+
+-------------------------------------------------------------------------------
+14. BUYING POWER MODEL
+-------------------------------------------------------------------------------
+
+Buying Power SHALL NOT equal Recommended Deployment.
+
+Recommended deployment depends on
+
+Market Regime
+
+Portfolio Health
+
+Risk
+
+Macro Conditions
+
+Volatility
+
+-------------------------------------------------------------------------------
+15. EXIT PRIORITY
+-------------------------------------------------------------------------------
+
+Every position receives an Exit Priority.
+
+Priority 1
+
+Immediate Exit
+
+Priority 2
+
+Reduce Soon
+
+Priority 3
+
+Monitor
+
+Priority 4
+
+Healthy
+
+Priority 5
+
+Core Position
+
+-------------------------------------------------------------------------------
+16. CAPITAL REALLOCATION
+-------------------------------------------------------------------------------
+
+If positions are reduced
+
+capital SHALL be classified.
+
+Immediate Redeployment
+
+Hold Cash
+
+Reserve for Earnings
+
+Reserve for Volatility
+
+Wait for Better Setup
+
+-------------------------------------------------------------------------------
+17. NEW POSITION COMPATIBILITY
+-------------------------------------------------------------------------------
+
+Every new position SHALL answer
+
+Does this duplicate an existing position?
+
+Does this increase concentration?
+
+Does this increase portfolio quality?
+
+Does this reduce flexibility?
+
+If not
+
+Recommendation quality decreases.
+
+-------------------------------------------------------------------------------
+18. PORTFOLIO ACTIONS
+-------------------------------------------------------------------------------
+
+Available actions
+
+BUY
+
+ADD
+
+HOLD
+
+TRIM
+
+REDUCE
+
+ROTATE
+
+EXIT
+
+NO ACTION
+
+-------------------------------------------------------------------------------
+19. PORTFOLIO PRIORITY
+-------------------------------------------------------------------------------
+
+Priority Order
+
+Protect Capital
+
+↓
+
+Reduce Weak Positions
+
+↓
+
+Strengthen Strong Positions
+
+↓
+
+Increase Cash (if needed)
+
+↓
+
+Deploy New Capital
+
+-------------------------------------------------------------------------------
+20. PORTFOLIO DASHBOARD
+-------------------------------------------------------------------------------
+
+Every report SHALL include
+
+Portfolio Health Score
+
+Overall Risk
+
+Cash %
+
+Invested %
+
+Sector Allocation
+
+Largest Position
+
+Weakest Position
+
+Strongest Position
+
+Exit Candidates
+
+Buying Capacity
+
+Recommended Actions
+
+-------------------------------------------------------------------------------
+21. FAILURE CONDITIONS
+-------------------------------------------------------------------------------
+
+The Portfolio Engine SHALL stop if
+
+Portfolio data unreadable
+
+Ticker invalid
+
+Position size invalid
+
+Cash unavailable
+
+Buying power unavailable
+
+User clarification required before continuing.
+
+-------------------------------------------------------------------------------
+22. SUCCESS CRITERIA
+-------------------------------------------------------------------------------
+
+A successful Portfolio Review SHALL
+
+Protect capital
+
+Identify hidden risk
+
+Improve allocation
+
+Improve decision quality
+
+Support future opportunity selection
+
+-------------------------------------------------------------------------------
+End of Document
+
+Atlas Trading OS
+
+PORTFOLIO_ENGINE.md
+
+Version 1.0.0
+```
