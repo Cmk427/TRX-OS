@@ -1,8 +1,8 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## MARKET_ENGINE.md
 
 ```text
-Document ID      : ATO-MKT-001
+Document ID      : TRX-MKT-001
 Document Name    : Market Engine
 Version          : 1.0.0
 Status           : Stable
@@ -10,7 +10,7 @@ Classification   : Critical
 Dependencies      : CORE_PRINCIPLES.md
                     STATE_MACHINE.md
                     VERIFICATION_POLICY.md
-                    DECISION_ENGINE.md
+                    DATA_SOURCE_POLICY.md
 Applies To       : Entire System
 ```
 
@@ -532,7 +532,7 @@ Support downstream decision quality
 -------------------------------------------------------------------------------
 End of Document
 
-Atlas Trading OS
+TRX Trading OS
 
 MARKET_ENGINE.md
 

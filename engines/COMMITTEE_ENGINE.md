@@ -1,8 +1,8 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## COMMITTEE_ENGINE.md
 
 ```text
-Document ID      : ATO-COM-001
+Document ID      : TRX-COM-001
 Document Name    : Investment Committee Engine
 Version          : 1.0.0
 Status           : Stable
@@ -12,20 +12,25 @@ Dependencies     : MARKET_ENGINE.md
                    SCANNER_ENGINE.md
                    OPTIONS_ENGINE.md
                    DECISION_ENGINE.md
-Applies To       : Final Investment Decision
+                   CONSTITUTION.md
+                   STATE_MACHINE.md
+Applies To       : Multi-Role Investment Evaluation
 ```
 
 -------------------------------------------------------------------------------
 1. PURPOSE
 -------------------------------------------------------------------------------
 
-The Investment Committee is the final decision authority before a trade
-recommendation is presented.
+The Investment Committee is a multi-role evaluation and challenge layer before
+the Master Decision Engine publishes a final recommendation.
 
 Its objective is to reduce cognitive bias by evaluating every opportunity
 from multiple independent perspectives.
 
 No BUY recommendation shall bypass Committee Review.
+
+The Committee does not publish the final recommendation and cannot override a
+critical verification, Risk Engine, or Red Team veto.
 
 -------------------------------------------------------------------------------
 2. PHILOSOPHY
@@ -275,19 +280,10 @@ Options Specialist
 7. COMMITTEE CONDITIONS
 -------------------------------------------------------------------------------
 
-A recommendation may proceed only if
-
-Majority supports
-
-AND
-
-Risk Manager does not reject.
-
-If Risk Manager rejects
-
-Recommendation Status
-
-REJECTED
+A recommendation may be marked Committee Qualified only if the weighted
+consensus supports it and no member identifies an unresolved critical concern.
+The Risk Manager's objections are preserved and escalated to the Risk Engine,
+which owns the binding risk veto under `CONSTITUTION.md`.
 
 -------------------------------------------------------------------------------
 8. COMMITTEE QUESTIONS
@@ -398,7 +394,7 @@ Risk excessive
 Confidence too low
 
 -------------------------------------------------------------------------------
-14. FINAL COMMITTEE DECISION
+14. COMMITTEE DISPOSITION
 -------------------------------------------------------------------------------
 
 Possible Results
@@ -414,6 +410,9 @@ REDUCE
 EXIT
 
 PASS
+
+`EXECUTE` in a committee vote means the idea is supported for Master Decision
+review; it is not a final recommendation or an order instruction.
 
 -------------------------------------------------------------------------------
 15. SUCCESS CRITERIA
@@ -434,7 +433,7 @@ Reasoning transparent
 -------------------------------------------------------------------------------
 End of Document
 
-Atlas Trading OS
+TRX Trading OS
 
 COMMITTEE_ENGINE.md
 

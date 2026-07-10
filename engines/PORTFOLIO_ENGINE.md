@@ -1,15 +1,16 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## PORTFOLIO_ENGINE.md
 
 ```text
-Document ID      : ATO-PORT-001
+Document ID      : TRX-PORT-001
 Document Name    : Portfolio Engine
 Version          : 1.0.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : CORE_PRINCIPLES.md
-                   DECISION_ENGINE.md
                    VERIFICATION_POLICY.md
+                   DATA_SOURCE_POLICY.md
+                   STATE_MACHINE.md
 Applies To       : Portfolio Analysis
 ```
 
@@ -546,7 +547,7 @@ Support future opportunity selection
 -------------------------------------------------------------------------------
 End of Document
 
-Atlas Trading OS
+TRX Trading OS
 
 PORTFOLIO_ENGINE.md
 

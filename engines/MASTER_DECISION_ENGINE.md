@@ -1,8 +1,8 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## MASTER_DECISION_ENGINE.md
 
 ```text
-Document ID      : ATO-MDE-001
+Document ID      : TRX-MDE-001
 Document Name    : Master Decision Engine
 Version          : 1.0.0
 Status           : Stable
@@ -16,7 +16,7 @@ Applies To       : Final Recommendation Generation
 -------------------------------------------------------------------------------
 
 The Master Decision Engine (MDE) is the central decision authority of
-Atlas Trading OS.
+TRX Trading OS.
 
 All analytical engines report to the MDE.
 
@@ -42,6 +42,10 @@ The MDE does not perform analysis.
 
 It integrates analysis.
 
+The MDE may publish one final outcome only after the required states in
+`STATE_MACHINE.md` complete. It has no authority to override a critical-data
+failure, Risk Engine hard veto, or Red Team critical-risk veto.
+
 -------------------------------------------------------------------------------
 3. INPUT SOURCES
 -------------------------------------------------------------------------------
@@ -62,7 +66,7 @@ Red Team Engine
 
 Risk Engine
 
-Verification Engine
+Verification Policy / Data Source Policy
 
 User Profile
 
@@ -97,88 +101,24 @@ Cash Balance
 Current Positions
 
 -------------------------------------------------------------------------------
-5. DECISION PIPELINE
+5. WORKFLOW INTEGRATION
 -------------------------------------------------------------------------------
 
-Verification
-
-↓
-
-Market
-
-↓
-
-Portfolio
-
-↓
-
-Scanner
-
-↓
-
-Options
-
-↓
-
-Committee
-
-↓
-
-Red Team
-
-↓
-
-Risk
-
-↓
-
-Master Decision
-
-↓
-
-Execution Plan
+The State Machine is the sole source of workflow order. The MDE integrates
+outputs only after the workflow has completed Market and Portfolio review,
+preliminary Risk Gate, candidate analysis, Committee Review, Red Team Review,
+and Final Risk Gate. It then passes an actionable final outcome to the
+Execution Engine and completes self-audit before publishing.
 
 -------------------------------------------------------------------------------
-6. ENGINE PRIORITY
+6. CONSTRAINT PRIORITY
 -------------------------------------------------------------------------------
 
-Priority Order
-
-Verification
-
-↓
-
-Risk
-
-↓
-
-Market
-
-↓
-
-Portfolio
-
-↓
-
-Committee
-
-↓
-
-Red Team
-
-↓
-
-Scanner
-
-↓
-
-Options
-
-Lowest
-
-Execution
-
-Higher-priority engines always override lower-priority engines.
+Critical data requirements, Core Principles, and human authority constrain all
+outputs. Risk Engine and Red Team critical-risk vetoes are binding. Market and
+Portfolio gates constrain eligibility. Committee, Scanner, Playbook, and
+Options outputs provide analysis and evidence. The MDE integrates the valid
+outputs but cannot relax a binding constraint.
 
 -------------------------------------------------------------------------------
 7. WEIGHTING MODEL
@@ -238,11 +178,14 @@ Red Team PASS
 
 EXECUTE
 
-Any Critical Failure
+Any remaining safety or eligibility failure
 
 ↓
 
 NO TRADE
+
+Critical data failures are finalised earlier by State 04 as
+`INSUFFICIENT VERIFIED INFORMATION` and do not enter this decision matrix.
 
 -------------------------------------------------------------------------------
 9. RECOMMENDATION STATES
@@ -555,7 +498,7 @@ Not by
 Win Rate Alone
 
 -------------------------------------------------------------------------------
-21. FINAL AUTHORITY
+21. FINAL OUTPUT AUTHORITY
 -------------------------------------------------------------------------------
 
 The Master Decision Engine is the only module authorized to produce
@@ -564,11 +507,14 @@ FINAL RECOMMENDATION
 
 All downstream outputs SHALL originate from this engine.
 
+This authority is limited to integration and publication; it is not authority to
+override the constraints named in `CONSTITUTION.md`.
+
 -------------------------------------------------------------------------------
 22. END OF DOCUMENT
 -------------------------------------------------------------------------------
 
-Atlas Trading OS
+TRX Trading OS
 
 MASTER_DECISION_ENGINE.md
 

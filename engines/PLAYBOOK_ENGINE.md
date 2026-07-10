@@ -1,15 +1,15 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## PLAYBOOK_ENGINE.md
 
 ```text
-Document ID      : ATO-PB-001
+Document ID      : TRX-PB-001
 Document Name    : Playbook Engine
 Version          : 1.0.0
 Status           : Stable
 Classification   : Core
 Dependencies     : MARKET_ENGINE
                    SCANNER_ENGINE
-                   MASTER_DECISION_ENGINE
+                   ../playbooks/PLAYBOOK_LIBRARY.md
 Applies To       : Opportunity Classification
 ```
 
@@ -20,7 +20,7 @@ Applies To       : Opportunity Classification
 The Playbook Engine classifies every trading opportunity into a predefined,
 repeatable trading strategy.
 
-Atlas Trading OS never recommends a trade without assigning it to a
+TRX Trading OS never recommends a trade without assigning it to a
 validated Playbook.
 
 If no suitable Playbook exists,
@@ -54,7 +54,7 @@ Every recommendation SHALL belong to exactly ONE Playbook.
 Multiple Playbooks are prohibited.
 
 -------------------------------------------------------------------------------
-4. PLAYBOOK LIBRARY
+4. PLAYBOOK INDEX
 -------------------------------------------------------------------------------
 
 PB-001
@@ -116,6 +116,10 @@ Institutional Accumulation
 PB-015
 
 Event Driven
+
+The authoritative entry, invalidation, risk, exit, and no-trade rules for these
+playbooks are defined in `playbooks/PLAYBOOK_LIBRARY.md`. This index preserves
+the original classification universe; it does not replace the Library.
 
 -------------------------------------------------------------------------------
 5. PLAYBOOK DETECTION
@@ -234,7 +238,7 @@ Produces consistent decision making
 -------------------------------------------------------------------------------
 End of Document
 
-Atlas Trading OS
+TRX Trading OS
 
 PLAYBOOK_ENGINE.md
 

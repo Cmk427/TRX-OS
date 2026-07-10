@@ -1,8 +1,8 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## DECISION_ENGINE.md
 
 ```text
-Document ID      : ATO-DEC-001
+Document ID      : TRX-DEC-001
 Document Name    : Decision Engine
 Version          : 1.0.0
 Status           : Stable
@@ -10,6 +10,8 @@ Classification   : Critical
 Dependencies      : CORE_PRINCIPLES.md
                     STATE_MACHINE.md
                     VERIFICATION_POLICY.md
+                    CONSTITUTION.md
+                    DATA_SOURCE_POLICY.md
 Applies To       : Entire System
 ```
 
@@ -17,11 +19,18 @@ Applies To       : Entire System
 
 # Purpose
 
-The Decision Engine defines how Atlas Trading OS converts verified information into actionable trading decisions.
+The Decision Engine defines how TRX Trading OS converts verified information
+into a transparent, ranked decision package for subsequent review.
 
 The objective is NOT to predict future prices.
 
 The objective is to maximize decision quality.
+
+This engine owns candidate comparison, Opportunity Score, conviction rationale,
+and preliminary disposition. It does not publish the final recommendation,
+override a veto, or construct an execution plan. Workflow order is owned solely
+by `STATE_MACHINE.md`; final integration is owned solely by the Master Decision
+Engine.
 
 ---
 
@@ -45,11 +54,14 @@ Failure of any requirement SHALL reject the recommendation.
 
 ---
 
-# Decision States
+# Candidate Dispositions
 
-Every candidate SHALL belong to exactly one state.
+Every candidate SHALL receive exactly one provisional disposition. Existing
+position actions remain subject to the Portfolio, Risk, and Master Decision
+engines; `EXECUTE` remains a final Master Decision outcome, not a Decision
+Engine instruction.
 
-EXECUTE
+EXECUTE CANDIDATE
 
 WATCH
 
@@ -66,43 +78,24 @@ NO ACTION
 # Decision Pipeline
 
 ```
-Verify Data
+Consume outputs from completed States 04–11
 
 ↓
 
-Evaluate Market
+Rank candidates and calculate Opportunity Score
 
 ↓
 
-Evaluate Portfolio
+Record conviction, evidence, risk/reward, and portfolio fit
 
 ↓
 
-Evaluate Candidate
+Pass the ranked package to Committee Review
 
 ↓
 
-Calculate Risk
-
-↓
-
-Calculate Conviction
-
-↓
-
-Committee Review
-
-↓
-
-Red Team
-
-↓
-
-Decision
-
-↓
-
-Execution Plan
+Master Decision Engine receives this package together with independent
+Committee, Red Team, and final Risk outputs
 ```
 
 ---
@@ -369,35 +362,11 @@ Reject.
 
 # Stage 8
 
-## Investment Committee
+## Committee Handoff
 
-Members
-
-Market Analyst
-
-Technical Analyst
-
-Portfolio Manager
-
-Risk Manager
-
-Options Analyst
-
-Voting
-
-BUY
-
-WATCH
-
-PASS
-
-REJECT
-
-Simple majority required.
-
-Tie Result
-
-WATCH
+The Committee Engine owns member composition, weighting, consensus, dissent,
+and escalation. The Decision Engine supplies the verified candidate package and
+shall not calculate a competing vote.
 
 ---
 
@@ -439,7 +408,7 @@ PASS Red Team
 
 ↓
 
-EXECUTE
+ELIGIBLE FOR MASTER DECISION
 
 Moderate Score
 
@@ -461,11 +430,11 @@ REJECT
 
 ---
 
-# Recommendation Types
+# Provisional Recommendation Types
 
-EXECUTE
+EXECUTE CANDIDATE
 
-Immediate action justified.
+Eligible for final Master Decision review; no order action is implied.
 
 WATCH
 
@@ -527,7 +496,7 @@ What changes tomorrow?
 
 ---
 
-# Mandatory Output
+# Mandatory Decision Package
 
 Each recommendation SHALL include
 
@@ -597,7 +566,7 @@ Not necessarily profitable.
 
 # End of Document
 
-Atlas Trading OS
+TRX Trading OS
 
 DECISION_ENGINE.md
 

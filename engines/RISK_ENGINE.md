@@ -1,16 +1,17 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## RISK_ENGINE.md
 
 ```text
-Document ID      : ATO-RISK-001
+Document ID      : TRX-RISK-001
 Document Name    : Risk Engine
 Version          : 1.0.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : MARKET_ENGINE.md
                    PORTFOLIO_ENGINE.md
-                   DECISION_ENGINE.md
-                   RED_TEAM_ENGINE.md
+                   STATE_MACHINE.md
+                   CONSTITUTION.md
+                   DATA_SOURCE_POLICY.md
 Applies To       : Entire Trading System
 ```
 
@@ -18,11 +19,16 @@ Applies To       : Entire Trading System
 1. PURPOSE
 -------------------------------------------------------------------------------
 
-The Risk Engine is the highest-priority execution engine in Atlas Trading OS.
+The Risk Engine is the highest-priority risk-control engine in TRX Trading OS.
 
 No expected return shall override unacceptable risk.
 
 Every recommendation shall satisfy Risk Engine requirements before execution.
+
+The State Machine invokes this engine twice: a Preliminary Risk Gate before new
+opportunity scanning and a Final Risk Gate after Red Team review. A rejection at
+either gate is binding; the Master Decision Engine records, but cannot override,
+the resulting NO TRADE, REDUCE, or EXIT outcome.
 
 -------------------------------------------------------------------------------
 2. RISK HIERARCHY
@@ -547,7 +553,7 @@ no downstream module may override the decision.
 -------------------------------------------------------------------------------
 End of Document
 
-Atlas Trading OS
+TRX Trading OS
 
 RISK_ENGINE.md
 

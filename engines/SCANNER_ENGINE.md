@@ -1,505 +1,119 @@
-# Atlas Trading OS
-## OPTIONS_ENGINE.md
+# TRX Trading OS
+## SCANNER_ENGINE.md
 
 ```text
-Document ID      : ATO-OPT-001
-Document Name    : Options Engine
+Document ID      : TRX-SCN-001
+Document Name    : Scanner Engine
 Version          : 1.0.0
-Status           : Stable
-Classification   : Critical
+Status           : Active
+Classification   : Core
 Dependencies     : MARKET_ENGINE.md
                    PORTFOLIO_ENGINE.md
-                   SCANNER_ENGINE.md
-                   DECISION_ENGINE.md
+                   RISK_ENGINE.md
                    VERIFICATION_POLICY.md
-Applies To       : Buy Call Strategies
+                   DATA_SOURCE_POLICY.md
+Applies To       : Candidate Discovery and Ranking
 ```
 
--------------------------------------------------------------------------------
-1. PURPOSE
--------------------------------------------------------------------------------
+---
 
-The Options Engine evaluates whether purchasing Call Options provides a
-superior risk-adjusted opportunity compared to purchasing the underlying stock.
+## 1. Purpose
 
-The objective is NOT to maximize leverage.
+The Scanner Engine creates a traceable, ranked candidate universe for further
+research. It discovers opportunities; it does not authorise a trade, set final
+position size, or replace the Decision, Committee, Red Team, Risk, or Master
+Decision engines.
 
-The objective is to maximize asymmetric return while maintaining controlled
-portfolio risk.
+New-candidate scanning begins only after Market and Portfolio review and the
+preliminary Risk Gate. Existing-position review remains higher priority.
 
--------------------------------------------------------------------------------
-2. SCOPE
--------------------------------------------------------------------------------
+---
 
-Supported
+## 2. Candidate Universe
 
-✓ Long Call
+The supported universe is U.S. stocks and ETFs. A candidate may be marked as a
+Long Call candidate only for subsequent Options Engine review; no option
+contract is screened or recommended here.
 
-Future Versions
+Each scan SHALL record the universe definition, scan timestamp, market session,
+exclusions, source coverage, and any survivorship or data-availability limit.
 
-Covered Call
+---
 
-Cash Secured Put
+## 3. Required Inputs
 
-Vertical Spread
+The Scanner uses verified or explicitly classified data for market regime,
+symbol identity, current price, liquidity, volume, trend, relative strength,
+technical structure, catalyst status, and sector context. It also receives
+portfolio restrictions, prohibited exposures, and current risk/deployment
+limits.
 
-Calendar Spread
+Critical quote or session failure prevents the affected candidate from being
+ranked. Unknown non-critical fields are recorded as V5 and reduce confidence;
+they are never silently assumed bullish.
 
-Diagonal Spread
+---
 
-LEAPS
+## 4. Screening Stages
 
--------------------------------------------------------------------------------
-3. REQUIRED INPUTS
--------------------------------------------------------------------------------
+1. **Eligibility** — valid U.S. symbol, tradable instrument, sufficient data,
+   and no portfolio or risk exclusion.
+2. **Liquidity** — assess average volume, spread, tradability, and expected
+   exit difficulty.
+3. **Market Alignment** — test fit with the current regime, sector rotation,
+   volatility, and macro-event constraints.
+4. **Setup Quality** — assess trend, relative strength, momentum, volume
+   expansion, price structure, and a verified or explicitly absent catalyst.
+5. **Portfolio Fit** — identify duplicate exposure, correlation, sector/theme
+   concentration, and buying-capacity impact.
+6. **Ranking** — rank surviving candidates and preserve exclusions with their
+   reasons.
 
-Underlying Price
+---
 
-Option Chain
+## 5. Candidate Quality Score
 
-Expiration Dates
+The Scanner produces a preliminary Candidate Quality Score, not the final
+Decision Engine Opportunity Score. It uses these transparent weights:
 
-Strike Prices
+| Component | Weight |
+|---|---:|
+| Market and sector alignment | 20% |
+| Trend and technical structure | 20% |
+| Relative strength and momentum | 15% |
+| Volume and liquidity | 15% |
+| Catalyst evidence | 15% |
+| Portfolio fit | 15% |
 
-Bid
+Scores are only comparable within the same recorded scan universe and data
+timestamp. Suggested labels are: 90+ Elite Research Candidate; 80–89 Qualified;
+70–79 Watchlist; below 70 Exclude. Score labels are research priorities, not
+recommendations.
 
-Ask
+---
 
-Open Interest
+## 6. Output Contract
 
-Volume
+The Scanner SHALL provide a ranked list with at most ten research candidates.
+For each candidate report ticker, source timestamp, Candidate Quality Score,
+market/sector fit, key verified facts, identified setup, liquidity status,
+catalyst state, portfolio conflict, unknowns, and the next required gate.
 
-Implied Volatility
+The final report may surface at most three new opportunities, as required by
+`OUTPUT_CONTRACT.md`. All excluded candidates with a material risk or
+verification issue must retain an exclusion reason in the audit record.
 
-Portfolio Information
+---
 
-Market Regime
+## 7. Failure Conditions
 
--------------------------------------------------------------------------------
-4. OPTION ELIGIBILITY
--------------------------------------------------------------------------------
+The Scanner returns `NO ELIGIBLE CANDIDATE` when the market does not support new
+risk, portfolio capacity is unavailable, data coverage is inadequate, or no
+candidate passes eligibility. This is a successful protective outcome and is
+not a reason to relax filters.
 
-Before analysis the contract SHALL satisfy
+---
 
-Tradable
-
-Reasonable Spread
-
-Sufficient Open Interest
-
-Sufficient Daily Volume
-
-Current Market Data Verified
-
-Otherwise
-
-Reject
-
--------------------------------------------------------------------------------
-5. UNDERLYING QUALITY SCORE
--------------------------------------------------------------------------------
-
-The underlying asset SHALL first receive
-
-Opportunity Score
-
-from Scanner Engine.
-
-Minimum
-
-80
-
-Otherwise
-
-No option recommendation.
-
--------------------------------------------------------------------------------
-6. DELTA MODEL
--------------------------------------------------------------------------------
-
-Evaluate
-
-Expected price participation.
-
-Preferred Delta
-
-0.55
-
-to
-
-0.75
-
-Higher Delta
-
-Higher capital requirement
-
-Lower leverage
-
-Lower Gamma
-
-Lower Theta
-
--------------------------------------------------------------------------------
-7. GAMMA MODEL
--------------------------------------------------------------------------------
-
-Evaluate
-
-Gamma sensitivity
-
-Acceleration potential
-
-High Gamma
-
-Higher reward
-
-Higher risk
-
--------------------------------------------------------------------------------
-8. THETA MODEL
--------------------------------------------------------------------------------
-
-Evaluate
-
-Daily time decay.
-
-Preferred
-
-Lowest acceptable Theta
-for intended holding period.
-
-Holding period SHALL remain compatible with Theta loss.
-
--------------------------------------------------------------------------------
-9. VEGA MODEL
--------------------------------------------------------------------------------
-
-Evaluate
-
-Sensitivity to implied volatility.
-
-If IV expansion expected
-
-Higher Vega acceptable.
-
-If IV contraction expected
-
-Reduce recommendation quality.
-
--------------------------------------------------------------------------------
-10. IMPLIED VOLATILITY MODEL
--------------------------------------------------------------------------------
-
-Evaluate
-
-Current IV
-
-IV Rank
-
-IV Percentile
-
-Historical IV
-
-Relative IV
-
-High IV
-
-Premium expensive.
-
-Low IV
-
-Premium attractive.
-
--------------------------------------------------------------------------------
-11. EXPIRATION ENGINE
--------------------------------------------------------------------------------
-
-Select expiration using
-
-Expected Holding Period
-
-Expected Catalyst Date
-
-Theta
-
-Liquidity
-
-Preferred
-
-Avoid excessive Theta decay.
-
--------------------------------------------------------------------------------
-12. STRIKE ENGINE
--------------------------------------------------------------------------------
-
-Evaluate
-
-ATM
-
-ITM
-
-OTM
-
-Selection based on
-
-Probability
-
-Capital Efficiency
-
-Expected Move
-
-Portfolio Risk
-
--------------------------------------------------------------------------------
-13. LIQUIDITY MODEL
--------------------------------------------------------------------------------
-
-Evaluate
-
-Bid Ask Spread
-
-Open Interest
-
-Daily Option Volume
-
-Execution Difficulty
-
-Liquidity Score
-
-0-100
-
--------------------------------------------------------------------------------
-14. OPTION RISK MODEL
--------------------------------------------------------------------------------
-
-Measure
-
-Maximum Premium Risk
-
-Probability of Total Loss
-
-Volatility Risk
-
-Gap Risk
-
-Liquidity Risk
-
-Time Risk
-
--------------------------------------------------------------------------------
-15. REWARD MODEL
--------------------------------------------------------------------------------
-
-Estimate
-
-Expected Return
-
-Break-even
-
-Target Price
-
-Risk Reward Ratio
-
-Probability Range
-
--------------------------------------------------------------------------------
-16. OPTION QUALITY SCORE
--------------------------------------------------------------------------------
-
-Components
-
-Underlying Quality
-
-30%
-
-Liquidity
-
-15%
-
-IV Environment
-
-15%
-
-Greeks
-
-15%
-
-Risk
-
-15%
-
-Catalyst
-
-10%
-
-Maximum
-
-100
-
--------------------------------------------------------------------------------
-17. QUALITY CLASSIFICATION
--------------------------------------------------------------------------------
-
-95+
-
-Institutional Grade
-
-90+
-
-Excellent
-
-85+
-
-Strong
-
-80+
-
-Qualified
-
-Below 80
-
-Reject
-
--------------------------------------------------------------------------------
-18. EXECUTION PLAN
--------------------------------------------------------------------------------
-
-Each recommendation SHALL include
-
-Underlying
-
-Strike
-
-Expiration
-
-Premium
-
-Maximum Risk
-
-Break-even
-
-Profit Target
-
-Stop Criteria
-
-Holding Period
-
--------------------------------------------------------------------------------
-19. EXIT STRATEGY
--------------------------------------------------------------------------------
-
-Every position SHALL define
-
-Profit Exit
-
-Time Exit
-
-Stop Exit
-
-Catalyst Exit
-
-Volatility Exit
-
-No option recommendation may omit an exit plan.
-
--------------------------------------------------------------------------------
-20. INVALIDATION CONDITIONS
--------------------------------------------------------------------------------
-
-Recommendation becomes invalid if
-
-Underlying thesis changes
-
-Market regime deteriorates
-
-Catalyst cancelled
-
-Liquidity disappears
-
-Volatility changes materially
-
--------------------------------------------------------------------------------
-21. PROHIBITED BEHAVIOUR
--------------------------------------------------------------------------------
-
-The engine SHALL NOT
-
-Recommend illiquid contracts
-
-Ignore Theta
-
-Ignore IV
-
-Ignore Bid Ask Spread
-
-Recommend contracts with unknown pricing
-
-Recommend contracts without verified market data
-
--------------------------------------------------------------------------------
-22. OUTPUT FORMAT
--------------------------------------------------------------------------------
-
-Every recommendation SHALL include
-
-Underlying
-
-Current Price
-
-Option Contract
-
-Strike
-
-Expiration
-
-Premium
-
-Delta
-
-Gamma
-
-Theta
-
-Vega
-
-IV Rank
-
-Liquidity Score
-
-Option Quality Score
-
-Bull Thesis
-
-Bear Thesis
-
-Maximum Risk
-
-Expected Holding Period
-
-Execution Plan
-
--------------------------------------------------------------------------------
-23. SUCCESS CRITERIA
--------------------------------------------------------------------------------
-
-A successful recommendation SHALL
-
-Provide asymmetric upside
-
-Maintain acceptable downside
-
-Use liquid contracts
-
-Fit the existing portfolio
-
-Remain fully auditable
-
--------------------------------------------------------------------------------
 End of Document
 
-Atlas Trading OS
-
-OPTIONS_ENGINE.md
-
-Version 1.0.0
-```
+TRX Trading OS v1.0

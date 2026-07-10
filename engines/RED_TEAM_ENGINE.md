@@ -1,8 +1,8 @@
-# Atlas Trading OS
+# TRX Trading OS
 ## RED_TEAM_ENGINE.md
 
 ```text
-Document ID      : ATO-RED-001
+Document ID      : TRX-RED-001
 Document Name    : Red Team Engine
 Version          : 1.0.0
 Status           : Stable
@@ -11,6 +11,8 @@ Dependencies     : COMMITTEE_ENGINE.md
                    DECISION_ENGINE.md
                    SCANNER_ENGINE.md
                    MARKET_ENGINE.md
+                   CONSTITUTION.md
+                   DATA_SOURCE_POLICY.md
 Applies To       : All Investment Recommendations
 ```
 
@@ -382,6 +384,10 @@ REJECT
 
 The Red Team has veto authority for Critical Risk.
 
+The Red Team issues the critical-risk finding and required downgrade. The Master
+Decision Engine alone publishes the final report, and it SHALL preserve the
+finding rather than override it.
+
 -------------------------------------------------------------------------------
 19. RED TEAM SCORE
 -------------------------------------------------------------------------------
@@ -473,7 +479,7 @@ have all completed successfully.
 -------------------------------------------------------------------------------
 End of Document
 
-Atlas Trading OS
+TRX Trading OS
 
 RED_TEAM_ENGINE.md
 
