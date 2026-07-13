@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-DEP-001
 Document Name    : Dependency Map
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Reference
 Dependencies     : STATE_MACHINE.md
@@ -89,7 +89,7 @@ feed a decision:
 | `DECISION_SNAPSHOT_POLICY.md` | Verification, Data Source, Master Decision (16) | Pass — reads engine version fields after the fact; not a dependency *of* any engine |
 | `ENGINE_INTERFACE_CONTRACT.md` | State Machine, all engines (05–17) | Pass by design, same shape as Master Decision's aggregator role — but unlike Master Decision, no document declares this contract as a dependency, so no cycle is possible |
 | `FAILURE_TAXONOMY.md` | State Machine, Output Contract, Risk, Data Source | Pass — classifies outcomes State Machine and Output Contract already define; does not originate a new outcome |
-| `PARAMETER_REGISTRY.md` | Risk, Portfolio, Market, Scanner, Playbook, Options, Committee, Master Decision, Execution, State Machine | Pass by design — indexes numbers already owned elsewhere; explicitly non-authoritative on conflict (§1 of that document) |
+| `PARAMETER_REGISTRY.md` | Risk, Portfolio, Market, Scanner, Playbook, Options, Committee, Red Team, Master Decision, Execution, State Machine, Verification Policy | Pass by design — indexes numbers already owned elsewhere; explicitly non-authoritative on conflict (§1 of that document) |
 | `DOCUMENTATION_GOVERNANCE.md` | Constitution | Pass — governs future document headers only, applies to nothing retroactively |
 
 None of the five may ever become a declared dependency of an engine
@@ -108,16 +108,17 @@ retroactively constrain the pipeline it only reports on.
 | `CORE_PRINCIPLES.md` | Market, Portfolio, Decision, State Machine, Verification, Data Source |
 | `STATE_MACHINE.md` | Output Contract, Execution, Market, Portfolio, Decision, Committee, Verification, Data Source |
 | `CONSTITUTION.md` | Risk, Decision, Committee, Red Team |
-| `VERIFICATION_POLICY.md` | Data Source, State Machine, Output Contract, Market, Portfolio, Scanner, Decision |
+| `VERIFICATION_POLICY.md` | Data Source, State Machine, Output Contract, Market, Portfolio, Scanner, Decision, Parameter Registry |
 | `DATA_SOURCE_POLICY.md` | Verification, State Machine, Output Contract, Market, Portfolio, Risk, Scanner, Options, Red Team, Execution, Playbook Library |
-| `MARKET_ENGINE.md` | Risk, Scanner, Options, Committee, Red Team, Playbook |
-| `PORTFOLIO_ENGINE.md` | Risk, Scanner, Options, Committee |
-| `RISK_ENGINE.md` | Scanner, Options, Committee (via Risk Manager vote), Execution, Playbook Library |
-| `SCANNER_ENGINE.md` | Playbook, Options, Committee, Red Team, Playbook Library |
-| `PLAYBOOK_ENGINE.md` | Options |
-| `DECISION_ENGINE.md` | Committee, Red Team |
-| `COMMITTEE_ENGINE.md` | Red Team |
-| `MASTER_DECISION_ENGINE.md` | Execution, Decision Snapshot Policy |
+| `MARKET_ENGINE.md` | Risk, Scanner, Options, Committee, Red Team, Playbook, Parameter Registry, Engine Interface Contract |
+| `PORTFOLIO_ENGINE.md` | Risk, Scanner, Options, Committee, Parameter Registry, Engine Interface Contract |
+| `RISK_ENGINE.md` | Scanner, Options, Committee (via Risk Manager vote), Execution, Playbook Library, Parameter Registry, Engine Interface Contract |
+| `SCANNER_ENGINE.md` | Playbook, Options, Committee, Red Team, Playbook Library, Parameter Registry, Engine Interface Contract |
+| `PLAYBOOK_ENGINE.md` | Options, Parameter Registry, Engine Interface Contract |
+| `DECISION_ENGINE.md` | Committee, Red Team, Engine Interface Contract |
+| `COMMITTEE_ENGINE.md` | Red Team, Parameter Registry, Engine Interface Contract |
+| `RED_TEAM_ENGINE.md` | Parameter Registry, Engine Interface Contract |
+| `MASTER_DECISION_ENGINE.md` | Execution, Decision Snapshot Policy, Parameter Registry, Engine Interface Contract |
 | `OUTPUT_CONTRACT.md` | Execution (and every final report), Decision Snapshot Policy, Failure Taxonomy |
 | `DECISION_SNAPSHOT_POLICY.md` | Output Contract (references it, does not gate it) |
 | `ENGINE_INTERFACE_CONTRACT.md` | Nothing (v1.0) — reserved for `workflows/` |

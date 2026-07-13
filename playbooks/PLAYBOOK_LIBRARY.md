@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-PBL-001
 Document Name    : Playbook Library
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Core
 Dependencies     : PLAYBOOK_ENGINE.md
@@ -232,9 +232,11 @@ execution eligibility. The score is not evidence of future performance.
   IV change, time exit, or expiry constraint.
 - **Risk and exit:** maximum premium risk, theta, IV, strike, expiry, and exit
   plan must be explicit, and SHALL follow `OPTIONS_ENGINE.md` §8A Time Risk
-  Rules (min 30 DTE at entry, hold ≤ 60% of entry DTE, mandatory review at
-  20% theta-driven premium loss, exit or re-justify at 5 DTE) — a correct
-  underlying direction does not exempt this playbook from those triggers.
+  Rules in full (min 30 DTE at entry, hold ≤ 60% of entry DTE, mandatory
+  review at 20% theta-driven premium loss, mandatory review on a ≥15-point
+  intra-session IV Rank drop without a compensating price move, exit or
+  re-justify at 5 DTE) — a correct underlying direction does not exempt this
+  playbook from any of those five triggers.
 - **No trade:** any required option datum is unverified or contract quality is
   below threshold.
 

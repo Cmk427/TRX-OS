@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-DSP-001
 Document Name    : Data Source Policy
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Active
 Classification   : Critical
 Dependencies     : CORE_PRINCIPLES.md
@@ -83,6 +83,17 @@ per-run judgment call. This exists specifically to prevent the scenario
 where, e.g., the Market Engine halts on missing macro data while the
 Decision Engine proceeds to rank candidates anyway — both SHALL apply the
 same §3 classification.
+
+Two rows in §3 (Macro release, and the general S1/S2 requirement in §2) use
+the word "material" or "if critical" — this is not a loophole for per-run
+judgment; it is §3's own objective test, defined once here so it never needs
+re-deriving: a data item is **material/critical** for a given run if, and
+only if, a different plausible value of that item would change which
+candidates are eligible (State 09), which gate result is produced (States
+04/07/15), or the published outcome (State 16). This is a factual question
+about the analysis's structure, not a preference — two engines applying it
+to the same data item and the same candidate set SHALL reach the same
+critical/non-critical classification.
 
 ---
 

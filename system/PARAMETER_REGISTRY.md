@@ -4,7 +4,9 @@
 ```text
 Document ID      : TRX-PRM-001
 Document Name    : Parameter Registry
-Version          : 1.0.0
+Owner            : TRX project owner
+Last Updated     : 2026-07-13
+Version          : 1.3.0
 Status           : Active
 Classification   : Reference
 Dependencies     : RISK_ENGINE.md
@@ -14,9 +16,11 @@ Dependencies     : RISK_ENGINE.md
                    PLAYBOOK_ENGINE.md
                    OPTIONS_ENGINE.md
                    COMMITTEE_ENGINE.md
+                   RED_TEAM_ENGINE.md
                    MASTER_DECISION_ENGINE.md
                    EXECUTION_ENGINE.md
                    STATE_MACHINE.md
+                   VERIFICATION_POLICY.md
 Applies To       : Entire System (index only)
 ```
 
@@ -33,17 +37,28 @@ document wins**, the same relationship `docs/RESPONSIBILITY_MATRIX.md` and
 a parameter still requires editing the owning engine document (and passing
 `CONSTITUTION.md` §7 change control) — never editing this registry alone.
 
+To remove any doubt for an agent that reads this file first (a real risk —
+this file is short and easy to read before the engine it summarizes):
+
+- This registry SHALL NOT introduce a rule, threshold, or default that does
+  not already exist, verbatim, in its cited owning document.
+- This registry SHALL NOT override, relax, or tighten any engine's
+  parameter. It has no authority to do so even if edited to say otherwise.
+- If this file is ever out of sync with its owning document, that is a bug
+  in this file, not a second valid configuration to choose between.
+
 ---
 
 ## 2. Risk Parameters — owned by `RISK_ENGINE.md`
 
 | Parameter | Value | Section |
 |---|---|---|
-| Portfolio Heat bands | 0–20% Very Low, 20–40% Normal, 40–60% Elevated, 60–80% High, 80%+ Critical | §7, formula §7A |
-| Risk Score bands | 100 Minimal, 90 Low, 80 Controlled, 70 Elevated, <70 Reject | §24, formula §24A |
-| Risk Score deduction points | R/R shortfall −25, Elevated Heat −10, Critical Heat −25, High correlation −10, High event risk −10, Extreme event risk −20, Poor liquidity −10, Active drawdown mode −15, Non-structural stop −20 | §24A |
-| Drawdown bands | 0–5% Normal, 5–10% Caution, 10–15% Defensive, 15–20% Recovery Mode, >20% Capital Protection Mode | §9 |
-| Minimum Reward/Risk | 2:1 minimum, 3:1 preferred, 4:1+ exceptional; below minimum → reject | §19 |
+| Portfolio Heat bands | [0%, 20%) Very Low, [20%, 40%) Normal, [40%, 60%) Elevated, [60%, 80%) High, [80%, 100%] Critical — lower bound inclusive, upper bound exclusive except the top band | §7, formula §7A |
+| Risk Score bands | 100 (exact) Minimal, 90–99 Low, 80–89 Controlled, 70–79 Elevated, <70 Reject | §24, formula §24A |
+| Risk Score Layer 1 — Hard Reject Flags (force score = 0, Reject, bypassing Layer 2 arithmetic) | R/R below 2:1, any §26 Failure Condition, any §26A missing input, Critical Heat (≥80%), Extreme event risk | §24A |
+| Risk Score Layer 2 — deduction points (only if no Hard Reject Flag applies; floored at 70) | Elevated Heat −10, High correlation −10, High event risk −10, Poor liquidity −10, Active drawdown mode −15, Non-structural stop −20 | §24A |
+| Drawdown bands | [0%, 5%) Normal, [5%, 10%) Caution, [10%, 15%) Defensive, [15%, 20%) Recovery Mode, [20%, 100%] Capital Protection Mode | §9 |
+| Minimum Reward/Risk | 2:1 minimum (hard reject below this, see Layer 1 above), 3:1 preferred, 4:1+ exceptional | §19 |
 | Position size, daily/weekly/monthly loss limits | Set per Account Risk Profile (Conservative/Balanced/Growth/Aggressive/Maximum Aggressive) — no single fixed number | §4, §10–12 |
 
 ## 3. Portfolio Construction Parameters — owned by `PORTFOLIO_ENGINE.md`
@@ -53,7 +68,7 @@ a parameter still requires editing the owning engine document (and passing
 | Max single stock concentration | 10% of portfolio value (default) | §9A |
 | Max sector concentration | 30% of portfolio value (default) | §9A |
 | Max theme concentration | 40% of portfolio value (default) | §9A |
-| Portfolio Health Score bands | 90–100 Excellent, 80–89 Healthy, 70–79 Acceptable, ... | §4 |
+| Portfolio Health Score bands | 90–100 Excellent, 80–89 Healthy, 70–79 Acceptable, 60–69 Weak, <60 Critical | §4 |
 
 All three concentration defaults scale with Account Risk Profile the same
 way `RISK_ENGINE.md` §4 limits do — tighter for Conservative, never looser.
@@ -72,9 +87,9 @@ way `RISK_ENGINE.md` §4 limits do — tighter for Conservative, never looser.
 |---|---|---|
 | Candidate Quality Score bands | 90+ Elite, 80–89 Qualified, 70–79 Watchlist, <70 Exclude | `SCANNER_ENGINE.md` §5 |
 | Playbook Match Score bands | 90+ Excellent, 80+ Qualified, 70+ Weak, <70 Reject; 85+ required for execution eligibility | `PLAYBOOK_LIBRARY.md` §2, `PLAYBOOK_ENGINE.md` §7–8 |
-| Opportunity Score bands | 95–100 Exceptional, 90–94 Very Strong, 80–89 Strong, ... | `DECISION_ENGINE.md` §Opportunity Score |
+| Opportunity Score bands | 95–100 Exceptional, 90–94 Very Strong, 80–89 Strong, 70–79 Watchlist, <70 Reject | `DECISION_ENGINE.md` §Opportunity Score |
 | Option Quality Score bands | 95+ Institutional Grade, 90+ Excellent, 85+ Strong, 80+ Qualified, <80 Reject | `OPTIONS_ENGINE.md` §6 |
-| Underlying candidate score gate for options | ≥ 80 required before Options Engine review | `OPTIONS_ENGINE.md` §4 |
+| Underlying Candidate Quality Score gate for options | ≥ 80 required before Options Engine review (Scanner's score, not Decision Engine's Opportunity Score) | `OPTIONS_ENGINE.md` §4 |
 
 ## 6. Long Call Time Risk — owned by `OPTIONS_ENGINE.md` §8A
 
@@ -83,6 +98,7 @@ way `RISK_ENGINE.md` §4 limits do — tighter for Conservative, never looser.
 | Minimum DTE at entry | ≥ 30 days |
 | Maximum intended holding period | ≤ 60% of entry DTE |
 | Theta-loss mandatory review trigger | 20% of paid premium, thesis not yet invalid |
+| IV-collapse exit trigger | IV Rank drops ≥15 points intra-session without a compensating favourable price move |
 | Exit-or-rejustify threshold | DTE ≤ 5 (also governs new-entry buffer, `EXECUTION_ENGINE.md` §3E) |
 
 ## 7. Execution Parameters — owned by `EXECUTION_ENGINE.md`
@@ -97,10 +113,13 @@ way `RISK_ENGINE.md` §4 limits do — tighter for Conservative, never looser.
 
 | Parameter | Value | Section |
 |---|---|---|
-| Confidence Model weights | Verification 20%, Risk 20%, Market 15%, Portfolio 15%, Opportunity 15%, Committee 10%, Red Team 5% | §7 |
-| WCS minimum threshold | < 70 caps Confidence at Low regardless of gate results | §7 |
-| Confidence bands | Very High, High, Medium, Low, Very Low | §14 |
+| Confidence Model weights | Verification Confidence 20%, Risk Score 20%, Market Score 15%, Portfolio Health Score 15%, Opportunity Score 15%, Committee (Consensus) Score 10%, Red Team (Resilience) Score 5% | §7 |
+| WCS-to-Confidence bands (the only rule — there is no separate "minimum threshold"; an earlier unscoped "<70 caps at Low" rule was removed because it contradicted these bands, e.g. WCS=55 read as both "Low" and "Very Low") | 90–100 Very High, 80–89 High, 70–79 Medium, 60–69 Low, <60 Very Low | §7 |
+| Missing-value caps (can only lower a reading below what this table alone gives, never raise it) | Gate-linked input UNKNOWN → capped at Low; non-gate-linked input UNKNOWN → drop one level from table reading | §7 |
 | Uncertainty tiers | Low, Medium, High, Critical (separate axis from Confidence) | §14A |
+| Verification Confidence bands | All V1 → 100, worst V2 → 90, worst V3 → 75, worst V4 → 60, worst V5 (non-critical) → 40 | `VERIFICATION_POLICY.md` §4A |
+| Resilience / Red Team Score bands | 100 (exact) Exceptional, 90–99 Strong, 80–89 Acceptable, 70–79 Weak, <70 Reject | `RED_TEAM_ENGINE.md` §19 |
+| Resilience Score deduction | −10 per failed baseline attack category, −5 per failed specialized category (of 11 total, §4A) | `RED_TEAM_ENGINE.md` §19 |
 
 ## 9. Committee Parameters — owned by `COMMITTEE_ENGINE.md`
 

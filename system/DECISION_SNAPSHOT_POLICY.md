@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-DSN-001
 Document Name    : Decision Snapshot Policy
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Active
 Classification   : Critical
 Dependencies     : VERIFICATION_POLICY.md
@@ -25,10 +25,26 @@ question. It is what makes a past decision auditable rather than merely
 loggable.
 
 Every analysis that reaches State 16 (Master Decision) SHALL produce exactly
-one Decision Snapshot, regardless of outcome — `EXECUTE`, `NO TRADE`,
-`WATCH`, or any other terminal status. The snapshot is appended to the
-Master Decision Engine's audit record (`MASTER_DECISION_ENGINE.md` §19); this
-document defines the required fields, not a separate storage location.
+one full Decision Snapshot (§2 below), regardless of outcome — `EXECUTE`,
+`NO TRADE`, `WATCH`, or any other terminal status. The snapshot is appended
+to the Master Decision Engine's audit record (`MASTER_DECISION_ENGINE.md`
+§19); this document defines the required fields, not a separate storage
+location.
+
+**Early termination (never reaches State 16).** A run that stops at State
+03 (malformed input) or State 04 (`INSUFFICIENT VERIFIED INFORMATION`) never
+reaches the Master Decision Engine, so it cannot produce the full snapshot
+above — there is no Master Decision to append one to. This is not a gap in
+the audit trail: `OUTPUT_CONTRACT.md`'s Profile A report itself **is** the
+audit record for this case, and SHALL include a **Reduced Snapshot**: Run ID
+and timestamp, the specific failed critical input, its source/freshness
+status, and the document versions of whichever policy (Verification or Data
+Source) detected the failure. The engine or policy that detects the State
+03/04 failure is responsible for this reduced record — not Master Decision
+Engine, which never ran. `SYSTEM REVIEW REQUIRED` (State Machine §6A) is
+also an early termination in this sense (it never reaches a clean State 16
+outcome); it uses the same Reduced Snapshot fields plus the revision count
+and the states involved in the unresolved loop.
 
 ---
 

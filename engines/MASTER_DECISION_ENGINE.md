@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-MDE-001
 Document Name    : Master Decision Engine
-Version          : 1.0.0
+Version          : 1.3.0
 Status           : Stable
 Classification   : Core
 Dependencies     : ALL ENGINES
@@ -98,7 +98,9 @@ Risk Score
 
 Opportunity Score
 
-Option Score
+Option Quality Score (`OPTIONS_ENGINE.md` §6 — when applicable; this is
+contextual input for the report, not one of the 7 WCS weight-table inputs
+in §7, which does not include options data)
 
 Committee Score
 
@@ -144,23 +146,28 @@ passes. This separation is intentional: gates are pass/fail because risk and
 evidence failures are not something a good score elsewhere should be able to
 buy off.
 
-Weight table:
+Weight table. Every input is a 0–100 score defined and computed exactly
+once, in its owning document — this table never redefines them, only
+weights them:
 
-| Input | Weight | Kind |
-|---|---:|---|
-| Verification Confidence | 20% | Gate-linked |
-| Risk Score | 20% | Gate-linked |
-| Market Score | 15% | Non-gate-linked |
-| Portfolio Score | 15% | Non-gate-linked |
-| Opportunity Score | 15% | Non-gate-linked |
-| Committee Score | 10% | Non-gate-linked |
-| Red Team Score | 5% | Gate-linked |
-| Total | 100% | |
+| Input | Weight | Kind | Defined in |
+|---|---:|---|---|
+| Verification Confidence | 20% | Gate-linked | `VERIFICATION_POLICY.md` § Verification Confidence Score |
+| Risk Score | 20% | Gate-linked | `RISK_ENGINE.md` §24/§24A |
+| Market Score | 15% | Non-gate-linked | `MARKET_ENGINE.md` §15 |
+| Portfolio Health Score | 15% | Non-gate-linked | `PORTFOLIO_ENGINE.md` §4 |
+| Opportunity Score | 15% | Non-gate-linked | `DECISION_ENGINE.md` § Opportunity Score |
+| Committee Score | 10% | Non-gate-linked | `COMMITTEE_ENGINE.md` §10 Consensus Score — same number, two names |
+| Red Team Score | 5% | Gate-linked | `RED_TEAM_ENGINE.md` §19 Resilience Score — same number, two names |
+| Total | 100% | | |
 
 Formula:
 
-`WCS = Σ (weight_i × score_i)`, summed over the inputs above, each score
-already normalised to 0–100.
+`WCS = Σ (weight_i × score_i)`, summed over the inputs above. Every score
+is already normalised to a shared 0–100 scale in its owning document per
+the table above — none is a 0–1 fraction, a percentage sign, or any other
+scale, and none may be substituted into this formula without that
+normalisation already having happened upstream.
 
 Missing-value handling (an input may never be silently dropped or defaulted):
 
@@ -170,17 +177,48 @@ Missing-value handling (an input may never be silently dropped or defaulted):
   §8's gates are binary pass/fail, not WCS-derived. For the WCS itself, an
   `UNKNOWN` gate-linked input caps Confidence at **Low**, regardless of the
   numeric value the remaining inputs would otherwise produce.
-- **Non-gate-linked input is `UNKNOWN`** (Market, Portfolio, Opportunity, or
-  Committee Score): redistribute that input's weight proportionally across
+- **Non-gate-linked input is `UNKNOWN`** (Market, Portfolio Health,
+  Opportunity, or Committee Score): redistribute that input's weight proportionally across
   the remaining present inputs, compute WCS over what remains, and drop the
   resulting Confidence one level from what a full-input WCS of the same
   value would imply (e.g. what would read High reads Medium).
 
-Minimum threshold: **WCS < 70 caps Confidence at Low**, even when the §8
-Decision Matrix is a full PASS. A full-gate-pass EXECUTE can therefore still
-carry Low Confidence — this is a valid, expected combination, not a
-contradiction; it tells the human trader "this clears every binding
-constraint, but the supporting evidence is thin."
+A full-gate-pass EXECUTE can carry any Confidence level down to Very Low —
+this is a valid, expected combination, not a contradiction; it tells the
+human trader "this clears every binding constraint, but the supporting
+evidence is thin." There is no separate "minimum threshold" rule beyond the
+band mapping below and the missing-value caps above — a single unscoped
+"WCS < 70 caps at Low" rule would itself contradict the bands (a WCS of 55
+would be both "capped at Low" and, per the bands, "Very Low" — two
+different answers for one number). The two missing-value bullets above are
+the only caps that exist; every fully-known WCS is read directly off the
+table below with no additional flooring.
+
+**WCS-to-Confidence band mapping** (this is the missing piece that makes
+the model actually computable, not just described): for a WCS with no
+missing-value cap applied,
+
+| WCS | Confidence |
+|---|---|
+| 90–100 | Very High |
+| 80–89 | High |
+| 70–79 | Medium |
+| 60–69 | Low |
+| Below 60 | Very Low |
+
+A missing-value cap (gate-linked `UNKNOWN` → Low; non-gate-linked `UNKNOWN`
+→ drop one level from this table's reading) can only *lower* Confidence
+from what this table alone would produce, never raise it — "capped at Low"
+means "at most Low," so if the table would already read Very Low, the cap
+changes nothing.
+
+Confidence and Uncertainty (§14A) are computed from different evidence and
+SHALL NOT be conflated: a high WCS driven by well-verified current facts
+produces High or Very High Confidence even when a real, named future
+unknown (e.g. an upcoming macro release) exists — that unknown belongs in
+the Uncertainty tier, not in a downgraded Confidence. Lowering Confidence
+to informally express "but something later could change" is exactly the
+mistake this separation exists to prevent.
 
 Every published WCS SHALL cite the Confidence Model (this section's)
 document version, per `system/DECISION_SNAPSHOT_POLICY.md`.
@@ -230,10 +268,6 @@ HOLD
 
 Maintain existing position.
 
-ADD
-
-Increase exposure.
-
 REDUCE
 
 Lower exposure.
@@ -242,13 +276,22 @@ EXIT
 
 Close position.
 
-ROTATE
-
-Move capital to stronger opportunity.
-
 NO TRADE
 
 Preserve cash.
+
+This is the complete outcome set; `SYSTEM.md` §6 is the sole canonical
+enum (it also adds `INSUFFICIENT VERIFIED INFORMATION` and
+`SYSTEM REVIEW REQUIRED`, which are system-level stops rather than
+candidate-level recommendations). "ADD" (increasing an existing position)
+and "ROTATE" (moving capital from one holding to a stronger opportunity)
+are deliberately not separate outcomes — an ADD is expressed as `EXECUTE`
+against an existing position, and a ROTATE is expressed as the paired
+`EXIT` (one candidate) and `EXECUTE` (another), each following its own
+full pipeline rather than being a single atomic outcome. Introducing either
+as a genuinely new outcome value would require updating `SYSTEM.md` §6,
+`OUTPUT_CONTRACT.md`, and `ENGINE_INTERFACE_CONTRACT.md`'s `final_outcome`
+enum together, per `CONSTITUTION.md` §7A.
 
 -------------------------------------------------------------------------------
 10. EXECUTION ELIGIBILITY
@@ -489,19 +532,30 @@ The MDE SHALL explicitly recommend
 
 NO TRADE
 
-when
+when the gate-based Decision Matrix (§8) does not reach a full PASS —
+concretely, whenever any of the following gate-level conditions holds:
 
-Evidence insufficient
+Evidence insufficient (Verification gate fails)
 
-Market hostile
+Market hostile (Market gate restricts new risk)
 
-Portfolio overloaded
+Portfolio overloaded (Portfolio gate requires action first)
 
-Risk excessive
+Risk excessive (Risk gate rejects)
 
-Confidence too low
+Committee/Red Team does not clear (per §8)
 
-Cash preservation preferred
+Cash preservation preferred (a valid Risk/Committee outcome, not a separate trigger)
+
+`Confidence too low` is deliberately NOT a trigger in this list. Per §7, the
+Confidence Model never determines the outcome — it is entirely possible, and
+not a defect, for a full-gate-pass candidate to publish `EXECUTE` while
+carrying any Confidence level down to Very Low (§7's WCS-to-Confidence band
+table — there is no separate "WCS < 70" rule; see §7 for why an unscoped
+version of that phrase was removed). If a report needs `NO TRADE` because of
+what caused low confidence (e.g., the evidence itself is insufficient), that
+is already covered by "Evidence insufficient" above — it is the underlying
+gate failure, not the resulting Confidence number, that triggers `NO TRADE`.
 
 -------------------------------------------------------------------------------
 18. SELF CONSISTENCY CHECK
@@ -588,5 +642,5 @@ TRX Trading OS
 
 MASTER_DECISION_ENGINE.md
 
-Version 1.0.0
+Version 1.3.0
 ```

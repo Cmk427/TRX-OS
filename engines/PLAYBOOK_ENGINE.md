@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-PB-001
 Document Name    : Playbook Engine
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Stable
 Classification   : Core
 Dependencies     : MARKET_ENGINE
@@ -260,5 +260,5 @@ TRX Trading OS
 
 PLAYBOOK_ENGINE.md
 
-Version 1.0.0
+Version 1.1.0
 ```

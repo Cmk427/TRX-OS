@@ -44,6 +44,23 @@ Status: completed in this repository.
   `system/PARAMETER_REGISTRY.md`, `system/DOCUMENTATION_GOVERNANCE.md`, and
   the round-1 Decision Snapshot / Engine Interface / Failure Taxonomy
   documents, extended with Decision ID / Human Action / Outcome fields.
+- Third- and fourth-review hardening (multi-pass fresh-eyes audits): a
+  two-layer Risk Score model separating Hard Reject Flags from point
+  deductions (`RISK_ENGINE.md` §24A); a Verification Confidence Score
+  formula (`VERIFICATION_POLICY.md` §4A) and a Resilience Score formula
+  (`RED_TEAM_ENGINE.md` §19) closing two previously-undefined Confidence
+  Model inputs; an explicit WCS-to-Confidence band table
+  (`MASTER_DECISION_ENGINE.md` §7) with the missing-value caps that never
+  raise a reading, only lower it; a state-ordering fix so Options Review
+  (State 11) gates on Scanner's Candidate Quality Score rather than a
+  not-yet-computed Opportunity Score; a formal schema-conventions section
+  in `ENGINE_INTERFACE_CONTRACT.md` §1A; a narrowly-scoped "not applicable"
+  finding value for Red Team's Valuation/Execution attack categories; and a
+  full terminology reconciliation pass removing stray outcome vocabulary
+  (ADD/ROTATE/BUY as if they were canonical outcomes) and duplicate/
+  unreconciled score names (Portfolio Score, Option Score, Market
+  Confidence) across `PORTFOLIO_ENGINE.md`, `DECISION_ENGINE.md`,
+  `MARKET_ENGINE.md`, and their dependent templates and examples.
 
 ## v1.1 — Operational Research Schemas
 

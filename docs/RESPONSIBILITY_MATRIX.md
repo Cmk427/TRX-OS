@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-RSM-001
 Document Name    : Responsibility Matrix
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Active
 Classification   : Reference
 Dependencies     : CONSTITUTION.md

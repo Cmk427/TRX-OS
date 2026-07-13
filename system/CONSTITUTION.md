@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-CON-001
 Document Name    : System Constitution
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Active
 Classification   : Critical
 Applies To       : Entire System
@@ -99,6 +99,26 @@ authority," or similar SHALL instead name which of the two kinds above it
 means. `RISK_ENGINE.md` and `MASTER_DECISION_ENGINE.md` are both required to
 use this terminology (see their respective Veto Authority / Publication
 Authority sections).
+
+**A note on Market Engine and Portfolio Engine's gates (§5).** These two
+gates also forbid/restrict — Market Engine's gate can "Restrict deployment
+or new-risk eligibility," Portfolio Engine's can "Require portfolio action
+before new exposure" — which looks like Constraint Authority by the plain
+meaning of "forbidding power." They are deliberately **not** listed in the
+Constraint Authority row above, because Constraint Authority in this
+document means something more specific: a **binding veto** that survives
+all the way to the Master Decision Engine and constrains the *published
+outcome* directly, overridable by nothing downstream. Market and Portfolio
+gates are **eligibility gates**: they narrow what the Scanner (State 09) and
+Decision Engine (State 12) may put forward as candidates in the first place,
+consumed and absorbed earlier in the pipeline — by the time Master Decision
+publishes, a Market/Portfolio restriction has already shaped which
+candidates exist to rank, rather than persisting as a separate binding
+constraint alongside Risk's and Red Team's vetoes. Put differently: Risk and
+Red Team can force `NO TRADE` on a candidate that survived every earlier
+stage; Market and Portfolio instead determine which candidates survive to
+be evaluated. Both are real, non-optional constraints — only one kind is a
+*veto* in the specific sense CONSTITUTION.md uses that word.
 
 ---
 

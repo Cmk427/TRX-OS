@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-TPL-002
 Document Name    : Decision Template
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Template
 Dependencies     : STATE_MACHINE.md
@@ -81,16 +81,23 @@ Every mandatory attack category (`RED_TEAM_ENGINE.md` §4A) SHALL produce an
 explicit finding — a category with no row recorded is treated as not having
 been attacked at all (§4A, §22):
 
-| Category | Finding | Survived / Failed |
+All 11 rows are mandatory — 7 baseline plus 4 specialized. A specialized
+category is not optional or combinable with another; each gets its own
+finding:
+
+| Category | Finding | Survived / Failed / Not Applicable |
 |---|---|---|
 | THESIS ATTACK | | |
 | DATA ATTACK | | |
 | ASSUMPTION ATTACK | | |
-| VALUATION ATTACK | | |
+| VALUATION ATTACK (§4A: `not applicable` allowed here only, and only if no pricing/entry analysis exists yet) | | |
 | RISK ATTACK | | |
 | TIMING ATTACK | | |
-| EXECUTION ATTACK | | |
-| Macro / Technical / Portfolio / Catalyst (specialised, §4A) | | |
+| EXECUTION ATTACK (§4A: `not applicable` allowed here only, and only if no execution plan exists yet) | | |
+| MACRO (specialized, §4A) | | |
+| TECHNICAL (specialized, §4A) | | |
+| PORTFOLIO (specialized, §4A) | | |
+| CATALYST (specialized, §4A) | | |
 
 ```text
 Ticker                     :
@@ -139,7 +146,10 @@ Rationale                  :
 Conditions (if any)        :
 Weighted Composite Score   :   (§7 formula in MASTER_DECISION_ENGINE.md; Confidence-only, never outcome-determining)
 Confidence                 :   Very High / High / Medium / Low / Very Low
-                               (capped Low if any gate-linked input is UNKNOWN or WCS < 70 — see MDE §7)
+                               (read directly off MDE §7's WCS-to-Confidence band table:
+                               90-100/80-89/70-79/60-69/<60; capped at Low if a gate-linked
+                               input is UNKNOWN — a cap only ever lowers the band reading,
+                               never raises it. There is no separate "WCS < 70" rule.)
 Uncertainty Tier (§14A)    :   Low / Medium / High / Critical — named reason(s)
                                (separate axis from Confidence — the two may disagree)
 Gate results honoured      :   Verification ✅/❌   Risk ✅/❌   Red Team ✅/❌
@@ -151,10 +161,10 @@ integrates, it does not override. `SYSTEM REVIEW REQUIRED` applies only when
 `STATE_MACHINE.md` §6A's revision-cycle limit (max 2) has been exceeded; do
 not use it as a substitute for `NO TRADE`.
 
-A full-gate-pass `EXECUTE` may still carry Low Confidence — this is expected,
-not an error, whenever the WCS is below 70 or a non-gate-linked input was
-`UNKNOWN`. Record both values; do not silently round Confidence up to match
-a passing outcome.
+A full-gate-pass `EXECUTE` may still carry any Confidence down to Very Low —
+this is expected, not an error, whenever the band table reads that low or a
+non-gate-linked input was `UNKNOWN`. Record both values; do not silently
+round Confidence up to match a passing outcome.
 
 ---
 

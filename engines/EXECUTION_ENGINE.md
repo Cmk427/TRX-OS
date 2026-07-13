@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-EXE-001
 Document Name    : Execution Engine
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Active
 Classification   : Critical
 Dependencies     : STATE_MACHINE.md
@@ -119,13 +119,22 @@ price.
   "Poor" tier requires an explicit note that slippage risk is elevated and a
   smaller size or no-trade may be preferable.
 
-## 3C. Slippage Assumption
+## 3C. Slippage Assumption and Expected Fill Price
 
 Slippage is never assumed to be zero. The plan SHALL state its slippage
 assumption explicitly using: `half the quoted bid-ask spread` plus a
 `volatility buffer` (one average true range tick, or the option-equivalent
-implied-move buffer for contracts) added to the limit price used for planning
-purposes. This is a planning estimate, not a guaranteed fill price.
+implied-move buffer for contracts).
+
+The plan SHALL compute and state an explicit **Expected Fill Price** from
+this: `Expected Fill Price = limit price ± slippage assumption` (add for a
+buy, subtract for a sell), plus a stated **Market Impact** note when
+position size approaches the §3B liquidity cap (10% of ADV/OI) — at that
+size, the order itself may move the price beyond the slippage assumption,
+and the plan SHALL flag this rather than silently using the same slippage
+figure as a small order would use. This is a planning estimate for human
+review, not a guaranteed fill price, and not a claim that TRX has simulated
+the order against a live order book.
 
 ## 3D. Market Hours and Stale Quote Handling
 

@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-VRF-001
 Document Name    : Verification Policy
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Critical
 Dependencies     : CORE_PRINCIPLES.md
@@ -68,6 +68,46 @@ A non-critical unknown may be present only when it is explicitly declared,
 does not support the thesis, and reduces confidence. A no-trade conclusion may
 be reached with incomplete data when the uncertainty itself justifies not taking
 risk.
+
+---
+
+## 4A. Verification Confidence Score
+
+`MASTER_DECISION_ENGINE.md` §7 uses "Verification Confidence" as a 0–100
+weighted input to the Confidence Model. It is defined here, once, so it is
+never left for an agent to invent by analogy:
+
+Verification Confidence is set by the **single worst V-label** among the
+material facts feeding the decision (a run that reached State 16 has, by
+definition, no critical fact at V5 — that would have already stopped the
+run at State 04 per §4 above):
+
+| Worst material V-label present | Verification Confidence |
+|---|---|
+| All material facts V1 | 100 |
+| Worst is V2 | 90 |
+| Worst is V3 | 75 |
+| Worst is V4 | 60 |
+| Worst is V5 (non-critical only) | 40 |
+
+If more than one material fact sits at the worst label, the score does not
+drop further per additional fact — the worst label alone sets the tier;
+listing every affected fact is what the Evidence Status section (§5 below,
+`OUTPUT_CONTRACT.md` §3 item 2) is for, not further score erosion. This
+keeps the score simple and auditable rather than compounding uncertainty
+twice (once in the score, once in the disclosed conflict list).
+
+**Scope of "material facts": raw evidence only, not derived scores.** Every
+V3 calculation (Risk Score, Opportunity Score, Candidate Quality Score, and
+similarly derived numbers) is, by §2's own definition, a V3 estimate — if
+these counted toward "worst material fact," almost no run could ever reach
+Verification Confidence 100, since nearly every completed analysis has at
+least one calculated score, making the top band practically unreachable and
+defeating the score's purpose. Verification Confidence measures the quality
+of the **raw evidentiary facts** the analysis is built on (prices, events,
+catalysts, filings, portfolio data) — the calculations built from those
+facts are a separate concern, already governed by their own formulas and
+bands, and are excluded from this determination.
 
 ---
 

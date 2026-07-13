@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-COM-001
 Document Name    : Investment Committee Engine
-Version          : 1.0.0
+Version          : 1.3.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : MARKET_ENGINE.md
@@ -27,7 +27,8 @@ the Master Decision Engine publishes a final recommendation.
 Its objective is to reduce cognitive bias by evaluating every opportunity
 from multiple independent perspectives.
 
-No BUY recommendation shall bypass Committee Review.
+No new-risk recommendation (an `EXECUTE CANDIDATE` disposition per
+`DECISION_ENGINE.md`) shall bypass Committee Review.
 
 The Committee does not publish the final recommendation and cannot override a
 critical verification, Risk Engine, or Red Team veto.
@@ -354,8 +355,11 @@ Example: if the Market Strategist (25%) and Portfolio Manager (20%) vote BUY
 (80 pts), Risk Manager (25%) votes WATCH (60 pts), Technical Analyst (15%)
 votes STRONG BUY (100 pts), Execution Specialist (10%) votes BUY (80 pts),
 and Options Specialist (5%) votes PASS (40 pts), the score is
-(0.25×80)+(0.20×80)+(0.25×60)+(0.15×100)+(0.10×80)+(0.05×40) = 76 — Moderate
-Consensus per the bands below.
+(0.25×80)+(0.20×80)+(0.25×60)+(0.15×100)+(0.10×80)+(0.05×40) = 76 — Weak
+Consensus per the bands below (76 falls in the 70+ band, not the 80+
+Moderate band — a useful reminder that "mostly BUY votes" does not
+automatically read as Moderate or better; the Risk Manager's WATCH at 25%
+weight pulls this example below that threshold).
 
 Consensus Score
 
@@ -433,7 +437,14 @@ Liquidity unacceptable
 
 Risk excessive
 
-Confidence too low
+"Confidence too low" is deliberately not a Committee rejection trigger — the
+Confidence Model (`MASTER_DECISION_ENGINE.md` §7) is not even computed until
+State 16, two states after Committee Review (State 13); the Committee has no
+Confidence number to evaluate at the time it votes. If the underlying reason
+for what would become low confidence is one of the conditions above
+(insufficient evidence, excessive risk, etc.), that condition — not a
+Confidence score that does not yet exist — is the Committee's actual basis
+for rejection.
 
 -------------------------------------------------------------------------------
 14. COMMITTEE DISPOSITION
@@ -479,5 +490,5 @@ TRX Trading OS
 
 COMMITTEE_ENGINE.md
 
-Version 1.0.0
+Version 1.3.0
 ```

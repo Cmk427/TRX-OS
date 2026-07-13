@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-OPT-001
 Document Name    : Options Engine
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Critical
 Dependencies     : MARKET_ENGINE.md
@@ -64,8 +64,10 @@ pricing, or creates unacceptable premium-loss, gap, volatility, or time risk.
 
 ## 4. Underlying and Greeks Review
 
-The underlying must have a qualified candidate score of at least 80 before
-option analysis. The engine evaluates:
+The underlying must have a Candidate Quality Score (`SCANNER_ENGINE.md` §5,
+available since State 09) of at least 80 before option analysis — not the
+Decision Engine's Opportunity Score, which is not computed until State 12,
+one state after Options Review. The engine evaluates:
 
 | Factor | Requirement |
 |---|---|
@@ -196,6 +198,23 @@ minimum-DTE-buffer rule in `EXECUTION_ENGINE.md` §3E:
   minimum-DTE-for-new-entry rule also governs continued holding — a Long
   Call SHALL be exited or explicitly re-justified once DTE falls to 5 or
   below, independent of thesis status.
+- **IV-collapse exit trigger**: if IV Rank drops by 15 or more points from
+  its value at entry within one trading session, without a compensating
+  favourable price move toward the stated target, this SHALL force the same
+  mandatory Position Review as the theta-loss trigger above — an IV crush
+  can erode most of a Long Call's value even when the underlying moved in
+  the intended direction, and this is the trigger that catches it. This is
+  distinct from a scheduled-event IV crush already disclosed under §5A
+  ("no scheduled event in holding window") — this trigger applies whenever
+  IV actually drops sharply, scheduled or not.
+
+Exit mechanics overall — profit-taking, stop-loss, thesis-break, and event
+exit — are already required in §7 Required Output ("profit exit, time exit,
+stop or thesis-break criteria, catalyst exit, volatility exit"); the five
+triggers above (min DTE, holding cap, theta-loss, exit-before-expiry,
+IV-collapse) are the *time-and-volatility-specific* exit conditions that
+exist even when the directional thesis itself remains correct — "direction
+was right" is never sufficient on its own to call a Long Call a success.
 
 These numbers are v1.0 defaults, not a claim of optimality; they exist so
 "direction was right" is never silently treated as "the trade worked."

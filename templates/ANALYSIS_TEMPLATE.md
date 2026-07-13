@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-TPL-001
 Document Name    : Analysis Template
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Template
 Dependencies     : STATE_MACHINE.md
@@ -186,7 +186,8 @@ actionable ranking; it may still be logged as `WATCH`.
 underlying.
 
 ```text
-Underlying candidate score gate (≥80 required) :
+Underlying Candidate Quality Score gate (§9 above; ≥80 required — not the
+  Decision Engine Opportunity Score, which does not exist until State 12) :
 Contract (strike / expiration)                 :
 Verified pricing / IV / Greeks                 :
 Liquidity (OI, spread)                          :

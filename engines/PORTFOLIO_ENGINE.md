@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-PORT-001
 Document Name    : Portfolio Engine
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : CORE_PRINCIPLES.md
@@ -487,23 +487,31 @@ Recommendation quality decreases.
 18. PORTFOLIO ACTIONS
 -------------------------------------------------------------------------------
 
-Available actions
-
-BUY
-
-ADD
+Available actions — this list is now aligned to `STATE_MACHINE.md` State 08's
+required result for existing-position review: **HOLD, REDUCE, EXIT,
+WATCH**. This document previously also listed BUY, ADD, TRIM, ROTATE, and
+NO ACTION as if they were separate standalone actions here — they are not,
+and listing them created exactly the kind of unreconciled-outcome-vocabulary
+problem `MASTER_DECISION_ENGINE.md` §9 was corrected to remove (ADD/ROTATE
+dropped from its own Recommendation States for the same reason). Reconciled:
 
 HOLD
 
-TRIM
-
 REDUCE
-
-ROTATE
 
 EXIT
 
-NO ACTION
+WATCH
+
+"BUY" (opening a new position) is out of scope for this section entirely —
+it belongs to Scanner/Decision Engine's candidate pipeline for *new*
+opportunities (States 09–12), not to existing-position review. "ADD" and
+"TRIM" describe finer-grained sizing nuances of REDUCE (or, for ADD, a new
+risk decision that must go through the full new-candidate pipeline, not an
+existing-position shortcut) — they are not separate outcomes. "ROTATE"
+(exiting one holding to fund another) is expressed as the paired EXIT (this
+position) and, separately, EXECUTE (the new position) once that candidate
+completes its own full pipeline — never a single atomic action here.
 
 -------------------------------------------------------------------------------
 19. PORTFOLIO PRIORITY
@@ -598,5 +606,5 @@ TRX Trading OS
 
 PORTFOLIO_ENGINE.md
 
-Version 1.0.0
+Version 1.2.0
 ```

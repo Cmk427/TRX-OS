@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-TPL-003
 Document Name    : Report Template
-Version          : 1.0.0
+Version          : 1.3.0
 Status           : Active
 Classification   : Template
 Dependencies     : OUTPUT_CONTRACT.md
@@ -67,7 +67,11 @@ Failure Taxonomy 分類：CONFLICT_FAILURE
 ### 1. 執行摘要
 
 ```text
-結果（EXECUTE / WATCH / HOLD / REDUCE / EXIT / NO TRADE）：
+結果（EXECUTE / WATCH / HOLD / REDUCE / EXIT / NO TRADE /
+  INSUFFICIENT VERIFIED INFORMATION / SYSTEM REVIEW REQUIRED）：
+Failure Taxonomy 分類（僅非 EXECUTE 結果須填，依 FAILURE_TAXONOMY.md §2：
+  DATA_FAILURE / MODEL_FAILURE / CONFLICT_FAILURE / RISK_REJECTION /
+  EXECUTION_INVALID / SYSTEM_ERROR）：
 信心水平（Very High / High / Medium / Low / Very Low，由 Weighted Composite
   Score 計算，見第 12 節；信心與結果分開判定，滿分通過所有閘門仍可為 Low）：
 不確定性等級（Uncertainty：Low / Medium / High / Critical，附具體原因；
@@ -89,11 +93,17 @@ Failure Taxonomy 分類：CONFLICT_FAILURE
 
 Decision Snapshot（依 DECISION_SNAPSHOT_POLICY.md §2）：
   Decision ID（每個候選／持倉獨立，不同於 Run ID）：
+  Run ID／時戳：
   市場資料時戳：
   各引擎文件版本（Market/Portfolio/Risk/Scanner/Playbook/Options/Decision/
-    Committee/Red Team/Master Decision/Execution）：
+    Committee/Red Team/Master Decision/Execution；未觸發之引擎標示
+    NOT APPLICABLE，不可略去）：
   Confidence Model 版本（MASTER_DECISION_ENGINE.md §7）：
   Playbook Library 版本：
+  Prompt 版本：NOT APPLICABLE — v1.0 文件驅動分析（保留欄位，供未來工具化
+    實作使用）
+  Model 識別碼：NOT APPLICABLE — v1.0 文件驅動分析（保留欄位，供未來工具化
+    實作使用）
   修正循環計數（STATE_MACHINE.md §6A）：
   Human Action（發布後補填）：EXECUTED AS PLANNED / EXECUTED DIFFERENTLY /
     DECLINED / NO ACTION YET / HUMAN OVERRIDE（見 CONSTITUTION.md §6A）
@@ -203,16 +213,22 @@ Risk Score（依 RISK_ENGINE.md §24A 扣分模型計算，非估計值）：
 每個必要攻擊類別（`RED_TEAM_ENGINE.md` §4A）均須有明確結論；缺漏視為未經
 攻擊：
 
-| 類別 | 發現 | 結果（存活／失敗） |
+全部 11 項均為必要——7 個基礎類別加 4 個專項類別。專項類別不可省略，亦不可
+合併填寫，每項須有獨立結論：
+
+| 類別 | 發現 | 結果（存活／失敗／不適用） |
 |---|---|---|
 | THESIS ATTACK | | |
 | DATA ATTACK | | |
 | ASSUMPTION ATTACK | | |
-| VALUATION ATTACK | | |
+| VALUATION ATTACK（§4A：僅此類別可標示「不適用」，且僅限尚無定價／入場分析時） | | |
 | RISK ATTACK | | |
 | TIMING ATTACK | | |
-| EXECUTION ATTACK | | |
-| Macro / Technical / Portfolio / Catalyst（專項，§4A） | | |
+| EXECUTION ATTACK（§4A：僅此類別可標示「不適用」，且僅限尚無執行計劃時） | | |
+| MACRO（專項，§4A） | | |
+| TECHNICAL（專項，§4A） | | |
+| PORTFOLIO（專項，§4A） | | |
+| CATALYST（專項，§4A） | | |
 
 ```text
 反方論點（Counter-thesis）：

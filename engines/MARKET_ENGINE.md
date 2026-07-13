@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-MKT-001
 Document Name    : Market Engine
-Version          : 1.0.0
+Version          : 1.3.0
 Status           : Stable
 Classification   : Critical
 Dependencies      : CORE_PRINCIPLES.md
@@ -27,7 +27,8 @@ The Market Engine SHALL execute before:
 • Options Engine
 • Execution Engine
 
-No BUY recommendation may bypass Market Engine.
+No new-risk recommendation (an `EXECUTE CANDIDATE` disposition per
+`DECISION_ENGINE.md`) may bypass Market Engine.
 
 -------------------------------------------------------------------------------
 2. PRIMARY OBJECTIVE
@@ -335,7 +336,11 @@ Recommended Exposure
 14. MARKET CONFIDENCE
 -------------------------------------------------------------------------------
 
-Overall Market Confidence
+Overall Market Confidence — this is the same number §15 calls "Market
+Score" and the same number `MASTER_DECISION_ENGINE.md` §7 weights as "Market
+Score." One score, one formula (below), two section names in this document
+purely for exposition (§14 = the formula, §15 = the resulting bands/labels)
+— not two different scores.
 
 Score
 
@@ -565,5 +570,5 @@ TRX Trading OS
 
 MARKET_ENGINE.md
 
-Version 1.0.0
+Version 1.3.0
 ```

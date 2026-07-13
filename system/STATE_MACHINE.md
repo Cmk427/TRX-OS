@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-SM-001
 Document Name    : State Machine
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Critical
 Dependencies     : CORE_PRINCIPLES.md
@@ -57,7 +57,7 @@ option structure is evaluated.
 | 08 POSITION REVIEW | Portfolio + Risk Engines | Portfolio positions (06), Preliminary Risk Gate result (07) | HOLD / REDUCE / EXIT / WATCH status for each existing position | Resolve missing position data |
 | 09 OPPORTUNITY SCAN | Scanner Engine | Market regime (05), Portfolio constraints (06), Preliminary Risk Gate result (07) | Eligible candidate universe and exclusion reasons | `NO ELIGIBLE CANDIDATE` proceeds to final `NO TRADE` |
 | 10 PLAYBOOK ASSIGNMENT | Playbook Engine | Candidate universe (09) | Exactly one validated playbook or reject / watchlist | No match: remove candidate from actionable ranking |
-| 11 OPTIONS REVIEW | Options Engine | Playbook-assigned candidate (10) with Candidate/Opportunity Score ≥ 80 | Stock-versus-Long-Call comparison when applicable | Option failure removes option structure; underlying may continue |
+| 11 OPTIONS REVIEW | Options Engine | Playbook-assigned candidate (10) with Candidate Quality Score ≥ 80 (Scanner's score, State 09 — Decision Engine's Opportunity Score does not exist until State 12 and cannot gate an earlier state) | Stock-versus-Long-Call comparison when applicable | Option failure removes option structure; underlying may continue |
 | 12 RANKING | Decision Engine | Playbook assignment (10), option comparison (11, if applicable) | Transparent candidate comparison and opportunity scores | Insufficient evidence: remove candidate |
 | 13 COMMITTEE REVIEW | Committee Engine | Ranked candidates and Opportunity Scores (12) | Independent votes, consensus, dissent, and concerns | No consensus: `WATCH`; risk objection routes to Risk Gate |
 | 14 RED TEAM REVIEW | Red Team Engine | Committee votes and consensus (13) | Counter-thesis, alternatives, resilience, and critical-risk finding | Critical flaw: downgrade or veto |

@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-RED-001
 Document Name    : Red Team Engine
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : COMMITTEE_ENGINE.md
@@ -92,6 +92,10 @@ Risk Challenge
 
 ↓
 
+Catalyst Challenge
+
+↓
+
 Valuation Challenge
 
 ↓
@@ -144,6 +148,21 @@ Every attack category above SHALL produce an explicit finding — "survived"
 or "failed," with the specific reason — in the Output Format (§20). A
 category with no finding recorded is treated as not having been attacked at
 all, per §22 Final Rule.
+
+**"Not applicable" (a third, narrowly-scoped finding value).** VALUATION
+ATTACK and EXECUTION ATTACK — and only these two categories — may be
+recorded as `not applicable` instead of survived/failed, but only when the
+candidate was rejected or excluded *before* the pipeline stage that
+produces the thing being attacked: no entry pricing exists to attack
+(VALUATION) if the candidate never reached Playbook/Options review, and no
+execution plan exists to attack (EXECUTION) if the candidate never reached
+State 17. The other nine categories always have a live subject regardless
+of how early a candidate was rejected — the thesis, the underlying data,
+the assumptions, the macro/technical/portfolio/risk/catalyst context, and
+the timing question all exist the moment a candidate is considered at all
+— so `not applicable` is never a valid finding for them. Marking a category
+`not applicable` when its subject genuinely exists is the same violation as
+leaving it blank (§22).
 
 -------------------------------------------------------------------------------
 5. ASSUMPTION AUDIT
@@ -445,29 +464,40 @@ finding rather than override it.
 19. RED TEAM SCORE
 -------------------------------------------------------------------------------
 
-Every recommendation receives
+Every recommendation receives a Resilience Score — this is the same number
+`MASTER_DECISION_ENGINE.md` §7 refers to as "Red Team Score"; one score, two
+names, defined only here.
 
-Resilience Score
+**Formula.** Starts at 100. For each of the 11 mandatory attack categories in
+§4A that reports `failed`, subtract 10 for a baseline category (Thesis,
+Data, Assumption, Valuation, Risk, Timing, Execution) or 5 for a specialized
+category (Macro, Technical, Portfolio, Catalyst), floored at 0. A category
+missing its required finding entirely (§4A, §22) counts as `failed` for this
+calculation — silence is not a pass. A category correctly recorded
+`not applicable` (§4A — VALUATION ATTACK / EXECUTION ATTACK only, and only
+when their subject genuinely does not exist yet) is excluded entirely — no
+deduction, and it does not lower the maximum achievable score; it is simply
+not evaluated, the same way a `Not Applicable` Options Analysis section
+(`OUTPUT_CONTRACT.md` §3 item 8) does not penalise a report that never
+reached options review.
 
-100
+Explicit, non-overlapping bands (matches the convention fixed in
+`RISK_ENGINE.md` §24):
 
-Exceptional
+100 (exact) — Exceptional (no category failed)
 
-90
+90–99 — Strong
 
-Strong
+80–89 — Acceptable
 
-80
+70–79 — Weak
 
-Acceptable
+Below 70 — Reject
 
-70
-
-Weak
-
-Below 70
-
-Reject
+A critical-risk finding (§18 Decision Downgrade) is independent of this
+score and remains binding regardless of the numeric Resilience Score — a
+high score does not waive a critical-risk veto, and a low score does not by
+itself create one; they are two separate signals.
 
 -------------------------------------------------------------------------------
 20. OUTPUT FORMAT
@@ -479,8 +509,10 @@ Original Thesis
 
 **Attack Category Results** — one row per §4A category (Thesis, Data,
 Assumption, Valuation, Risk, Timing, Execution, plus Macro/Technical/
-Portfolio/Catalyst): category name, finding, survived / failed. A report
-missing any required category's row is incomplete per §22.
+Portfolio/Catalyst): category name, finding, and result — `survived`,
+`failed`, or (VALUATION/EXECUTION only, per §4A's narrow rule) `not
+applicable`. A report missing any required category's row is incomplete
+per §22.
 
 Primary Weakness
 
@@ -541,5 +573,5 @@ TRX Trading OS
 
 RED_TEAM_ENGINE.md
 
-Version 1.0.0
+Version 1.2.0
 ```

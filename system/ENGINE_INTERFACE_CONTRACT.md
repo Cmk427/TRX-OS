@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-EIC-001
 Document Name    : Engine Interface Contract
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Reference
 Dependencies     : STATE_MACHINE.md
@@ -45,6 +45,54 @@ All timestamps are ISO 8601 UTC. All scores are 0–100 unless stated
 otherwise. Any field whose value is unavailable SHALL be the literal string
 `"UNKNOWN"`, never omitted and never a guessed default — consistent with
 `RISK_ENGINE.md` §26A and `VERIFICATION_POLICY.md`.
+
+---
+
+## 1A. Schema Conventions
+
+These conventions apply to every JSON block in this document (§2–§12) and
+to any future engine added to the pipeline. They exist so an agent
+validating against this schema has a fixed rule for every ambiguity a bare
+example (`"confidence": 0.85`) would otherwise leave open.
+
+- **`schema_version`**: every top-level object SHALL include
+  `"schema_version": "1.0.0"` (this document's own `Version` header,
+  copied verbatim) alongside its `engine_version` field. `engine_version`
+  identifies which version of the *engine's rules* produced the output;
+  `schema_version` identifies which version of *this interchange shape* the
+  JSON conforms to. The two change independently — a rule change bumps
+  `engine_version`; a field added/removed/retyped here bumps
+  `schema_version`.
+- **Required vs. optional**: every field shown in every example block is
+  **required** unless its type annotation ends in `| null` or is explicitly
+  marked `(optional)`. A required field missing from an actual payload is a
+  schema violation, not an omission to be inferred — it fails validation
+  the same way an out-of-enum value does.
+- **Type notation**: `"number"` means a JSON number, never a numeric
+  string. `"string"` means free text. An explicit enum (`"A | B | C"`) means
+  the value SHALL be exactly one of the listed literals — no close
+  synonym, no casing variant, no value outside the list. `"UNKNOWN"` is a
+  reserved literal, not a member of any enum unless the enum explicitly
+  lists it — a field that is a fixed enum (e.g. `final_outcome`) and
+  cannot be computed SHALL still surface this as a validation failure
+  (below), not as a silent extra enum member.
+- **Scale**: unless stated otherwise, every numeric score is 0–100 on a
+  shared scale — never a 0–1 fraction, never a percentage string. This is
+  what makes `WCS = Σ(weight_i × score_i)` in
+  `MASTER_DECISION_ENGINE.md` §7 well-defined: every input it sums already
+  arrived pre-normalised to this same 0–100 scale by its owning engine (see
+  §7's weight table for exactly which document defines each one).
+- **Validation failure → `failure_state`**: if a payload cannot be produced
+  because a required upstream value is itself `UNKNOWN`, missing, or
+  contradictory, the engine's response SHALL be an object of the shape
+  `{"engine": "...", "engine_version": "...", "schema_version": "1.0.0",
+  "failure_state": {"category": "DATA_FAILURE | MODEL_FAILURE |
+  CONFLICT_FAILURE | RISK_REJECTION | EXECUTION_INVALID | SYSTEM_ERROR",
+  "reason": "string"}}` instead of the engine's normal output shape —
+  the category values are exactly `FAILURE_TAXONOMY.md` §2's six
+  categories. A consumer SHALL check for `failure_state` before reading any
+  engine-specific field; its presence means the rest of the normal payload
+  does not exist for this call, not that it exists with placeholder values.
 
 ---
 
@@ -176,6 +224,7 @@ combination as a contract violation.
     "min_dte_at_entry_ok": "boolean (DTE >= 30, per §8A)",
     "holding_period_within_cap": "boolean (holding_period_days <= 0.6 * days_to_expiry)",
     "theta_loss_review_triggered": "boolean (cumulative theta loss >= 20% of paid premium)",
+    "iv_collapse_triggered": "boolean (IV Rank dropped >= 15 points intra-session without compensating price move, per §8A)",
     "exit_or_rejustify_required": "boolean (current DTE <= 5)"
   },
   "max_risk_premium": "number"
@@ -221,7 +270,8 @@ combination as a contract violation.
   "counter_thesis": "string",
   "attack_categories": [
     {"category": "THESIS | DATA | ASSUMPTION | VALUATION | RISK | TIMING | EXECUTION | MACRO | TECHNICAL | PORTFOLIO | CATALYST",
-     "finding": "string", "result": "survived | failed"}
+     "finding": "string",
+     "result": "survived | failed | not_applicable (VALUATION/EXECUTION only, per RED_TEAM_ENGINE.md §4A)"}
   ],
   "critical_risk_flag": "boolean",
   "binding_result_if_flagged": "NO TRADE | WATCH | REDUCE | EXIT | null"
@@ -260,6 +310,8 @@ combination as a contract violation.
   "position_size": "number",
   "max_loss": "number",
   "slippage_assumption": "string",
+  "expected_fill_price": "number (limit price adjusted by slippage_assumption, per §3C)",
+  "market_impact_note": "string | null (present when size approaches the §3B liquidity cap)",
   "execution_gate": {
     "quote_freshness_ok": "boolean",
     "liquidity_ok": "boolean (<= 10% ADV or <= 10% OI, per §3B)",

@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-SYS-001
 Document Name    : System Governance
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Active
 Classification   : Critical
 Applies To       : Entire System
@@ -107,10 +107,21 @@ The final report SHALL state exactly one primary outcome:
 - `HOLD`, `REDUCE`, or `EXIT` — existing-position action.
 - `NO TRADE` — no new risk should be taken.
 - `INSUFFICIENT VERIFIED INFORMATION` — a critical data requirement failed;
-  no recommendation may be produced.
+  no recommendation may be produced (`STATE_MACHINE.md` State 04).
+- `SYSTEM REVIEW REQUIRED` — the State Machine's revision-cycle limit was
+  exceeded (`STATE_MACHINE.md` §6A); the system could not converge on any
+  of the outcomes above and says so honestly rather than defaulting to
+  `NO TRADE`.
 
 `EXECUTE` is never an instruction to place an order. It is a fully specified
 research recommendation for human review.
+
+Separately, `DO NOT EXECUTE — REVERIFY` is **not** a seventh primary
+outcome — it is a status the Execution Plan section (State 17) can carry
+underneath an `EXECUTE`/`REDUCE`/`EXIT` primary outcome, when the execution
+plan's own inputs (price, session, liquidity) have gone stale by the time of
+publication. The primary outcome stays `EXECUTE` (etc.); only the plan
+itself is marked not-ready (`EXECUTION_ENGINE.md` §1A, §3D).
 
 ---
 

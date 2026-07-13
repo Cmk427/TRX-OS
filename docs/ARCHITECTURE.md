@@ -108,6 +108,54 @@ append-only; future learning may alter future rules but not past records. Any
 non-`EXECUTE` outcome is additionally classified under
 `FAILURE_TAXONOMY.md` for audit purposes.
 
+## Release Version Matrix
+
+"TRX Trading OS v1.0" (the product-level version stamped at the foot of
+every document) is a composite of many independently-versioned documents,
+not one number — a Decision Snapshot's "engine document versions used"
+(`DECISION_SNAPSHOT_POLICY.md` §2) only makes sense if there is one place
+that says what the current, coherent set of versions actually is. This
+table is that place:
+
+```text
+system/     CORE_PRINCIPLES 1.0.0 · CONSTITUTION 1.1.0 · SYSTEM 1.1.0
+            OUTPUT_CONTRACT 1.1.0 · STATE_MACHINE 1.2.0
+            VERIFICATION_POLICY 1.2.0 · DATA_SOURCE_POLICY 1.1.0
+            DECISION_SNAPSHOT_POLICY 1.1.0 · ENGINE_INTERFACE_CONTRACT 1.2.0
+            FAILURE_TAXONOMY 1.1.0 · PARAMETER_REGISTRY 1.3.0
+            DOCUMENTATION_GOVERNANCE 1.0.0
+engines/    MARKET 1.3.0 · PORTFOLIO 1.2.0 · SCANNER 1.0.0 · PLAYBOOK 1.1.0
+            OPTIONS 1.2.0 · RISK 1.2.0 · DECISION 1.2.0
+            MASTER_DECISION 1.3.0 · COMMITTEE 1.3.0 · RED_TEAM 1.2.0
+            EXECUTION 1.1.0
+playbooks/  PLAYBOOK_LIBRARY 1.2.0
+templates/  ANALYSIS 1.2.0 · DECISION 1.2.0 · REPORT 1.3.0
+examples/   NO_TRADE 1.4.0 · EXECUTE_LONG_CALL 1.4.0
+docs/       RESPONSIBILITY_MATRIX 1.1.0 · DEPENDENCY_MAP 1.2.0
+workflows/  WORKFLOWS 1.0.0 (unchanged — still a placeholder)
+```
+
+A document at 1.0.0 above genuinely has not changed since the original
+architecture pass (`SCANNER_ENGINE.md`, `CORE_PRINCIPLES.md`,
+`DOCUMENTATION_GOVERNANCE.md`, `WORKFLOWS.md`) — that is a fact about their
+history, not a sign they were skipped. Each whole revision level above 1.0
+reflects one round of substantive fixes. `examples/` are at 1.4.0 (four
+revision rounds) and `MASTER_DECISION_ENGINE.md`/`COMMITTEE_ENGINE.md`/
+`MARKET_ENGINE.md` are at 1.3.0 partly because a fifth audit round found
+that an earlier fix (removing an unscoped "WCS &lt; 70 caps Confidence at
+Low" rule from `MASTER_DECISION_ENGINE.md` §7) had not fully propagated —
+the same disavowed rule was still quoted in that document's own §17,
+`PARAMETER_REGISTRY.md` §8, and `templates/DECISION_TEMPLATE.md` §6. This is
+recorded here deliberately: propagation gaps are exactly the failure mode
+this matrix and the Decision Snapshot policy exist to catch, and pretending
+a fix round found nothing would defeat that purpose.
+
+**Keeping this table honest**: any change to a document's `Version` header
+SHALL update its entry here in the same edit — this table is exactly as
+prone to drifting out of sync as `PARAMETER_REGISTRY.md` is, and is subject
+to the same rule: if this matrix and a document's own header ever disagree,
+**the document's own header wins**, and the mismatch is a bug in this table.
+
 ## Consistency Checklist
 
 Any material document change must confirm:
@@ -123,7 +171,9 @@ Any material document change must confirm:
   per `CONSTITUTION.md` §4A — never an unqualified "final authority";
 - a change to `STATE_MACHINE.md` §6A's revision-cycle limit, or to any
   terminal status, stays consistent across `OUTPUT_CONTRACT.md`,
-  `FAILURE_TAXONOMY.md`, and `docs/RESPONSIBILITY_MATRIX.md`; and
+  `FAILURE_TAXONOMY.md`, and `docs/RESPONSIBILITY_MATRIX.md`;
+- the changed document's `Version` header is bumped and the Release
+  Version Matrix above is updated in the same edit; and
 - README architecture matches the repository structure.
 
 ## Extension Rules

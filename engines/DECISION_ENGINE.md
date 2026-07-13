@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-DEC-001
 Document Name    : Decision Engine
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Stable
 Classification   : Critical
 Dependencies      : CORE_PRINCIPLES.md
@@ -154,7 +154,10 @@ FAIL
 
 If FAIL
 
-No aggressive BUY recommendation shall be produced.
+No aggressive candidate disposition (§ Candidate Dispositions — the
+`EXECUTE CANDIDATE` recommendation, not a standalone "BUY" outcome; "BUY" is
+Committee's own vote option, `COMMITTEE_ENGINE.md` §5, not a Decision Engine
+output) shall be produced.
 
 ---
 
@@ -310,7 +313,13 @@ Risk Clarity
 
 Portfolio Compatibility
 
-Confidence Levels
+Conviction Rating — deliberately NOT called "Confidence" here, to avoid
+collision with `MASTER_DECISION_ENGINE.md` §7's formal Confidence Model.
+That Confidence is a Weighted Composite Score computed at State 16, two
+states after this Conviction Score; Decision Engine (State 12) has no such
+number to report yet — this star scale is a qualitative rating of
+conviction/evidence quality feeding the later analysis, not an early
+instance of MDE's Confidence.
 
 ★★★★★
 
@@ -396,7 +405,10 @@ shall not calculate a competing vote.
 
 ## Red Team
 
-The Red Team SHALL challenge every BUY recommendation.
+The Red Team SHALL challenge every `EXECUTE CANDIDATE` disposition (see
+`RED_TEAM_ENGINE.md` §4A for the full 11-category attack framework this
+maps onto — this section is Decision Engine's own preview of that review,
+not a substitute for it).
 
 Questions
 
@@ -410,7 +422,7 @@ What macro risk exists?
 
 Why should capital remain in cash instead?
 
-Every BUY requires a written Bear Case.
+Every `EXECUTE CANDIDATE` disposition requires a written Bear Case.
 
 ---
 
@@ -482,9 +494,13 @@ Remain in cash.
 
 ---
 
-# Position Sizing Rule
+# Position Sizing Awareness (Not a Decision Engine Output)
 
-Position size SHALL depend on
+This section is context the Decision Engine SHALL be aware of when ranking
+candidates — it is not something the Decision Engine computes or outputs,
+per the Prohibited Outputs section above ("NO CAPITAL ALLOCATION"). The
+actual position size is computed and owned exclusively by `RISK_ENGINE.md`
+§6 Position Sizing, using:
 
 Portfolio Value
 
@@ -497,6 +513,11 @@ Correlation
 Existing Exposure
 
 Never on conviction alone.
+
+A candidate's Portfolio Fit component of the Opportunity Score (§ Opportunity
+Score) may reflect how well it *would* fit alongside these factors, but the
+Decision Engine ranks and compares candidates on that basis — it does not
+itself decide or publish a position size.
 
 ---
 
@@ -536,11 +557,16 @@ Risk
 
 Invalidation
 
-Position Size
+Position Size — SHOWN FOR CONTEXT ONLY, not computed by Decision Engine
+(see "Position Sizing Awareness" above); this field is populated by
+`RISK_ENGINE.md` §6 at States 07/15, not at State 12, and SHALL be marked
+`PENDING RISK ENGINE` if displayed before those states run
 
 Holding Period
 
-Confidence
+Conviction Rating — this is the Stage 5 star scale (Exceptional/High/
+Moderate/...), NOT `MASTER_DECISION_ENGINE.md` §7's formal Confidence,
+which does not exist until State 16 (see Stage 5 above)
 
 ---
 
@@ -592,5 +618,5 @@ TRX Trading OS
 
 DECISION_ENGINE.md
 
-Version 1.0.0
+Version 1.2.0
 ```

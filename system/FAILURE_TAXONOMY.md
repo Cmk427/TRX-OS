@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-FTX-001
 Document Name    : Failure Taxonomy
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Active
 Classification   : Critical
 Dependencies     : STATE_MACHINE.md
@@ -40,7 +40,7 @@ engine's authority or veto behaviour.
 |---|---|---|---|
 | `DATA_FAILURE` | A required input could not be verified to the minimum level `DATA_SOURCE_POLICY.md` requires | `INSUFFICIENT VERIFIED INFORMATION` | Stale/missing price, unverifiable catalyst, unavailable option chain |
 | `MODEL_FAILURE` | A required calculation could not be computed because a model input was `UNKNOWN`, per `RISK_ENGINE.md` §26A or `MASTER_DECISION_ENGINE.md` §7 | Routes to `RISK_REJECTION` (if the uncomputable model is Risk Score/Heat) or `SYSTEM REVIEW REQUIRED` (if the failure recurs across revisions) | Missing stop price, missing position size, WCS inputs incomplete beyond redistribution rules |
-| `CONFLICT_FAILURE` | Two or more engines/gates produced results that could not be reconciled within the allowed revision budget, or Committee reached no consensus | `WATCH` (Committee no-consensus, §STATE_MACHINE §4) or `SYSTEM REVIEW REQUIRED` (revision-cycle limit exceeded, `STATE_MACHINE.md` §6A) | Repeated Master Decision ↔ Risk ↔ Self Audit disagreement; split Committee vote |
+| `CONFLICT_FAILURE` | Two or more engines/gates produced results that could not be reconciled within the allowed revision budget, or Committee reached no consensus | `WATCH` (Committee no-consensus, `STATE_MACHINE.md` §4) or `SYSTEM REVIEW REQUIRED` (revision-cycle limit exceeded, `STATE_MACHINE.md` §6A) | Repeated Master Decision ↔ Risk ↔ Self Audit disagreement; split Committee vote |
 | `RISK_REJECTION` | A binding Risk Engine or Red Team veto blocked the candidate or required existing-position action | `NO TRADE`, `REDUCE`, or `EXIT` | Risk Score below 70, Portfolio Heat critical, Red Team critical-risk finding |
 | `EXECUTION_INVALID` | An otherwise-approved plan could not be executed as planned due to stale or invalid execution-time data | `DO NOT EXECUTE — REVERIFY` | Quote gone stale between publication and review, market session mismatch, halted security |
 | `SYSTEM_ERROR` | A tool-level runtime failure unrelated to trading logic (reserved for a future implementation; not a v1.0 document-driven outcome) | Implementation-defined | Reserved for `workflows/` — no v1.0 document-level trigger exists |

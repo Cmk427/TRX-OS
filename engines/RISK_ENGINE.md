@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-RISK-001
 Document Name    : Risk Engine
-Version          : 1.0.0
+Version          : 1.2.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : MARKET_ENGINE.md
@@ -153,7 +153,9 @@ Portfolio Heat measures
 
 Total capital simultaneously exposed to loss.
 
-Heat Levels
+Heat Levels (interval convention: lower bound inclusive, upper bound
+exclusive, except the top band which includes 100% — this resolves the
+boundary itself, e.g. exactly 20% is Normal, not Very Low)
 
 0–20%
 
@@ -171,7 +173,7 @@ Elevated
 
 High
 
-Above 80%
+80–100%
 
 Critical
 
@@ -259,7 +261,8 @@ Maximum Drawdown
 
 Recovery Progress
 
-Drawdown Levels
+Drawdown Levels (same interval convention as §7: lower bound inclusive,
+upper bound exclusive, except the top band)
 
 0-5%
 
@@ -277,7 +280,7 @@ Defensive
 
 Recovery Mode
 
-Above 20%
+20-100%
 
 Capital Protection Mode
 
@@ -449,6 +452,12 @@ Below minimum
 
 Reject.
 
+This Reject is a **hard override**, not a point deduction: a candidate
+below the 2:1 minimum is Rejected regardless of what the §24A deduction
+arithmetic would otherwise compute. See §24A's Hard Reject Flags list —
+this rule is one of them, so it cannot be "outvoted" by an otherwise-clean
+scorecard.
+
 -------------------------------------------------------------------------------
 20. CAPITAL ALLOCATION
 -------------------------------------------------------------------------------
@@ -523,50 +532,61 @@ Every recommendation receives
 
 Risk Score
 
-100
+Explicit, non-overlapping bands (every integer 0–100 has exactly one label —
+see §24A for why the discrete-point notation used in earlier drafts of this
+table was ambiguous and is superseded by these ranges):
 
-Minimal Risk
+100 (exact) — Minimal Risk
 
-90
+90–99 — Low Risk
 
-Low Risk
+80–89 — Controlled Risk
 
-80
+70–79 — Elevated Risk
 
-Controlled Risk
-
-70
-
-Elevated Risk
-
-Below 70
-
-Reject
+Below 70 — Reject
 
 -------------------------------------------------------------------------------
 24A. RISK SCORE FORMULA
 -------------------------------------------------------------------------------
 
-Risk Score is a deduction model, not an average. It starts at 100 and
-subtracts fixed point penalties for each triggered flag below, floored at 0:
+Risk Score has two layers, evaluated in this order — Hard Reject Flags
+first, deduction model second. This exists because a single unacceptable
+condition (e.g. reward/risk below minimum) must reliably force Reject, not
+merely contribute points to an average that a clean scorecard elsewhere
+could outweigh.
+
+**Layer 1 — Hard Reject Flags.** If any of the following is true, Risk
+Score is reported as `0 — Reject` directly; the Layer 2 arithmetic is not
+computed and cannot change this result:
+
+- Reward/Risk below the §19 minimum of 2:1.
+- Any §26 Failure Condition (position size unknown, stop undefined, risk
+  unmeasurable, liquidity unacceptable, portfolio exposure excessive).
+- Any §26A Missing Risk Input (a required input is `UNKNOWN`).
+- Critical Portfolio Heat (§7A Heat above 80%).
+- Extreme event risk (§16).
+
+**Layer 2 — Deduction model.** Only reached if no Hard Reject Flag applies.
+Starts at 100 and subtracts fixed point penalties for each triggered flag
+below, floored at 70 (a score cannot fall below 70 via Layer 2 alone —
+falling below 70 is exclusively a Layer 1 Reject, never a Layer 2 result,
+which is what makes the §24 bands non-overlapping and deterministic):
 
 | Flag | Condition | Deduction |
 |---|---|---|
-| Reward/Risk shortfall | Below the §19 minimum of 2:1 | −25 |
 | Elevated Portfolio Heat | §7A Heat in the 60–80% band | −10 |
-| Critical Portfolio Heat | §7A Heat above 80% | −25 (replaces the −10 above, not additive) |
 | High correlation | Position materially correlated (§14) with existing exposure | −10 |
 | High event risk | §16 event classification is High | −10 |
-| Extreme event risk | §16 event classification is Extreme | −20 (replaces the −10 above) |
 | Poor liquidity | Liquidity Risk flagged under §5 | −10 |
 | Active drawdown mode | Account is in Defensive, Recovery, or Capital Protection Mode (§9) | −15 |
 | Non-structural stop | Stop is an arbitrary percentage rather than structure/ATR-based (§17) | −20 |
 
-Multiple non-overlapping flags stack; overlapping Heat or event-risk flags do
-not (the more severe one applies). The result is clamped to the §24 bands
-(100/90/80/70/below 70 Reject). This model is deliberately simple and
-auditable rather than statistically optimised — precision beyond whole
-point deductions would misrepresent how well-calibrated these penalties are.
+Multiple flags stack; overlapping Heat flags do not (only Elevated can
+apply here — Critical Heat is a Layer 1 Reject, not a Layer 2 flag). This
+model is deliberately simple and auditable rather than statistically
+optimised — precision beyond whole point deductions would misrepresent how
+well-calibrated these penalties are.
 
 -------------------------------------------------------------------------------
 25. RISK REPORT
@@ -689,5 +709,5 @@ TRX Trading OS
 
 RISK_ENGINE.md
 
-Version 1.0.0
+Version 1.2.0
 ```

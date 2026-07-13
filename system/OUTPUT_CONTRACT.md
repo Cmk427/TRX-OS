@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-OUT-001
 Document Name    : Output Contract
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Active
 Classification   : Core
 Dependencies     : STATE_MACHINE.md
@@ -105,9 +105,14 @@ elsewhere in the report.
 12. **Master Decision** — the sole final outcome, rationale, conditions,
     confidence, uncertainty tier and named reasons, and all binding gate
     results.
-13. **Execution Plan** — `Not Applicable` or action, order type, entry, stop,
-    target, size, capital, exit conditions, human pre-flight checks, and review
-    schedule.
+13. **Execution Plan** — `Not Applicable`; or a plan with action, order type,
+    entry, stop, target, size, capital, exit conditions, human pre-flight
+    checks, and review schedule; or, when execution-time inputs (price,
+    session, liquidity) have gone stale since publication, the plan status
+    `DO NOT EXECUTE — REVERIFY` (`EXECUTION_ENGINE.md` §1A, §3D) in place of
+    a ready plan. This status applies only to this section — it does not
+    change the report's primary outcome (`SYSTEM.md` §6), which remains
+    `EXECUTE`/`REDUCE`/`EXIT` as already determined by Master Decision.
 14. **Self Audit** — result of every required check below.
 
 ---
