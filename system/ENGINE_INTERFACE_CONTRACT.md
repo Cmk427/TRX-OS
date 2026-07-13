@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-EIC-001
 Document Name    : Engine Interface Contract
-Version          : 1.4.0
+Version          : 1.5.0
 Status           : Active
 Classification   : Reference
 Dependencies     : STATE_MACHINE.md
@@ -18,6 +18,7 @@ Dependencies     : STATE_MACHINE.md
                    COMMITTEE_ENGINE.md
                    RED_TEAM_ENGINE.md
                    MASTER_DECISION_ENGINE.md
+                   PORTFOLIO_OPTIMIZATION_ENGINE.md
                    EXECUTION_ENGINE.md
 Applies To       : Engine-to-engine data exchange
 ```
@@ -50,7 +51,7 @@ otherwise. Any field whose value is unavailable SHALL be the literal string
 
 ## 1A. Schema Conventions
 
-These conventions apply to every JSON block in this document (§2–§12) and
+These conventions apply to every JSON block in this document (§2–§13) and
 to any future engine added to the pipeline. They exist so an agent
 validating against this schema has a fixed rule for every ambiguity a bare
 example (`"confidence": 0.85`) would otherwise leave open.
@@ -324,13 +325,44 @@ the composite score itself.
 }
 ```
 
-## 12. Execution Engine → Human
+## 12. Portfolio Optimization Engine → Execution Engine / Report
+
+```json
+{
+  "engine": "PORTFOLIO_OPTIMIZATION_ENGINE",
+  "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
+  "ticker": "string",
+  "decision": "EXECUTE | HOLD | REDUCE | EXIT | WATCH (echoed verbatim from MASTER_DECISION_ENGINE.md §11 final_outcome for this ticker; never computed here)",
+  "current_weight_pct": "number",
+  "target_weight_pct": "number",
+  "suggested_shares": "number (signed; negative = sell, positive = buy; 0 for HOLD/WATCH unless an advisory note applies, per PORTFOLIO_OPTIMIZATION_ENGINE.md §7A)",
+  "capital_released": "number | null (null for EXECUTE — see capital_required — or for HOLD/WATCH with no advisory)",
+  "capital_required": "number | null (null unless decision is EXECUTE)",
+  "reason": "string",
+  "priority": "P1 | P2 | P3 (per EXECUTION_ENGINE.md §3G)",
+  "execution_required": "boolean (false for HOLD/WATCH with no advisory triggered, per §7A)",
+  "status": "READY | PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED | NO REBALANCING ACTION"
+}
+```
+
+`decision` is a read-only echo, not a second source of truth — a consumer
+SHALL treat any mismatch against `MASTER_DECISION_ENGINE.md` §11's
+`final_outcome` for the same ticker as a contract violation in this
+engine's output, never as a newer or overriding value.
+
+## 13. Execution Engine → Human
+
+`schema_version` is `"1.1.0"` for this shape only (not `"1.0.0"` like every
+other engine in this document) — this shape gained two new fields
+(`max_slippage`, `priority`) per §1A's rule that a field added/removed/
+retyped bumps `schema_version`, independent of `engine_version`.
 
 ```json
 {
   "engine": "EXECUTION_ENGINE",
   "engine_version": "1.0.0",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "ticker": "string",
   "order_type": "market | limit | stop-limit | not_applicable",
   "entry_zone": {"low": "number", "high": "number", "as_of": "ISO8601"},
@@ -339,8 +371,10 @@ the composite score itself.
   "position_size": "number",
   "max_loss": "number",
   "slippage_assumption": "number (half bid-ask spread + volatility buffer, in the quote's price unit, per §3C)",
+  "max_slippage": "number (hard cap distinct from slippage_assumption — the point beyond which the plan is no longer valid as sized, per §3C)",
   "expected_fill_price": "number (limit price adjusted by slippage_assumption, per §3C)",
   "market_impact_note": "string | null (present when size approaches the §3B liquidity cap)",
+  "priority": "P1 | P2 | P3 (per §3G; required when this plan is part of a Multi-Position Trade Plan, null for a single-ticket plan)",
   "execution_gate": {
     "quote_freshness_ok": "boolean",
     "liquidity_ok": "boolean (<= 10% ADV or <= 10% OI, per §3B)",
@@ -356,7 +390,7 @@ the composite score itself.
 
 ---
 
-## 13. Versioning
+## 14. Versioning
 
 Each engine's `engine_version` field SHALL match that engine document's
 `Version` header at the time the output was produced, feeding directly into

@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-OUT-001
 Document Name    : Output Contract
-Version          : 1.1.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Core
 Dependencies     : STATE_MACHINE.md
@@ -12,6 +12,7 @@ Dependencies     : STATE_MACHINE.md
                    DATA_SOURCE_POLICY.md
                    DECISION_SNAPSHOT_POLICY.md
                    FAILURE_TAXONOMY.md
+                   PORTFOLIO_OPTIMIZATION_ENGINE.md
 Applies To       : Every final report
 ```
 
@@ -105,15 +106,30 @@ elsewhere in the report.
 12. **Master Decision** — the sole final outcome, rationale, conditions,
     confidence, uncertainty tier and named reasons, and all binding gate
     results.
-13. **Execution Plan** — `Not Applicable`; or a plan with action, order type,
+13. **Portfolio Action Plan** — `Not Applicable` (with reason) or a fixed
+    four-tier structure per `PORTFOLIO_OPTIMIZATION_ENGINE.md` §6/§10:
+    **Immediate Action**, **This Week**, **Monitor**, **No Action**. Every
+    entry under a tier SHALL state Ticker, Shares, Execution (order type/
+    priority per `EXECUTION_ENGINE.md` §3G), and Reason. Every `Decision`
+    value shown here SHALL trace to a `Decision` already published in
+    section 12 (Master Decision) for that ticker — this section quantifies
+    an outcome, it never introduces one. When portfolio weight or cash data
+    is incomplete, this section instead shows
+    `PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED`
+    (`PORTFOLIO_OPTIMIZATION_ENGINE.md` §15) without changing the report's
+    primary outcome, the same non-blocking pattern as item 14 below.
+14. **Execution Plan** — `Not Applicable`; or a plan with action, order type,
     entry, stop, target, size, capital, exit conditions, human pre-flight
     checks, and review schedule; or, when execution-time inputs (price,
     session, liquidity) have gone stale since publication, the plan status
     `DO NOT EXECUTE — REVERIFY` (`EXECUTION_ENGINE.md` §1A, §3D) in place of
     a ready plan. This status applies only to this section — it does not
     change the report's primary outcome (`SYSTEM.md` §6), which remains
-    `EXECUTE`/`REDUCE`/`EXIT` as already determined by Master Decision.
-14. **Self Audit** — result of every required check below.
+    `EXECUTE`/`REDUCE`/`EXIT` as already determined by Master Decision. For
+    a run with several actionable positions, this section may be presented
+    as the `EXECUTION_ENGINE.md` §3G batch table rather than one single-
+    ticket plan.
+15. **Self Audit** — result of every required check below.
 
 ---
 
@@ -127,8 +143,13 @@ The final report SHALL verify:
 - portfolio review occurred before opportunity scanning;
 - position size, risk, stop, invalidation, and exits are defined when action is
   proposed;
-- Committee, Red Team, and Risk outcomes are shown; and
-- Master Decision did not override a verification, Risk, or Red Team veto.
+- Committee, Red Team, and Risk outcomes are shown;
+- Master Decision did not override a verification, Risk, or Red Team veto;
+  and
+- the Portfolio Action Plan (§3 item 13) is present, and every ticker listed
+  there traces to a `Decision` already published in the Master Decision
+  section — no ticker appears in the Portfolio Action Plan with a
+  `Decision` value absent from Master Decision.
 
 ---
 

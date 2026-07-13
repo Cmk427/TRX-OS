@@ -1,6 +1,10 @@
-# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §12.
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §13.
 # Non-authoritative: if this ever disagrees with that document, the
 # Markdown document wins and this file is a bug. See schemas/README.md.
+# schema_version bumped 1.0.0 -> 1.1.0 here (and only here) because this
+# shape gained two new fields (max_slippage, priority) per §1A's rule that
+# a field added/removed/retyped bumps schema_version, distinct from
+# engine_version. Other schema files in this folder are unaffected.
 $schema: "https://json-schema.org/draft/2020-12/schema"
 $id: "trx://schemas/execution.schema.yaml"
 title: TRX Execution Engine Output
@@ -16,7 +20,7 @@ $defs:
     properties:
       engine: { const: "EXECUTION_ENGINE" }
       engine_version: { type: string }
-      schema_version: { const: "1.0.0" }
+      schema_version: { const: "1.1.0" }
       failure_state:
         type: object
         additionalProperties: false
@@ -42,15 +46,17 @@ $defs:
       - position_size
       - max_loss
       - slippage_assumption
+      - max_slippage
       - expected_fill_price
       - market_impact_note
+      - priority
       - execution_gate
       - gap_risk_note
       - status
     properties:
       engine: { const: "EXECUTION_ENGINE" }
       engine_version: { type: string }
-      schema_version: { const: "1.0.0" }
+      schema_version: { const: "1.1.0" }
       ticker: { type: string }
       order_type:
         type: string
@@ -70,12 +76,19 @@ $defs:
       slippage_assumption:
         type: number
         description: "Half bid-ask spread + volatility buffer, in the quote's price unit, per §3C."
+      max_slippage:
+        type: number
+        description: "Hard cap distinct from slippage_assumption — the point beyond which the plan is no longer valid as sized, per §3C."
       expected_fill_price:
         type: number
         description: "limit price adjusted by slippage_assumption, per §3C"
       market_impact_note:
         type: [string, "null"]
         description: "Present when size approaches the §3B liquidity cap."
+      priority:
+        type: [string, "null"]
+        enum: [P1, P2, P3, null]
+        description: "Per §3G; required when this plan is part of a Multi-Position Trade Plan, null for a single-ticket plan."
       execution_gate:
         type: object
         additionalProperties: false

@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-DEP-001
 Document Name    : Dependency Map
-Version          : 1.5.0
+Version          : 1.6.0
 Status           : Active
 Classification   : Reference
 Dependencies     : STATE_MACHINE.md
@@ -70,7 +70,8 @@ hierarchy that breaks their intentionally shared authority over State 04.
 | 13 | `COMMITTEE_ENGINE.md` | Market (05), Portfolio (06), Scanner (09), Options (11), Decision (12), Constitution, State Machine | Pass — all upstream |
 | 14 | `RED_TEAM_ENGINE.md` | Committee (13), Decision (12), Scanner (09), Market (05), Constitution, Data Source | Pass — all upstream |
 | 16 | `MASTER_DECISION_ENGINE.md` | ALL ENGINES (05–15) | Pass by design — it is the aggregator; see §5 |
-| 17 | `EXECUTION_ENGINE.md` | State Machine, Master Decision (16), Risk, Output Contract, Data Source | Pass — downstream of 16 |
+| 17 | `PORTFOLIO_OPTIMIZATION_ENGINE.md` | State Machine, Portfolio (06/08), Risk (07/15), Committee (13, context only), Master Decision (16) | Pass — all upstream; echoes but never depends on anything at or after 17 |
+| 18 | `EXECUTION_ENGINE.md` | State Machine, Master Decision (16), Portfolio Optimization (17), Risk, Output Contract, Data Source | Pass — downstream of 16 and 17 |
 
 `playbooks/PLAYBOOK_LIBRARY.md` depends on `PLAYBOOK_ENGINE.md` (parent),
 `SCANNER_ENGINE.md` (09, upstream of 10), `MARKET_ENGINE.md` (05, upstream
@@ -92,7 +93,7 @@ feed a decision:
 | Document | Declared dependencies | Forward-dependency check |
 |---|---|---|
 | `DECISION_SNAPSHOT_POLICY.md` | Verification, Data Source, Master Decision (16) | Pass — reads engine version fields after the fact; not a dependency *of* any engine |
-| `ENGINE_INTERFACE_CONTRACT.md` | State Machine, all engines (05–17) | Pass by design, same shape as Master Decision's aggregator role — but unlike Master Decision, no document declares this contract as a dependency, so no cycle is possible |
+| `ENGINE_INTERFACE_CONTRACT.md` | State Machine, all engines (05–18) | Pass by design, same shape as Master Decision's aggregator role — but unlike Master Decision, no document declares this contract as a dependency, so no cycle is possible |
 | `FAILURE_TAXONOMY.md` | State Machine, Output Contract, Risk, Data Source | Pass — classifies outcomes State Machine and Output Contract already define; does not originate a new outcome |
 | `PARAMETER_REGISTRY.md` | Risk, Portfolio, Market, Scanner, Playbook, Options, Committee, Red Team, Master Decision, Execution, State Machine, Verification Policy | Pass by design — indexes numbers already owned elsewhere; explicitly non-authoritative on conflict (§1 of that document) |
 | `DOCUMENTATION_GOVERNANCE.md` | Constitution | Pass — governs future document headers only, applies to nothing retroactively |
@@ -107,13 +108,31 @@ retroactively constrain the pipeline it only reports on.
 
 ## 3B. Machine Schema Layer (`schemas/*.schema.yaml`)
 
-The 11 files in `schemas/` each depend only on
+The 12 files in `schemas/` each depend only on
 `system/ENGINE_INTERFACE_CONTRACT.md` (they are a mechanical rendering of
 its §2–§12, per `schemas/README.md`) and carry no other dependency. They are
 downstream of that document the same way `PARAMETER_REGISTRY.md` is
 downstream of every engine it indexes — pass by design, and they may never
 become a declared dependency of an engine or of
 `ENGINE_INTERFACE_CONTRACT.md` itself, for the same reason as §3A.
+
+---
+
+## 3C. Trigger Documents (Position Management, Portfolio Rebalancing)
+
+`POSITION_MANAGEMENT_ENGINE.md` and `PORTFOLIO_REBALANCING_ENGINE.md` hold
+**no State Machine position** — per `STATE_MACHINE.md` §2B, a fired trigger
+in either document starts a **new** analysis run at State 01/02 rather than
+occupying a numbered state itself. Their declared dependencies:
+
+| Document | Declared dependencies | Forward-dependency check |
+|---|---|---|
+| `POSITION_MANAGEMENT_ENGINE.md` | State Machine, Portfolio (06/08), Risk (07/15), Options (11), Portfolio Optimization (17) | Pass — all upstream of the run it will start; it does not feed the run currently in progress |
+| `PORTFOLIO_REBALANCING_ENGINE.md` | State Machine, Portfolio (06/08), Portfolio Optimization (17) | Pass — same reasoning; its gap analysis is input to a new run's Portfolio Review/Portfolio Optimization, not a bypass of Scanner/Committee/Risk |
+
+Neither document may become a dependency of any pipeline-state engine — the
+relationship only runs the other way (they consume published state, they
+are never consumed mid-run).
 
 ---
 
@@ -134,8 +153,9 @@ become a declared dependency of an engine or of
 | `DECISION_ENGINE.md` | Committee, Red Team, Engine Interface Contract |
 | `COMMITTEE_ENGINE.md` | Red Team, Parameter Registry, Engine Interface Contract |
 | `RED_TEAM_ENGINE.md` | Parameter Registry, Engine Interface Contract |
-| `MASTER_DECISION_ENGINE.md` | Execution, Decision Snapshot Policy, Parameter Registry, Engine Interface Contract |
-| `OUTPUT_CONTRACT.md` | Execution (and every final report), Decision Snapshot Policy, Failure Taxonomy |
+| `MASTER_DECISION_ENGINE.md` | Execution, Portfolio Optimization, Decision Snapshot Policy, Parameter Registry, Engine Interface Contract |
+| `PORTFOLIO_OPTIMIZATION_ENGINE.md` | Execution, Output Contract, Parameter Registry, Engine Interface Contract |
+| `OUTPUT_CONTRACT.md` | Execution, Portfolio Optimization (and every final report), Decision Snapshot Policy, Failure Taxonomy |
 | `DECISION_SNAPSHOT_POLICY.md` | Output Contract (references it, does not gate it) |
 | `ENGINE_INTERFACE_CONTRACT.md` | Nothing (v1.0) — reserved for `workflows/` |
 | `FAILURE_TAXONOMY.md` | Output Contract, State Machine (references, does not gate) |

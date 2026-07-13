@@ -6,7 +6,7 @@ Document ID      : TRX-SCH-000
 Document Name    : Machine Schema Layer (Index)
 Owner            : TRX project owner
 Last Updated     : 2026-07-13
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Active
 Classification   : Reference
 Dependencies     : system/ENGINE_INTERFACE_CONTRACT.md
@@ -57,7 +57,8 @@ source:
 | `committee.schema.yaml` | §9 |
 | `red_team.schema.yaml` | §10 |
 | `master_decision.schema.yaml` | §11 |
-| `execution.schema.yaml` | §12 |
+| `portfolio_optimization.schema.yaml` | §12 |
+| `execution.schema.yaml` | §13 |
 
 ## Shared Conventions
 

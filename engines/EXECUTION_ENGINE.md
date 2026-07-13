@@ -4,11 +4,12 @@
 ```text
 Document ID      : TRX-EXE-001
 Document Name    : Execution Engine
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Active
 Classification   : Critical
 Dependencies     : STATE_MACHINE.md
                    MASTER_DECISION_ENGINE.md
+                   PORTFOLIO_OPTIMIZATION_ENGINE.md
                    RISK_ENGINE.md
                    OUTPUT_CONTRACT.md
                    DATA_SOURCE_POLICY.md
@@ -66,6 +67,16 @@ outcome and all binding gates have passed. It requires current verified pricing
 and market-session status, approved asset or option contract, entry zone,
 position-size limit, stop/invalidation, target or exit logic, time horizon,
 liquidity assessment, and available buying capacity.
+
+The **position-size limit** source depends on the plan's purpose: for a new
+`EXECUTE` position it is the size the Risk Engine approved
+(`RISK_ENGINE.md` §6/§24, per §1A check 5 below); for a `REDUCE`, `EXIT`, or
+portfolio-rebalancing plan on an existing position, it is instead the
+**Suggested Shares** and **Capital Released** value from
+`PORTFOLIO_OPTIMIZATION_ENGINE.md` §6 (State 17) — this engine SHALL NOT
+compute its own share count for an existing-position action when a
+Portfolio Optimization Engine value already exists for that ticker in this
+run.
 
 If a critical execution input is stale, unavailable, or contradictory, the plan
 is marked `DO NOT EXECUTE — REVERIFY` and returned for the appropriate prior
@@ -136,6 +147,19 @@ figure as a small order would use. This is a planning estimate for human
 review, not a guaranteed fill price, and not a claim that TRX has simulated
 the order against a live order book.
 
+In addition to the Slippage Assumption estimate above, every plan SHALL
+state a **Maximum Slippage** — a hard cap on acceptable execution cost,
+distinct from the assumption: the assumption is what the plan *expects* to
+pay; the maximum is the point beyond which the plan is no longer valid as
+sized. If the Slippage Assumption (or, at review time, an observed spread
+widening) would exceed the stated Maximum Slippage, the plan SHALL be
+downgraded — reduced size, a tighter limit price, or `DO NOT EXECUTE —
+REVERIFY` — rather than proceeding at the original size. Default Maximum
+Slippage is the same tier boundary used in §3A's spread table (i.e., a
+"Reduced" or "Poor" spread tier's upper bound for that plan); a plan MAY
+state a tighter maximum but never a looser one without an explicit,
+recorded reason.
+
 ## 3D. Market Hours and Stale Quote Handling
 
 - The plan SHALL state the market session it assumes (Pre-Market / Regular /
@@ -188,6 +212,38 @@ holding period is shorter than that buffer and the rationale is explicit
 (e.g., an intentional short-dated event trade). This buffer exists to avoid
 entries where liquidity and theta decay accelerate before the position can
 reasonably be managed.
+
+---
+
+## 3G. Multi-Position Trade Plan and Execution Priority
+
+`PORTFOLIO_OPTIMIZATION_ENGINE.md` §6 can produce several actionable
+positions in a single run (e.g., trimming one holding while raising cash and
+adding to another). When it does, this engine SHALL present them as one
+batch table rather than several disconnected single-ticket plans — every row
+still individually satisfies §1A's Execution Gate and §3A–§3F:
+
+| Ticker | Action | Shares | Preferred Order | Suggested Price | Alternative | Priority | Maximum Slippage | Review After |
+|---|---|---|---|---|---|---|---|---|
+| MUU | Reduce | 5 | Limit | 975 | 965–980 | P1 | (§3C) | 5 trading days |
+
+- **Action** and **Shares** come from `PORTFOLIO_OPTIMIZATION_ENGINE.md` §6
+  (Suggested Shares), never recomputed here.
+- **Preferred Order** and **Suggested Price / Alternative** follow §3A's
+  spread/liquidity table.
+- **Execution Priority** SHALL be one of:
+
+| Priority | Meaning | Trigger |
+|---|---|---|
+| P1 | Execute first | Risk-driven `REDUCE`/`EXIT` — a Risk Engine veto or a `PORTFOLIO_ENGINE.md` §9A hard-cap breach |
+| P2 | Execute after P1 | Thesis-driven optimization move — a `REDUCE`/`EXIT`/`EXECUTE` from ordinary Master Decision integration, not a veto |
+| P3 | Execute opportunistically | Portfolio-quality or cash-reserve adjustment only (e.g., `PORTFOLIO_OPTIMIZATION_ENGINE.md` §7A's Optional Risk-Reduction Note) |
+
+- **Review After** states the interval before the plan's assumptions
+  (price, liquidity, thesis) must be reverified if not yet acted on.
+
+A batch plan with any P1 row SHALL NOT be presented as lower urgency than
+its P2/P3 rows — P1 rows SHALL be listed first.
 
 ---
 

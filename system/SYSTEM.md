@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-SYS-001
 Document Name    : System Governance
-Version          : 1.1.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Critical
 Applies To       : Entire System
@@ -90,6 +90,7 @@ User Input
   → Red Team Engine
   → Final Risk Gate
   → Master Decision Engine
+  → Portfolio Optimization Engine
   → Execution Engine
   → Self Audit and Final Report
 ```
@@ -117,11 +118,19 @@ The final report SHALL state exactly one primary outcome:
 research recommendation for human review.
 
 Separately, `DO NOT EXECUTE — REVERIFY` is **not** a seventh primary
-outcome — it is a status the Execution Plan section (State 17) can carry
+outcome — it is a status the Execution Plan section (State 18) can carry
 underneath an `EXECUTE`/`REDUCE`/`EXIT` primary outcome, when the execution
 plan's own inputs (price, session, liquidity) have gone stale by the time of
 publication. The primary outcome stays `EXECUTE` (etc.); only the plan
 itself is marked not-ready (`EXECUTION_ENGINE.md` §1A, §3D).
+
+The same non-primary-outcome pattern applies to
+`PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED`
+(`PORTFOLIO_OPTIMIZATION_ENGINE.md` §15) — a status the Portfolio Action
+Plan section (State 17) can carry when portfolio weight or cash data is
+incomplete. It never changes the primary outcome already published by
+Master Decision (State 16); only that section's own detail is marked
+incomplete.
 
 ---
 

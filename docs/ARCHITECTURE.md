@@ -25,6 +25,9 @@ system/                           Governance, principles, policies, workflow, ou
   PARAMETER_REGISTRY.md           Numeric-threshold index (derived view; owning engine wins on conflict)
   DOCUMENTATION_GOVERNANCE.md     Header standard (Owner/Last Updated) for new documents only
 engines/                          Specialist research and decision components
+  PORTFOLIO_OPTIMIZATION_ENGINE.md Post-Master-Decision target weight/shares/capital (State 17)
+  POSITION_MANAGEMENT_ENGINE.md    Trigger-based ongoing position review (no State Machine position — starts a new run)
+  PORTFOLIO_REBALANCING_ENGINE.md  Periodic sector/theme drift correction (no State Machine position — starts a new run)
 playbooks/                        Repeatable, rule-based setup definitions
 docs/                             Architecture, roadmap, and cross-reference maps
   ARCHITECTURE.md                 This document
@@ -32,11 +35,12 @@ docs/                             Architecture, roadmap, and cross-reference map
   RESPONSIBILITY_MATRIX.md        Quick-reference authority/veto index (derived from CONSTITUTION.md)
   DEPENDENCY_MAP.md                Document dependency graph and forward-dependency checks
   AI_AGENT_IMPLEMENTATION_GUIDE.md Non-authoritative implementer's checklist (derived index)
+  PORTFOLIO_MANAGEMENT_GUIDE.md    Non-authoritative glossary (Hold/Add/Reduce/Exit/Rotate/Optimize/Rebalance)
 schemas/                          Machine-readable JSON Schema rendering of the Engine Interface Contract (derived, non-authoritative — see schemas/README.md)
 templates/                        Fill-in worksheets aligned to State Machine stages
   ANALYSIS_TEMPLATE.md            States 02–11 (input through options review)
-  DECISION_TEMPLATE.md            States 12–18 (ranking through self audit)
-  REPORT_TEMPLATE.md              State 19 — direct fill-in version of OUTPUT_CONTRACT.md
+  DECISION_TEMPLATE.md            States 12–19 (ranking through self audit)
+  REPORT_TEMPLATE.md              State 20 — direct fill-in version of OUTPUT_CONTRACT.md
 workflows/                        Reserved for future tool-level orchestration definitions
 examples/                         Fictional worked examples of a completed report
 ```
@@ -49,8 +53,15 @@ examples/                         Fictional worked examples of a completed repor
 Validate Input → Verify Data → Market & Macro → Portfolio
   → Preliminary Risk → Positions → Scanner → Playbook → Options (conditional)
   → Ranking → Committee → Red Team → Final Risk → Master Decision
-  → Execution Plan (conditional) → Self Audit → Final Report
+  → Portfolio Optimization → Execution Plan (conditional) → Self Audit
+  → Final Report
 ```
+
+Ongoing position monitoring and periodic sector/theme rebalancing are
+deliberately not further steps in this diagram — per `STATE_MACHINE.md`
+§2B, `engines/POSITION_MANAGEMENT_ENGINE.md` and
+`engines/PORTFOLIO_REBALANCING_ENGINE.md` are trigger documents that each
+start a **new** run through the diagram above, rather than extending it.
 
 The workflow deliberately evaluates existing holdings and risk before searching
 for new opportunities. `NO TRADE` is a completed outcome. A critical data
@@ -97,7 +108,10 @@ Decision integration) for the case where these disagree.
 | Committee | Independent expert-style votes and dissent | Final output / risk override |
 | Red Team | Counter-evidence and critical-risk challenge | Suppressing evidence or dissent |
 | Master Decision | Final integration and report publication | Veto override |
+| Portfolio Optimization | Target weight, share count, capital released/required for an already-published outcome | Re-decide Hold/Reduce/Exit/Execute, or override Master Decision |
 | Execution | Human review plan and re-verification checklist | Broker access or order placement |
+| Position Management *(trigger document, no State Machine position)* | Determine when a gain/loss/earnings/IV trigger starts a new run | Publish a position decision itself |
+| Portfolio Rebalancing *(trigger document, no State Machine position)* | Determine when periodic sector/theme drift starts a new run | Assign a specific new ticker, or bypass Scanner/Committee/Risk |
 
 ## Evidence and Auditability
 
@@ -120,22 +134,25 @@ that says what the current, coherent set of versions actually is. This
 table is that place:
 
 ```text
-system/     CORE_PRINCIPLES 1.0.0 · CONSTITUTION 1.1.0 · SYSTEM 1.1.0
-            OUTPUT_CONTRACT 1.1.0 · STATE_MACHINE 1.3.0
+system/     CORE_PRINCIPLES 1.0.0 · CONSTITUTION 1.1.0 · SYSTEM 1.2.0
+            OUTPUT_CONTRACT 1.2.0 · STATE_MACHINE 1.4.0
             VERIFICATION_POLICY 1.2.0 · DATA_SOURCE_POLICY 1.1.0
-            DECISION_SNAPSHOT_POLICY 1.1.0 · ENGINE_INTERFACE_CONTRACT 1.4.0
-            FAILURE_TAXONOMY 1.1.0 · PARAMETER_REGISTRY 1.5.0
+            DECISION_SNAPSHOT_POLICY 1.2.0 · ENGINE_INTERFACE_CONTRACT 1.5.0
+            FAILURE_TAXONOMY 1.1.0 · PARAMETER_REGISTRY 1.6.0
             DOCUMENTATION_GOVERNANCE 1.0.0
 engines/    MARKET 1.3.0 · PORTFOLIO 1.3.0 · SCANNER 1.0.0 · PLAYBOOK 1.1.0
             OPTIONS 1.4.0 · RISK 1.3.0 · DECISION 1.2.0
-            MASTER_DECISION 1.4.0 · COMMITTEE 1.4.0 · RED_TEAM 1.3.0
-            EXECUTION 1.2.0
-playbooks/  PLAYBOOK_LIBRARY 1.3.0
-schemas/    11 files, each 1.0.0 (new — see schemas/README.md)
-templates/  ANALYSIS 1.2.0 · DECISION 1.2.0 · REPORT 1.3.0
+            MASTER_DECISION 1.4.0 · COMMITTEE 1.4.0 · RED_TEAM 1.4.0
+            PORTFOLIO_OPTIMIZATION 1.0.0 (new) · EXECUTION 1.3.0
+            POSITION_MANAGEMENT 1.0.0 (new) · PORTFOLIO_REBALANCING 1.0.0 (new)
+playbooks/  PLAYBOOK_LIBRARY 1.4.0
+schemas/    12 files, each 1.0.0 except execution.schema.yaml 1.1.0
+            (new field addition — see schemas/README.md)
+templates/  ANALYSIS 1.2.0 · DECISION 1.3.0 · REPORT 1.4.0
 examples/   NO_TRADE 1.7.0 · EXECUTE_LONG_CALL 1.7.0
-docs/       RESPONSIBILITY_MATRIX 1.1.0 · DEPENDENCY_MAP 1.5.0
+docs/       RESPONSIBILITY_MATRIX 1.2.0 · DEPENDENCY_MAP 1.6.0
             AI_AGENT_IMPLEMENTATION_GUIDE 1.1.0
+            PORTFOLIO_MANAGEMENT_GUIDE 1.0.0 (new)
 workflows/  WORKFLOWS 1.0.0 (unchanged — still a placeholder)
 ```
 
@@ -219,6 +236,62 @@ rather than restating `OUTPUT_CONTRACT.md` inline. Not done this round,
 deliberately deferred as lower priority: three additional failure-path
 worked examples (`DATA_FAILURE`, `RISK_REJECTION`, `RED_TEAM_REJECTION`)
 the user suggested as a "P2" item.
+
+A ninth audit round closed the gap the user identified as the system's
+largest remaining hole: Master Decision could publish "Reduce MUU" with no
+document ever answering how much, to what target weight, or where the
+released capital goes. This round added a new pipeline state,
+**State 17 — Portfolio Optimization** (`engines/PORTFOLIO_OPTIMIZATION_ENGINE.md`,
+new, 1.0.0), inserted between Master Decision (16) and Execution Plan
+(renumbered 17→18; Self Audit 18→19; Final Report 19→20 —
+`STATE_MACHINE.md` 1.3.0→1.4.0). This engine deliberately holds neither
+Constraint nor Publication Authority: its `Decision` field is a verbatim
+echo of Master Decision's already-published outcome, never a re-decision —
+a distinction load-bearing enough that it is stated explicitly in the new
+engine's §1, in `ENGINE_INTERFACE_CONTRACT.md`'s new §12, and in
+`schemas/portfolio_optimization.schema.yaml`. Its own new, non-competing
+parameters (a 6% preferred single-stock target and an 8–10% advisory band,
+both operating strictly inside `PORTFOLIO_ENGINE.md` §9A's existing 10%
+hard cap; a new 5%/10% minimum/preferred cash reserve, previously
+undefined anywhere) are indexed in `PARAMETER_REGISTRY.md`'s new §3A.
+`EXECUTION_ENGINE.md` (1.2.0→1.3.0) gained a Multi-Position Trade Plan
+(§3G: batch table, Execution Priority P1/P2/P3, a Maximum Slippage hard cap
+distinct from the existing Slippage Assumption estimate) and now sources
+existing-position share counts from Portfolio Optimization Engine rather
+than computing its own. `OUTPUT_CONTRACT.md` (1.1.0→1.2.0) gained a
+mandatory Portfolio Action Plan section (Immediate Action / This Week /
+Monitor / No Action). `SYSTEM.md` (1.1.0→1.2.0) documents the new
+non-blocking `PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED` status,
+modeled on the existing `DO NOT EXECUTE — REVERIFY` pattern. This round
+also added two trigger documents that deliberately do **not** occupy a
+State Machine position (`STATE_MACHINE.md` new §2B):
+`engines/POSITION_MANAGEMENT_ENGINE.md` (new, 1.0.0, gain/loss/earnings/IV
+triggers that start a new run) and `engines/PORTFOLIO_REBALANCING_ENGINE.md`
+(new, 1.0.0, periodic sector/theme drift review) — each starts a fresh
+analysis run rather than extending the pipeline, and neither may publish a
+position decision itself. `playbooks/PLAYBOOK_LIBRARY.md` (1.3.0→1.4.0)
+gained a 13th shared field, Position Management, applied to all 15
+playbooks with strategy-specific take-profit tiers and scaling rules rather
+than a copy-pasted default. A new non-authoritative glossary,
+`docs/PORTFOLIO_MANAGEMENT_GUIDE.md` (new, 1.0.0), defines Hold / Add /
+Reduce / Exit / Rotate / Optimize / Rebalance once, each pointing at its
+actual owning document, so this vocabulary does not drift the way ADD/
+ROTATE/BUY previously did (v1.0's original terminology-reconciliation
+round, noted above). One schema-layer subtlety worth recording here since
+it is exactly the kind of drift this table exists to catch:
+`schemas/execution.schema.yaml`'s `schema_version` was bumped to `"1.1.0"`
+(the only schema file at other than `"1.0.0"`) because its shape gained two
+required fields (`max_slippage`, `priority`) — per
+`ENGINE_INTERFACE_CONTRACT.md` §1A's own rule that a field addition bumps
+`schema_version` independent of `engine_version`; the new
+`portfolio_optimization.schema.yaml` starts fresh at `"1.0.0"` since it has
+no prior shape to compare against. Two cross-reference-only fixes
+propagated from the renumbering: `RED_TEAM_ENGINE.md` (1.3.0→1.4.0) had its
+own `§4A` reference to "State 17" (the old Execution Plan) updated to
+State 18, and `DECISION_SNAPSHOT_POLICY.md` (1.1.0→1.2.0) had its Self
+Audit reference updated from State 18 to State 19 — both are exactly the
+kind of propagation gap this table's own history (see the fifth audit round
+note above) exists to catch rather than let drift.
 
 **Keeping this table honest**: any change to a document's `Version` header
 SHALL update its entry here in the same edit — this table is exactly as

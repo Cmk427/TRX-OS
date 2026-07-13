@@ -105,6 +105,24 @@ Status: completed in this repository.
   Deliberately deferred: additional `DATA_FAILURE`/`RISK_REJECTION`/
   `RED_TEAM_REJECTION` worked examples, flagged by the user as lower
   priority.
+- Ninth-review hardening — the portfolio optimization layer: a new pipeline
+  state, State 17 Portfolio Optimization (`engines/PORTFOLIO_OPTIMIZATION_ENGINE.md`),
+  converts an already-published Master Decision outcome into target
+  weight, share count, and capital released/required, without ever
+  re-deciding Hold/Reduce/Exit/Execute (`STATE_MACHINE.md` renumbered
+  17→18/18→19/19→20 accordingly). `EXECUTION_ENGINE.md` gained a
+  Multi-Position Trade Plan with Execution Priority (P1/P2/P3) and a
+  Maximum Slippage hard cap; `OUTPUT_CONTRACT.md` gained a mandatory
+  Portfolio Action Plan section. Two trigger documents —
+  `engines/POSITION_MANAGEMENT_ENGINE.md` (gain/loss/earnings/IV triggers)
+  and `engines/PORTFOLIO_REBALANCING_ENGINE.md` (periodic sector/theme
+  drift) — deliberately hold no State Machine position of their own; each
+  starts a fresh analysis run rather than extending the pipeline
+  (`STATE_MACHINE.md` new §2A/§2B). `playbooks/PLAYBOOK_LIBRARY.md` gained
+  a 13th shared field, Position Management, with strategy-specific
+  take-profit tiers and scaling rules across all 15 playbooks. A new
+  glossary, `docs/PORTFOLIO_MANAGEMENT_GUIDE.md`, reconciles Hold/Add/
+  Reduce/Exit/Rotate/Optimize/Rebalance terminology in one place.
 
 ## v1.1 — Operational Research Schemas
 

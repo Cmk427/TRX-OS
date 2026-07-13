@@ -1,0 +1,80 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §12.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/portfolio_optimization.schema.yaml"
+title: TRX Portfolio Optimization Engine Output
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "PORTFOLIO_OPTIMIZATION_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required:
+      - engine
+      - engine_version
+      - schema_version
+      - ticker
+      - decision
+      - current_weight_pct
+      - target_weight_pct
+      - suggested_shares
+      - capital_released
+      - capital_required
+      - reason
+      - priority
+      - execution_required
+      - status
+    properties:
+      engine: { const: "PORTFOLIO_OPTIMIZATION_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      ticker: { type: string }
+      decision:
+        type: string
+        enum: [EXECUTE, HOLD, REDUCE, EXIT, WATCH]
+        description: "Echoed verbatim from MASTER_DECISION_ENGINE.md §11 final_outcome for this ticker; never computed here. A mismatch against that value is a contract violation in this engine's output, not a newer or overriding value."
+      current_weight_pct: { type: number, description: "Percent of portfolio value, from PORTFOLIO_ENGINE.md." }
+      target_weight_pct: { type: number, description: "Percent of portfolio value, computed per PORTFOLIO_OPTIMIZATION_ENGINE.md §7." }
+      suggested_shares:
+        type: number
+        description: "Signed share count: negative = sell, positive = buy. 0 for HOLD/WATCH unless an advisory note applies, per §7A."
+      capital_released:
+        type: [number, "null"]
+        description: "Currency amount freed by a REDUCE/EXIT. null for EXECUTE (see capital_required) or HOLD/WATCH with no advisory."
+      capital_required:
+        type: [number, "null"]
+        description: "Currency amount needed for an EXECUTE. null unless decision is EXECUTE."
+      reason:
+        type: string
+        description: "Traces to the Master Decision rationale and any construction-limit or capital-allocation rule applied, per §6/§8."
+      priority:
+        type: string
+        enum: [P1, P2, P3]
+        description: "Per EXECUTION_ENGINE.md §3G."
+      execution_required:
+        type: boolean
+        description: "false for HOLD/WATCH with no advisory triggered."
+      status:
+        type: string
+        enum: ["READY", "PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED", "NO REBALANCING ACTION"]

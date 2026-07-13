@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-PBL-001
 Document Name    : Playbook Library
-Version          : 1.3.0
+Version          : 1.4.0
 Status           : Active
 Classification   : Core
 Dependencies     : PLAYBOOK_ENGINE.md
@@ -14,6 +14,7 @@ Dependencies     : PLAYBOOK_ENGINE.md
                    RISK_ENGINE.md
                    VERIFICATION_POLICY.md
                    FAILURE_TAXONOMY.md
+                   POSITION_MANAGEMENT_ENGINE.md
 Applies To       : Opportunity Classification
 ```
 
@@ -35,7 +36,7 @@ Decision review.
 
 ## 2. Shared Rule Format
 
-Every playbook in §3 uses the identical 12-field template below, in the
+Every playbook in §3 uses the identical 13-field template below, in the
 identical order, so a new playbook cannot be added in a different style and
 an existing one cannot drift:
 
@@ -77,14 +78,21 @@ an existing one cannot drift:
     `WATCH` per `STATE_MACHINE.md` State 10 without needing a code, the
     same way a candidate scoring low on Scanner's Candidate Quality Score
     does. Each entry below states which applies.
+13. **Position Management** — this playbook's specific take-profit tiers
+    and position-scaling rule (e.g. half position → full position), layered
+    on top of — never replacing — `POSITION_MANAGEMENT_ENGINE.md` §3's
+    generic gain/loss/earnings/IV triggers, which apply to every open
+    position by default regardless of playbook. A playbook-specific tier
+    that fires first SHALL still be reconciled against the generic trigger
+    table; neither one silently overrides the other.
 
-**Output** is deliberately not a 13th per-playbook field: every playbook
+**Output** is deliberately not a 14th per-playbook field: every playbook
 produces the identical output shape — a `playbook_id`, a Playbook Match
 Score, and (if below threshold or excluded) a `no_trade_reason` — defined
 once, globally, in `PLAYBOOK_ENGINE.md` §7–8 and
 `system/ENGINE_INTERFACE_CONTRACT.md` §6/`schemas/playbook.schema.yaml`.
 Repeating that identical sentence 15 times would be boilerplate, not
-information; what varies between playbooks is the 12 fields above, not the
+information; what varies between playbooks is the 13 fields above, not the
 output shape.
 
 The Playbook Match Score evaluates fit with the complete rule set: 90+ Excellent,
@@ -125,6 +133,11 @@ execution eligibility. The score is not evidence of future performance.
     price is extended without a definable stop, or the regime is hostile.
     No Trade: weak liquidity, unverified volume, extended price without a
     defined stop, or hostile market regime.
+13. **Position Management:** take-profit tiers at 20% / 30% / 50% gain,
+    trimming a portion at each rather than exiting whole. Scaling: enter at
+    Half Position on the initial breakout confirmation; move to Full
+    Position only once follow-through volume confirms the breakout held
+    for a second session.
 
 ### PB-002 — Gap & Go
 
@@ -154,6 +167,11 @@ execution eligibility. The score is not evidence of future performance.
     verified. Ordinary non-match (no code) if spread is wide, liquidity is
     thin, or entry is late. No Trade: unverified catalyst, wide spread,
     thin liquidity, or late entry.
+13. **Position Management:** tighter tiers than PB-001 given the
+    compressed intraday/short-swing horizon — take-profit at 10% / 20% /
+    30% gain. Scaling: no add-on — full intended size at entry given the
+    compressed timeframe; the setup does not last long enough to average
+    into a position in stages.
 
 ### PB-003 — Post Earnings Continuation
 
@@ -181,6 +199,11 @@ execution eligibility. The score is not evidence of future performance.
 12. **Failure Code:** `DATA_FAILURE` if earnings details or the current
     reaction cannot be verified. No Trade: earnings details or current
     reaction cannot be verified.
+13. **Position Management:** take-profit tiers at 15% / 25% / 40% gain,
+    reviewed again at the next scheduled event per Exit (§9) rather than
+    on a fixed calendar. Scaling: add only on confirmed continuation volume
+    after the initial entry — never add simply because the position is
+    already profitable.
 
 ### PB-004 — Trend Pullback
 
@@ -208,6 +231,10 @@ execution eligibility. The score is not evidence of future performance.
     No-Trade conditions are structural, not data-verification failures.
     No Trade: no established trend, pullback is disorderly, or support is
     undefined.
+13. **Position Management:** take-profit tiers at 15% / 25% / 40% gain,
+    measured against prior highs per Exit (§9). Scaling: enter at Half
+    Position at the retracement trigger; move to Full Position only on
+    renewed relative-strength or volume confirmation of the resumed trend.
 
 ### PB-005 — Relative Strength Leader
 
@@ -239,6 +266,11 @@ execution eligibility. The score is not evidence of future performance.
     is stale. Ordinary non-match (no code) if it would duplicate existing
     exposure. No Trade: strength is based on stale comparisons or
     duplicates exposure.
+13. **Position Management:** take-profit tiers at 20% / 35% / 50% gain.
+    Scaling: enter at Half Position; move to Full Position only if doing so
+    does not breach the stricter concentration limit this playbook's
+    Portfolio Criteria (§5) already requires — this playbook's scaling
+    rule is capped by that limit before it is capped by profit tier.
 
 ### PB-006 — Sector Rotation
 
@@ -269,6 +301,12 @@ execution eligibility. The score is not evidence of future performance.
 12. **Failure Code:** ordinary non-match (no code) — a single ticker move
     is a structural non-match, not a data-verification failure. No Trade:
     a single ticker move is the only evidence of rotation.
+13. **Position Management:** take-profit tiers at 15% / 25% / 40% gain on
+    the representative instrument. Scaling: prefer diversifying across two
+    to three representative instruments within the sector rather than
+    scaling one position from Half to Full — concentrating the add-on in a
+    single representative instrument reintroduces the single-ticker risk
+    this playbook's Risk field (§10) already flags.
 
 ### PB-007 — High Volume Reversal
 
@@ -300,6 +338,11 @@ execution eligibility. The score is not evidence of future performance.
     liquidity/catalyst risk is unknown and material. No Trade: volume is
     unverified, liquidity is weak, or catalyst risk is unknown and
     material.
+13. **Position Management:** tighter take-profit tiers than trend-following
+    playbooks given the elevated reversal-failure rate — 10% / 20% / 30%
+    gain. Scaling: no add-on; full intended size at entry, reviewed
+    promptly per Exit (§9) given this playbook's higher failure-rate
+    profile.
 
 ### PB-008 — Short Squeeze
 
@@ -334,6 +377,12 @@ execution eligibility. The score is not evidence of future performance.
     absorb a sharp reversal (a `RISK_ENGINE.md` determination, not a
     Playbook-level one). No Trade: unknown liquidity, unverified thesis,
     or risk budget cannot absorb a sharp reversal.
+13. **Position Management:** take-profit tiers at 15% / 30% / 50%+ gain —
+    wider than most playbooks in this Library given the asymmetric payoff
+    this setup is designed to capture, letting a confirmed squeeze run
+    while trimming in stages. Scaling: exit-scaling only — no size-up
+    beyond the single predefined small position set at entry (§5/§8), given
+    the extreme gap risk a larger position would carry.
 
 ### PB-009 — AI Momentum
 
@@ -366,6 +415,12 @@ execution eligibility. The score is not evidence of future performance.
 12. **Failure Code:** ordinary non-match (no code) — a popular narrative
     without PB-001-equivalent evidence is a structural non-match. No
     Trade: the only rationale is a popular AI narrative.
+13. **Position Management:** identical tiers to PB-001 — 20% / 30% / 50%
+    gain. Scaling: Half Position to Full Position on follow-through, same
+    as PB-001, but the move to Full SHALL first confirm it does not breach
+    the AI/theme-concentration limit this playbook's Portfolio Criteria
+    (§5) already tracks — the concentration check gates the scale-up here
+    in a way PB-001 does not need.
 
 ### PB-010 — Defense Rotation
 
@@ -399,6 +454,12 @@ execution eligibility. The score is not evidence of future performance.
     down.
 12. **Failure Code:** ordinary non-match (no code). No Trade: broad market
     is strongly risk-on without supporting defensive evidence.
+13. **Position Management:** smaller take-profit tiers than
+    momentum-oriented playbooks, consistent with this playbook's
+    lower-beta intent — 10% / 15% / 25% gain. Scaling: full lower-beta
+    position sized at entry rather than an aggressive add — sizing this
+    setup as if it were a momentum position (§5) would defeat its own
+    defensive purpose. Reduce as the regime normalises, per Exit (§9).
 
 ### PB-011 — Large Cap Leadership
 
@@ -427,6 +488,11 @@ execution eligibility. The score is not evidence of future performance.
 12. **Failure Code:** ordinary non-match (no code) — inferred leadership
     without data is a structural non-match. No Trade: leadership is
     inferred from reputation rather than data.
+13. **Position Management:** take-profit tiers at 15% / 25% / 40% gain.
+    Scaling: enter at Half Position; move to Full Position only on
+    continued institutional-participation confirmation, and only if doing
+    so does not breach the index/mega-cap concentration limit this
+    playbook's Portfolio Criteria (§5) already tracks.
 
 ### PB-012 — ETF Swing
 
@@ -458,6 +524,10 @@ execution eligibility. The score is not evidence of future performance.
     understood. Ordinary non-match (no code) if ETF liquidity is
     insufficient. No Trade: holdings / exposure cannot be understood or
     ETF liquidity is insufficient.
+13. **Position Management:** tighter tiers than longer-horizon playbooks,
+    consistent with the default 1–7 trading-day horizon — 8% / 15% / 25%
+    gain. Scaling: no add-on; full intended size at entry, since the short
+    horizon does not leave room to average in stages.
 
 ### PB-013 — Buy Call Momentum
 
@@ -498,6 +568,13 @@ execution eligibility. The score is not evidence of future performance.
     unverified. Ordinary non-match (no code) if contract quality is below
     the `OPTIONS_ENGINE.md` §6 threshold. No Trade: any required option
     datum is unverified or contract quality is below threshold.
+13. **Position Management:** deferred entirely to `OPTIONS_ENGINE.md` §8B's
+    premium-based triggers (mandatory review at 100%-of-premium gain,
+    mandatory review at 50%-of-premium loss) — this playbook does NOT
+    define a separate equity-style percentage-gain tier, since Premium at
+    Risk (Stop, §8) already makes an underlying-price-based tier
+    inapplicable. Scaling: no size-up given the single defined Premium at
+    Risk per contract established at entry (§5, §8).
 
 ### PB-014 — Institutional Accumulation
 
@@ -524,6 +601,11 @@ execution eligibility. The score is not evidence of future performance.
 12. **Failure Code:** `DATA_FAILURE` — this playbook's No-Trade condition
     is specifically an evidence gap. No Trade: the accumulation claim has
     no attributable evidence.
+13. **Position Management:** take-profit tiers at 20% / 35% / 50% gain.
+    Scaling: enter at Half Position; move to Full Position only when the
+    accumulation evidence remains attributable (not merely inferred, per
+    Risk §10) at the time of the add — a scale-up on inferred-only evidence
+    is not permitted even if the position is already profitable.
 
 ### PB-015 — Event Driven
 
@@ -554,12 +636,18 @@ execution eligibility. The score is not evidence of future performance.
 12. **Failure Code:** `DATA_FAILURE` — event timing, material facts, or
     risk capacity being unknown are all verification gaps. No Trade:
     event timing, material facts, or risk capacity are unknown.
+13. **Position Management:** event-anchored, not gain/loss-percentage
+    anchored — review immediately post-event regardless of unrealized
+    gain/loss, per Exit (§9), rather than waiting for a percentage tier to
+    fire. Scaling: no add-on before the event; a post-event add is a new
+    candidate that goes through the full pipeline from Scanner onward, not
+    a scale-up of this position.
 
 ---
 
 ## 4. Library Governance
 
-New playbooks require documented rule fields (the identical 12-field
+New playbooks require documented rule fields (the identical 13-field
 template in §2), data requirements, risk logic, failure conditions, and an
 architecture consistency review. A playbook may be validated through
 research or backtesting in a future release, but no untested result may be

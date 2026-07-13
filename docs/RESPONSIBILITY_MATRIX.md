@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-RSM-001
 Document Name    : Responsibility Matrix
-Version          : 1.1.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Reference
 Dependencies     : CONSTITUTION.md
@@ -67,7 +67,21 @@ constrains eligibility or ranking but is never itself a binding override.
 | Committee Engine | 13 | Neither | Six independent role votes, compute Consensus Score (§10 formula), preserve dissent | Publish the final recommendation or veto anything itself | `WATCH` on no consensus; Risk Manager voting REDUCE/REJECT forces mandatory Risk Engine escalation (not an automatic veto) |
 | Red Team Engine | 14 | **Constraint** | Seek counter-evidence, counter-thesis, alternatives | Suppress the original thesis or dissent | Critical-risk veto — binding downgrade or `NO TRADE` |
 | Master Decision Engine | 16 | **Publication** | Integrate all valid outputs into one outcome; compute Confidence (never outcome) via §7 Weighted Composite Score | Override verification, Risk, or Red Team vetoes, or use Confidence to relax a gate | None — it enforces upstream vetoes, it does not hold one |
-| Execution Engine | 17 | Neither | Produce human-reviewable entry/stop/target/size plan with order-type, liquidity, and slippage rules | Place, transmit, or imply placement of an order | `DO NOT EXECUTE — REVERIFY` on stale critical input |
+| Portfolio Optimization Engine | 17 | Neither | Convert an already-published Master Decision outcome into target weight, share count, capital released/required, and reallocation | Re-decide Hold/Reduce/Exit/Execute, or override a Master Decision outcome | None — its `Decision` field is a verbatim echo, never a competing value |
+| Execution Engine | 18 | Neither | Produce human-reviewable entry/stop/target/size plan with order-type, liquidity, and slippage rules | Place, transmit, or imply placement of an order | `DO NOT EXECUTE — REVERIFY` on stale critical input |
+
+---
+
+## 3A. Trigger Documents (No State Machine Position)
+
+Per `STATE_MACHINE.md` §2B, these two documents never occupy a numbered
+state — a fired trigger starts a **new** analysis run at State 01/02 rather
+than acting within the run in progress:
+
+| Document | State(s) | Kind | May do | May not do |
+|---|---|---|---|---|
+| `POSITION_MANAGEMENT_ENGINE.md` | None — trigger only | Neither | Determine when a gain/loss/earnings/IV trigger requires starting a new run | Publish Hold/Reduce/Exit itself, or skip Verification/Portfolio Review in the run it starts |
+| `PORTFOLIO_REBALANCING_ENGINE.md` | None — trigger only | Neither | Determine when periodic sector/theme drift requires starting a new run | Bypass Scanner/Committee/Risk for any new capital deployment |
 
 ---
 
@@ -94,9 +108,9 @@ Human Trader
 ```
 
 A component not listed with a veto (Market, Portfolio, Scanner, Playbook,
-Options, Decision, Committee, Master Decision) still constrains eligibility or
-ranking — it simply cannot issue a binding override the way Risk and Red Team
-can. See [Dependency Map](DEPENDENCY_MAP.md) for how these responsibilities
+Options, Decision, Committee, Master Decision, Portfolio Optimization) still
+constrains eligibility or ranking — it simply cannot issue a binding
+override the way Risk and Red Team can. See [Dependency Map](DEPENDENCY_MAP.md) for how these responsibilities
 translate into document-level dependencies, and [Architecture](ARCHITECTURE.md)
 for the full data-flow diagram.
 

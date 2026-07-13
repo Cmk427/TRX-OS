@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-DSN-001
 Document Name    : Decision Snapshot Policy
-Version          : 1.1.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Critical
 Dependencies     : VERIFICATION_POLICY.md
@@ -85,7 +85,7 @@ produced the same answer?" It is not a performance record and does not
 imply the decision was correct — only that it is traceable.
 
 If any required field cannot be populated, the analysis SHALL still
-complete, but the Self Audit (State 18) SHALL flag the incomplete snapshot as
+complete, but the Self Audit (State 19) SHALL flag the incomplete snapshot as
 a defect per `OUTPUT_CONTRACT.md` §4.
 
 ---

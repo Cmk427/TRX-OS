@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-TPL-002
 Document Name    : Decision Template
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Active
 Classification   : Template
 Dependencies     : STATE_MACHINE.md
@@ -13,10 +13,11 @@ Dependencies     : STATE_MACHINE.md
                    RED_TEAM_ENGINE.md
                    RISK_ENGINE.md
                    MASTER_DECISION_ENGINE.md
+                   PORTFOLIO_OPTIMIZATION_ENGINE.md
                    EXECUTION_ENGINE.md
                    ANALYSIS_TEMPLATE.md
                    DECISION_SNAPSHOT_POLICY.md
-Applies To       : States 12–18 (Ranking through Self Audit)
+Applies To       : States 12–19 (Ranking through Self Audit)
 ```
 
 ---
@@ -25,8 +26,8 @@ Applies To       : States 12–18 (Ranking through Self Audit)
 
 This worksheet continues where `ANALYSIS_TEMPLATE.md` leaves off. It carries
 each surviving candidate through Ranking, Committee, Red Team, the Final Risk
-Gate, Master Decision, the Execution Plan, and Self Audit
-(`STATE_MACHINE.md` States 12–18). Its output feeds directly into
+Gate, Master Decision, Portfolio Optimization, the Execution Plan, and Self
+Audit (`STATE_MACHINE.md` States 12–19). Its output feeds directly into
 `REPORT_TEMPLATE.md`. One copy per run, covering all candidates from that run.
 
 ---
@@ -190,7 +191,35 @@ Human Action (append after publication) :   EXECUTED AS PLANNED / EXECUTED DIFFE
 Outcome (append during later Position Review or Journal entry) :
 ```
 
-## 7. State 17 — Execution Plan (conditional)
+## 7. State 17 — Portfolio Optimization
+
+Repeat this row per ticker/candidate carried into this state. `Decision` is
+copied verbatim from §6 above — it is never re-decided here
+(`PORTFOLIO_OPTIMIZATION_ENGINE.md` §1):
+
+```text
+Ticker                  :
+Decision (echoed from §6, not recomputed) : EXECUTE / HOLD / REDUCE / EXIT / WATCH
+Current Weight          :
+Target Weight           :
+Suggested Shares        :
+Capital Released / Required :
+Reason                  :
+Priority (§3G in EXECUTION_ENGINE.md) : P1 / P2 / P3
+```
+
+Concentration check (§7A): current weight vs. the 10% single-stock hard cap
+(`PORTFOLIO_ENGINE.md` §9A, unchanged by this engine) and this engine's own
+6% preferred target / 8–10% advisory band.
+
+If portfolio weight or cash data is incomplete: status
+`PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED`
+(`PORTFOLIO_OPTIMIZATION_ENGINE.md` §15) — this does not change the Final
+Outcome already recorded in §6.
+
+---
+
+## 8. State 18 — Execution Plan (conditional)
 
 `Not Applicable` unless Final Outcome is `EXECUTE`, `REDUCE`, or `EXIT`.
 
@@ -211,11 +240,15 @@ Order type (per EXECUTION_ENGINE.md §3A spread/liquidity table) :
 Entry zone (timestamped)    :
 Stop / invalidation         :
 Target / partial-exit logic :
-Position size / capital     :
+Position size / capital     :   (new EXECUTE: Risk Engine-approved size;
+                                 existing-position REDUCE/EXIT: §7's
+                                 Suggested Shares / Capital Released)
 Maximum loss                :
 Time horizon / review date  :
 Liquidity check (§3B: ≤10% ADV / ≤10% OI) :
 Slippage assumption (§3C: half-spread + volatility buffer) :
+Maximum slippage (§3C hard cap, distinct from the assumption above) :
+Execution Priority (§3G)    :   P1 / P2 / P3
 Market session assumed / halt status (§3D) :
 Options-only: bid-ask, IV, OI, days-to-expiry buffer (§3E) :
 Human pre-flight checklist  :   [ ] reviewed live order screen  [ ] reviewed account constraints
@@ -223,11 +256,13 @@ Human pre-flight checklist  :   [ ] reviewed live order screen  [ ] reviewed acc
 
 If any critical execution input is stale: `DO NOT EXECUTE — REVERIFY`
 (`EXECUTION_ENGINE.md` §3D; classified `EXECUTION_INVALID` per
-`FAILURE_TAXONOMY.md`).
+`FAILURE_TAXONOMY.md`). For a run with several actionable positions, present
+this section as the §3G Multi-Position Trade Plan batch table instead of
+repeating a single-ticket block per row.
 
 ---
 
-## 8. State 18 — Self Audit
+## 9. State 19 — Self Audit
 
 Confirm each, per `OUTPUT_CONTRACT.md` §4:
 
@@ -238,13 +273,15 @@ Confirm each, per `OUTPUT_CONTRACT.md` §4:
       actionable outcome.
 - [ ] Committee, Red Team, and Risk outcomes are shown, including dissent.
 - [ ] Master Decision did not override a verification, Risk, or Red Team veto.
+- [ ] Every §7 Portfolio Optimization `Decision` value matches its §6 Master
+      Decision `Final Outcome` for the same ticker — no re-decision.
 
 If any box is unchecked, return to the earliest defective state per
 `STATE_MACHINE.md` §6 before publishing.
 
 ---
 
-## 9. Handoff to Report Template
+## 10. Handoff to Report Template
 
 Transfer every section above into the matching section of
 `REPORT_TEMPLATE.md`, translating into Traditional Chinese for the final

@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-RED-001
 Document Name    : Red Team Engine
-Version          : 1.3.0
+Version          : 1.4.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : COMMITTEE_ENGINE.md
@@ -156,7 +156,7 @@ candidate was rejected or excluded *before* the pipeline stage that
 produces the thing being attacked: no entry pricing exists to attack
 (VALUATION) if the candidate never reached Playbook/Options review, and no
 execution plan exists to attack (EXECUTION) if the candidate never reached
-State 17. The other nine categories always have a live subject regardless
+State 18. The other nine categories always have a live subject regardless
 of how early a candidate was rejected — the thesis, the underlying data,
 the assumptions, the macro/technical/portfolio/risk/catalyst context, and
 the timing question all exist the moment a candidate is considered at all
@@ -608,5 +608,5 @@ TRX Trading OS
 
 RED_TEAM_ENGINE.md
 
-Version 1.3.0
+Version 1.4.0
 ```
