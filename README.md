@@ -85,7 +85,9 @@ TRX-Trading-Research-eXecution--main/
 │   ├── ARCHITECTURE.md
 │   ├── ROADMAP.md
 │   ├── RESPONSIBILITY_MATRIX.md
-│   └── DEPENDENCY_MAP.md
+│   ├── DEPENDENCY_MAP.md
+│   └── AI_AGENT_IMPLEMENTATION_GUIDE.md  # 給實作 AI agent 框架的非規範性檢查清單
+├── schemas/                 # ENGINE_INTERFACE_CONTRACT.md 的機器可讀 JSON Schema 版本
 ├── templates/
 │   ├── ANALYSIS_TEMPLATE.md
 │   ├── DECISION_TEMPLATE.md
@@ -134,27 +136,22 @@ TRX-Trading-Research-eXecution--main/
 
 ---
 
-## 報告標準
+## Quick Start
 
-每份完成的決策報告以繁體中文及 Markdown 呈現，並按 [Output Contract](system/OUTPUT_CONTRACT.md) 包含：
+每份完成的決策報告以繁體中文及 Markdown 呈現，結構定義在
+[Output Contract](system/OUTPUT_CONTRACT.md)；所有重要事實依
+[Verification Policy](system/VERIFICATION_POLICY.md) 標示 V1–V5。
 
-- 執行摘要及證據時點；
-- 市場、投資組合與既有持倉檢視；
-- 最多三個新候選及其 Playbook；
-- 適用時的期權研究；
-- 風險、Red Team、Committee 及 Master Decision；
-- 人手執行計劃或 `Not Applicable` 原因；及
-- 自我審核、未知資料與信心說明。
+依序使用 [templates/](templates/) 三份填空模板即可完成一次分析：
+[ANALYSIS_TEMPLATE.md](templates/ANALYSIS_TEMPLATE.md)（State 02–11）→
+[DECISION_TEMPLATE.md](templates/DECISION_TEMPLATE.md)（State 12–18）→
+[REPORT_TEMPLATE.md](templates/REPORT_TEMPLATE.md)（State 19 最終報告）。
+[examples/](examples/) 提供兩份虛構完整示範可供對照
+（`NO_TRADE_EXAMPLE.md`、`EXECUTE_LONG_CALL_EXAMPLE.md`）。
 
-所有重要事實均應依 [Verification Policy](system/VERIFICATION_POLICY.md) 標示 V1–V5，並符合 [Data Source Policy](system/DATA_SOURCE_POLICY.md) 的來源與時效規則。
-
-分析可依序使用 [templates/](templates/) 中的三份填空模板完成：
-[ANALYSIS_TEMPLATE.md](templates/ANALYSIS_TEMPLATE.md)（State 02–11 研究階段）、
-[DECISION_TEMPLATE.md](templates/DECISION_TEMPLATE.md)（State 12–18 排名與決策階段）、
-[REPORT_TEMPLATE.md](templates/REPORT_TEMPLATE.md)（State 19 最終報告，即 Output
-Contract 的直接填空版）。[examples/](examples/) 提供兩份完整示範
-（`NO_TRADE_EXAMPLE.md` 與 `EXECUTE_LONG_CALL_EXAMPLE.md`），均為虛構資料，僅供
-說明報告結構，非真實交易建議。
+若要接入 AI agent 框架執行本系統，先讀
+[AI Agent Implementation Guide](docs/AI_AGENT_IMPLEMENTATION_GUIDE.md)，
+再參考 [schemas/](schemas/) 的機器可讀 schema。
 
 ---
 

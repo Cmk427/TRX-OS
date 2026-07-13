@@ -1,0 +1,101 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §2.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/market.schema.yaml"
+title: TRX Market Engine Output
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "MARKET_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required:
+      - engine
+      - engine_version
+      - schema_version
+      - as_of
+      - market_score
+      - regime
+      - trend
+      - breadth
+      - volatility
+      - macro_events
+      - sector_rotation
+      - recommended_exposure_pct
+      - regime_transition
+      - evidence_refs
+    properties:
+      engine: { const: "MARKET_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      as_of: { type: string, format: date-time }
+      market_score:
+        type: number
+        minimum: 0
+        maximum: 100
+        description: "Same number MARKET_ENGINE.md §14/§15 calls Market Confidence / Market Score."
+      regime:
+        type: string
+        enum: ["STRONG RISK ON", "RISK ON", "NEUTRAL", "RISK OFF", "STRONG RISK OFF"]
+      trend:
+        type: string
+        enum: ["Strong Bull", "Bull", "Sideways", "Bear", "Strong Bear"]
+      breadth:
+        type: string
+        enum: ["Very Strong", "Strong", "Neutral", "Weak", "Very Weak"]
+      volatility:
+        type: string
+        enum: [LOW, NORMAL, HIGH, EXTREME]
+      macro_events:
+        type: array
+        items: { type: string }
+      sector_rotation:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          required: [sector, momentum_score, relative_strength, capital_flow_rating]
+          properties:
+            sector: { type: string }
+            momentum_score: { type: number }
+            relative_strength: { type: number }
+            capital_flow_rating: { type: string }
+      recommended_exposure_pct:
+        type: number
+        minimum: 0
+        maximum: 100
+      regime_transition:
+        type: object
+        additionalProperties: false
+        required: [detected, transition_period_active, exposure_cap_pct, playbooks_requiring_reverification]
+        properties:
+          detected: { type: boolean, description: "Band crossed vs. prior session, per §15A" }
+          transition_period_active: { type: boolean }
+          exposure_cap_pct: { type: [number, "null"] }
+          playbooks_requiring_reverification:
+            type: array
+            items: { type: string }
+      evidence_refs:
+        type: array
+        items: { type: string }

@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-SM-001
 Document Name    : State Machine
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Active
 Classification   : Critical
 Dependencies     : CORE_PRINCIPLES.md
@@ -40,6 +40,54 @@ WAIT → RECEIVE INPUT → VALIDATE INPUT → VERIFY DATA
 The workflow never permits opportunity scanning before portfolio review.
 `OPTIONS REVIEW` is conditional and is reported as `Not Applicable` when no
 option structure is evaluated.
+
+---
+
+## 2A. Exception Paths
+
+§2's diagram shows the single normal flow. It deliberately does not show
+where a run exits early — this section is that diagram, drawn from §4
+Outcome Semantics and §6/§6A below, not a new rule. Each path terminates at
+`END` unless stated otherwise:
+
+```text
+Verification failure (State 04, critical data)
+  → INSUFFICIENT VERIFIED INFORMATION → END
+  (never NO TRADE — a verification failure means the system could not
+  form an opinion at all; NO TRADE means it formed one and the opinion is
+  "don't trade," a materially different, still-completed outcome)
+
+No eligible candidate (State 09)
+  → NO TRADE → END
+
+Preliminary or Final Risk Gate rejection (State 07 or 15)
+  → binding NO TRADE / REDUCE / EXIT → END
+  (Master Decision records this at State 16 but cannot override it)
+
+Red Team critical-risk finding (State 14)
+  → NO TRADE / WATCH / REDUCE / EXIT → END
+  (per §18 Decision Downgrade in RED_TEAM_ENGINE.md)
+
+Committee no consensus (State 13)
+  → WATCH → END
+  (unless a stricter gate elsewhere in the run already requires more)
+
+Revision-cycle limit exceeded (§6A, 3rd full-cycle revision)
+  → SYSTEM REVIEW REQUIRED → END
+
+Execution-time stale/invalid data (State 17, after Master Decision)
+  → DO NOT EXECUTE — REVERIFY → return to State 04
+  (the only exception path that re-enters the flow instead of ending it —
+  every other path above is terminal for that run)
+```
+
+Every path above is a **completed, valid, auditable outcome** per §4 — none
+of them is a workflow failure, and none skips `FAILURE_TAXONOMY.md`
+classification except `NO TRADE` reached via "no eligible candidate" or
+"Committee no consensus" alone, which are ordinary negative results rather
+than one of that taxonomy's six failure categories (see
+`playbooks/PLAYBOOK_LIBRARY.md` §2 field 12 for the same
+failure-vs-ordinary-non-match distinction at the playbook level).
 
 ---
 

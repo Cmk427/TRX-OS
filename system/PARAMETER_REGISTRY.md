@@ -6,7 +6,7 @@ Document ID      : TRX-PRM-001
 Document Name    : Parameter Registry
 Owner            : TRX project owner
 Last Updated     : 2026-07-13
-Version          : 1.3.0
+Version          : 1.5.0
 Status           : Active
 Classification   : Reference
 Dependencies     : RISK_ENGINE.md
@@ -46,6 +46,13 @@ this file is short and easy to read before the engine it summarizes):
   parameter. It has no authority to do so even if edited to say otherwise.
 - If this file is ever out of sync with its owning document, that is a bug
   in this file, not a second valid configuration to choose between.
+- This registry lists **thresholds and bands** (which number carries which
+  label) because those are lookup values, not computation. It does not
+  restate **formulas, weight tables, or point-value mappings** — anywhere a
+  parameter would require showing the arithmetic (a weighted sum, a
+  per-flag deduction table, a vote-to-points mapping) this file names the
+  owning section and stops there, so the arithmetic itself only ever
+  exists once.
 
 ---
 
@@ -55,8 +62,8 @@ this file is short and easy to read before the engine it summarizes):
 |---|---|---|
 | Portfolio Heat bands | [0%, 20%) Very Low, [20%, 40%) Normal, [40%, 60%) Elevated, [60%, 80%) High, [80%, 100%] Critical — lower bound inclusive, upper bound exclusive except the top band | §7, formula §7A |
 | Risk Score bands | 100 (exact) Minimal, 90–99 Low, 80–89 Controlled, 70–79 Elevated, <70 Reject | §24, formula §24A |
-| Risk Score Layer 1 — Hard Reject Flags (force score = 0, Reject, bypassing Layer 2 arithmetic) | R/R below 2:1, any §26 Failure Condition, any §26A missing input, Critical Heat (≥80%), Extreme event risk | §24A |
-| Risk Score Layer 2 — deduction points (only if no Hard Reject Flag applies; floored at 70) | Elevated Heat −10, High correlation −10, High event risk −10, Poor liquidity −10, Active drawdown mode −15, Non-structural stop −20 | §24A |
+| Risk Score Layer 1 — Hard Reject Flags | Force score = 0, Reject, bypassing Layer 2 arithmetic — see `RISK_ENGINE.md` §24A for the exact flag list (not restated here to avoid a second copy going stale) | §24A |
+| Risk Score Layer 2 — deduction model | Starts at 100, floored at 70 — see `RISK_ENGINE.md` §24A for the exact per-flag point values (not restated here to avoid a second copy going stale) | §24A |
 | Drawdown bands | [0%, 5%) Normal, [5%, 10%) Caution, [10%, 15%) Defensive, [15%, 20%) Recovery Mode, [20%, 100%] Capital Protection Mode | §9 |
 | Minimum Reward/Risk | 2:1 minimum (hard reject below this, see Layer 1 above), 3:1 preferred, 4:1+ exceptional | §19 |
 | Position size, daily/weekly/monthly loss limits | Set per Account Risk Profile (Conservative/Balanced/Growth/Aggressive/Maximum Aggressive) — no single fixed number | §4, §10–12 |
@@ -100,6 +107,8 @@ way `RISK_ENGINE.md` §4 limits do — tighter for Conservative, never looser.
 | Theta-loss mandatory review trigger | 20% of paid premium, thesis not yet invalid |
 | IV-collapse exit trigger | IV Rank drops ≥15 points intra-session without a compensating favourable price move |
 | Exit-or-rejustify threshold | DTE ≤ 5 (also governs new-entry buffer, `EXECUTION_ENGINE.md` §3E) |
+| Profit-taking review trigger | Unrealized gain ≥ 100% of paid premium (§8B) |
+| Loss-cut review trigger | Unrealized loss ≥ 50% of paid premium (§8B) |
 
 ## 7. Execution Parameters — owned by `EXECUTION_ENGINE.md`
 
@@ -113,20 +122,20 @@ way `RISK_ENGINE.md` §4 limits do — tighter for Conservative, never looser.
 
 | Parameter | Value | Section |
 |---|---|---|
-| Confidence Model weights | Verification Confidence 20%, Risk Score 20%, Market Score 15%, Portfolio Health Score 15%, Opportunity Score 15%, Committee (Consensus) Score 10%, Red Team (Resilience) Score 5% | §7 |
+| Confidence Model weights | Seven inputs, weighted — see `MASTER_DECISION_ENGINE.md` §7's weight table for the exact per-input percentages (not restated here to avoid a second copy going stale) | §7 |
 | WCS-to-Confidence bands (the only rule — there is no separate "minimum threshold"; an earlier unscoped "<70 caps at Low" rule was removed because it contradicted these bands, e.g. WCS=55 read as both "Low" and "Very Low") | 90–100 Very High, 80–89 High, 70–79 Medium, 60–69 Low, <60 Very Low | §7 |
 | Missing-value caps (can only lower a reading below what this table alone gives, never raise it) | Gate-linked input UNKNOWN → capped at Low; non-gate-linked input UNKNOWN → drop one level from table reading | §7 |
 | Uncertainty tiers | Low, Medium, High, Critical (separate axis from Confidence) | §14A |
 | Verification Confidence bands | All V1 → 100, worst V2 → 90, worst V3 → 75, worst V4 → 60, worst V5 (non-critical) → 40 | `VERIFICATION_POLICY.md` §4A |
 | Resilience / Red Team Score bands | 100 (exact) Exceptional, 90–99 Strong, 80–89 Acceptable, 70–79 Weak, <70 Reject | `RED_TEAM_ENGINE.md` §19 |
-| Resilience Score deduction | −10 per failed baseline attack category, −5 per failed specialized category (of 11 total, §4A) | `RED_TEAM_ENGINE.md` §19 |
+| Resilience Score deduction model | Starts at 100, floored at 0 — see `RED_TEAM_ENGINE.md` §19 for the exact per-category deduction values (not restated here to avoid a second copy going stale) | `RED_TEAM_ENGINE.md` §19 |
 
 ## 9. Committee Parameters — owned by `COMMITTEE_ENGINE.md`
 
 | Parameter | Value | Section |
 |---|---|---|
-| Role weights | Market Strategist 25%, Risk Manager 25%, Portfolio Manager 20%, Technical Analyst 15%, Execution Specialist 10%, Options Specialist 5% | §6 |
-| Vote-to-points mapping | STRONG BUY 100, BUY 80, WATCH 60, PASS 40, REDUCE 20, REJECT 0 | §5A |
+| Role weights | Six roles, weighted — see `COMMITTEE_ENGINE.md` §6 for the exact per-role percentages (not restated here to avoid a second copy going stale) | §6 |
+| Vote-to-points mapping | Six vote options, each a fixed point value — see `COMMITTEE_ENGINE.md` §5A for the exact mapping (not restated here to avoid a second copy going stale) | §5A |
 | Consensus Score bands | 95+ Unanimous, 90+ Strong, 80+ Moderate, 70+ Weak, <70 No Consensus | §10 |
 | Risk Manager forced-escalation trigger | Risk Manager votes REDUCE or REJECT | §12 |
 

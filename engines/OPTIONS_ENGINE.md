@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-OPT-001
 Document Name    : Options Engine
-Version          : 1.2.0
+Version          : 1.4.0
 Status           : Active
 Classification   : Critical
 Dependencies     : MARKET_ENGINE.md
@@ -87,8 +87,11 @@ entry signal. Every inference remains distinct from verified inputs.
 
 ## 5. Liquidity, Risk, and Reward
 
-The Liquidity Score considers bid-ask spread, open interest, daily option
-volume, and execution difficulty. The Option Risk Model measures maximum
+The Liquidity Score is 0–100 (same shared scale as every other score in
+this system, per `system/ENGINE_INTERFACE_CONTRACT.md` §1A) and considers
+bid-ask spread, open interest, daily option volume, and execution
+difficulty; it is the same number §6's Option Quality Score weights at 15%.
+The Option Risk Model measures maximum
 premium risk, probability of total loss, volatility risk, gap risk, liquidity
 risk, and time risk.
 
@@ -218,6 +221,36 @@ was right" is never sufficient on its own to call a Long Call a success.
 
 These numbers are v1.0 defaults, not a claim of optimality; they exist so
 "direction was right" is never silently treated as "the trade worked."
+
+---
+
+## 8B. PROFIT AND LOSS EXIT RULES
+
+§7 Required Output already names "profit exit" and "stop or thesis-break
+criteria" as fields every plan must include, but names them without a
+number — this section is that number, so a plan cannot satisfy §7 with a
+purely qualitative statement (e.g. "take profit when appropriate"):
+
+- **Profit-taking review trigger**: if unrealized gain reaches 100% of the
+  originally paid premium (the position's value has doubled), this SHALL
+  force a mandatory Position Review (per `RISK_ENGINE.md` §23) to evaluate
+  partial or full profit-taking. This is a review trigger, not an automatic
+  exit — the human trader retains final order authority per
+  `CONSTITUTION.md` Rule 1, consistent with the theta-loss and IV-collapse
+  triggers in §8A.
+- **Loss-cut review trigger**: if unrealized loss reaches 50% of the
+  originally paid premium, this SHALL force a mandatory Position Review to
+  evaluate exiting before further theta decay or an adverse price move
+  compounds the loss. Reaching this trigger does not by itself mean the
+  thesis is invalid (see `RED_TEAM_ENGINE.md` §17 Thesis Break Conditions
+  for that separate determination) — it means the position's remaining
+  premium at risk warrants an explicit re-justification.
+
+Both triggers are independent of, and can fire alongside, the §8A time-risk
+triggers and any Thesis Break Condition — a position can simultaneously hit
+a loss-cut review trigger and remain thesis-intact, or clear both time-risk
+triggers while still requiring a profit-taking review. These are v1.0
+defaults, not a claim of optimality, matching the framing in §8A.
 
 ---
 

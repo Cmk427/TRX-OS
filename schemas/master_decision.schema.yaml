@@ -1,0 +1,77 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §11.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/master_decision.schema.yaml"
+title: TRX Master Decision Engine Output
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "MASTER_DECISION_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required:
+      - engine
+      - engine_version
+      - schema_version
+      - confidence_model_version
+      - ticker
+      - final_outcome
+      - wcs
+      - confidence
+      - uncertainty_tier
+      - uncertainty_reasons
+      - gates
+      - decision_snapshot_ref
+    properties:
+      engine: { const: "MASTER_DECISION_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      confidence_model_version: { type: string }
+      ticker: { type: string }
+      final_outcome:
+        type: string
+        enum: ["EXECUTE", "WATCH", "HOLD", "REDUCE", "EXIT", "NO TRADE", "INSUFFICIENT VERIFIED INFORMATION", "SYSTEM REVIEW REQUIRED"]
+      wcs:
+        type: [number, "null"]
+        minimum: 0
+        maximum: 100
+      confidence:
+        type: string
+        enum: ["Very High", "High", "Medium", "Low", "Very Low"]
+      uncertainty_tier:
+        type: string
+        enum: [Low, Medium, High, Critical]
+        description: "Separate axis from confidence — never conflated, per §14A."
+      uncertainty_reasons:
+        type: array
+        items: { type: string }
+      gates:
+        type: object
+        additionalProperties: false
+        required: [verification, risk, red_team]
+        properties:
+          verification: { type: string, enum: [PASS, FAIL] }
+          risk: { type: string, enum: [PASS, FAIL] }
+          red_team: { type: string, enum: [PASS, FAIL] }
+      decision_snapshot_ref: { type: string }

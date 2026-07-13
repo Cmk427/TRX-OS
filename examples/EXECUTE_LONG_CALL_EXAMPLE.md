@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-EX-002
 Document Name    : Worked Example — EXECUTE Outcome (Long Call)
-Version          : 1.4.0
+Version          : 1.7.0
 Status           : Illustrative — fictional data
 Classification   : Example
 Dependencies     : templates/REPORT_TEMPLATE.md
@@ -33,6 +33,15 @@ IV、財報日期與組合數值均為說明用途而編造，並非任何真實
 **本範例僅供說明，不具規範效力。所有規則的唯一權威來源是 `system/` 與
 `engines/` 目錄下的文件；若本範例與任何引擎文件的規則有任何出入，一律以
 引擎文件為準，不得反過來以本範例修正或延伸引擎規則。**
+
+**Specification Versions Targeted**（一眼確認本範例跟隨哪個版本；詳細
+各引擎版本見下方 Decision Snapshot 一節）：
+
+- TRX OS：v1.0（完整 Release Version Matrix 見 `docs/ARCHITECTURE.md`）
+- Confidence Model：`MASTER_DECISION_ENGINE.md` §7, v1.4.0
+- Playbook Library：v1.3.0（PB-003 Post Earnings Continuation）
+- Snapshot Policy：`DECISION_SNAPSHOT_POLICY.md` v1.1.0
+- 本文件自身版本：見上方標頭 `Version` 欄位
 
 ---
 
@@ -74,11 +83,11 @@ Decision Snapshot（依 DECISION_SNAPSHOT_POLICY.md §2）：
   Decision ID：DEC-EX002-ACME-001
   Run ID／時戳：RUN-EX002 / 2026-07-10T14:35:00Z
   市場資料時戳：2026-07-10T14:35:00Z
-  各引擎文件版本：Market 1.3.0 / Portfolio 1.2.0 / Risk 1.2.0 / Scanner 1.0.0 /
-    Playbook 1.1.0 / Options 1.2.0 / Decision 1.2.0 / Committee 1.3.0 /
-    Red Team 1.2.0 / Master Decision 1.3.0 / Execution 1.1.0
-  Confidence Model 版本：MASTER_DECISION_ENGINE.md §7, v1.3.0
-  Playbook Library 版本：1.2.0（PB-003 Post Earnings Continuation）
+  各引擎文件版本：Market 1.3.0 / Portfolio 1.3.0 / Risk 1.3.0 / Scanner 1.0.0 /
+    Playbook 1.1.0 / Options 1.4.0 / Decision 1.2.0 / Committee 1.4.0 /
+    Red Team 1.3.0 / Master Decision 1.4.0 / Execution 1.2.0
+  Confidence Model 版本：MASTER_DECISION_ENGINE.md §7, v1.4.0
+  Playbook Library 版本：1.3.0（PB-003 Post Earnings Continuation）
   Prompt 版本：NOT APPLICABLE — v1.0 文件驅動分析
   Model 識別碼：NOT APPLICABLE — v1.0 文件驅動分析
   修正循環計數：0（無 State 間反覆修正）

@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-COM-001
 Document Name    : Investment Committee Engine
-Version          : 1.3.0
+Version          : 1.4.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : MARKET_ENGINE.md
@@ -341,6 +341,13 @@ Primary Concern
 
 Risk Level
 
+Confidence here is each member's own qualitative self-rating of their vote
+— `High | Medium | Low` — and is distinct from `MASTER_DECISION_ENGINE.md`
+§7's formal, numeric Confidence Model (computed later, at State 16, from a
+weighted formula). The two share a name but not a scale or a method, the
+same distinction `DECISION_ENGINE.md` draws with its own "Conviction
+Rating."
+
 -------------------------------------------------------------------------------
 10. CONSENSUS LEVEL
 -------------------------------------------------------------------------------
@@ -490,5 +497,5 @@ TRX Trading OS
 
 COMMITTEE_ENGINE.md
 
-Version 1.3.0
+Version 1.4.0
 ```

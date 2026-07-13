@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-MDE-001
 Document Name    : Master Decision Engine
-Version          : 1.3.0
+Version          : 1.4.0
 Status           : Stable
 Classification   : Core
 Dependencies     : ALL ENGINES
@@ -182,6 +182,19 @@ Missing-value handling (an input may never be silently dropped or defaulted):
   the remaining present inputs, compute WCS over what remains, and drop the
   resulting Confidence one level from what a full-input WCS of the same
   value would imply (e.g. what would read High reads Medium).
+- **A gate-linked input reflects a Hard Reject / veto rather than being
+  `UNKNOWN`** (e.g. Risk Score reported as `0 — Reject` under
+  `RISK_ENGINE.md` §24A Layer 1): this is a valid, computed 0–100 value —
+  not `UNKNOWN` — and is blended into WCS arithmetically like any other
+  input, using the missing-value rules above only if the engine separately
+  reports `UNKNOWN`. The veto's binding effect on the published outcome
+  comes entirely from §8's gate logic, never from what this produces
+  numerically for WCS; a vetoed candidate's WCS may still compute to any
+  value, and that number plays no role in overriding or reinstating the
+  veto. The same applies to a Red Team critical-risk finding: it is
+  independent of the numeric Resilience Score per `RED_TEAM_ENGINE.md` §19,
+  so the score already reported there is what feeds WCS, unaffected by
+  whether a critical-risk veto also fired.
 
 A full-gate-pass EXECUTE can carry any Confidence level down to Very Low —
 this is a valid, expected combination, not a contradiction; it tells the
@@ -642,5 +655,5 @@ TRX Trading OS
 
 MASTER_DECISION_ENGINE.md
 
-Version 1.3.0
+Version 1.4.0
 ```

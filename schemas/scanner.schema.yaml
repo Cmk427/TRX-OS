@@ -1,0 +1,61 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §5.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/scanner.schema.yaml"
+title: TRX Scanner Engine Output
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "SCANNER_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, candidates]
+    properties:
+      engine: { const: "SCANNER_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      candidates:
+        type: array
+        maxItems: 10
+        items:
+          type: object
+          additionalProperties: false
+          required: [ticker, candidate_quality_score, setup_quality, portfolio_fit, catalyst_state, exclusion_reason]
+          properties:
+            ticker: { type: string }
+            candidate_quality_score: { type: number, minimum: 0, maximum: 100 }
+            setup_quality:
+              type: number
+              minimum: 0
+              maximum: 100
+              description: "Component contribution to candidate_quality_score, per §5 — not a separate labelled band."
+            portfolio_fit:
+              type: number
+              minimum: 0
+              maximum: 100
+              description: "Component contribution to candidate_quality_score, per §5 — not a separate labelled band."
+            catalyst_state:
+              type: string
+              enum: [V1, V2, V3, V4, V5]
+            exclusion_reason: { type: [string, "null"] }

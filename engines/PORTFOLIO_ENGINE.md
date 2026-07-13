@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-PORT-001
 Document Name    : Portfolio Engine
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : CORE_PRINCIPLES.md
@@ -299,11 +299,14 @@ Portfolio Exposure limits already are — a Conservative profile SHALL use
 tighter limits, not looser ones, and any profile-specific override SHALL be
 recorded explicitly rather than silently assumed.
 
-The Portfolio Fit Score and New Position Compatibility check (§17) SHALL
-reject or flag any candidate whose addition would breach these limits,
-before Risk Engine sizing is even attempted — this is a portfolio-shape
-constraint, distinct from and prior to Risk Engine's position-level sizing
-math.
+The New Position Compatibility check (§17) SHALL reject or flag any
+candidate whose addition would breach these limits, before Risk Engine
+sizing is even attempted — this is a portfolio-shape constraint, distinct
+from and prior to Risk Engine's position-level sizing math. (There is no
+separate numeric "Portfolio Fit Score" in this document — the concentration
+percentages above and §17's qualitative check are the actual mechanism;
+`SCANNER_ENGINE.md` §5's "Portfolio fit" weighted component is a different,
+Scanner-owned number and SHALL NOT be conflated with this check.)
 
 -------------------------------------------------------------------------------
 10. CORRELATION REVIEW
@@ -606,5 +609,5 @@ TRX Trading OS
 
 PORTFOLIO_ENGINE.md
 
-Version 1.2.0
+Version 1.3.0
 ```

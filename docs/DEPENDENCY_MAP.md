@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-DEP-001
 Document Name    : Dependency Map
-Version          : 1.2.0
+Version          : 1.5.0
 Status           : Active
 Classification   : Reference
 Dependencies     : STATE_MACHINE.md
@@ -73,14 +73,19 @@ hierarchy that breaks their intentionally shared authority over State 04.
 | 17 | `EXECUTION_ENGINE.md` | State Machine, Master Decision (16), Risk, Output Contract, Data Source | Pass — downstream of 16 |
 
 `playbooks/PLAYBOOK_LIBRARY.md` depends on `PLAYBOOK_ENGINE.md` (parent),
-`SCANNER_ENGINE.md` (09, upstream of 10), `RISK_ENGINE.md`, and
-`VERIFICATION_POLICY.md` — pass.
+`SCANNER_ENGINE.md` (09, upstream of 10), `MARKET_ENGINE.md` (05, upstream
+of 10), `PORTFOLIO_ENGINE.md` (06, upstream of 10), `RISK_ENGINE.md`,
+`VERIFICATION_POLICY.md`, and `FAILURE_TAXONOMY.md` (downstream/
+observational per §3A) — pass; Market and Portfolio were added to this
+document's own §2 Shared Rule Format (Market Criteria / Portfolio Criteria
+fields) and both run at States 05/06, strictly before Playbook Assignment
+at State 10.
 
 ---
 
-## 3A. New Cross-Cutting System Documents (Decision Snapshot, Engine Interface, Failure Taxonomy, Parameter Registry, Documentation Governance)
+## 3A. New Cross-Cutting System Documents (Decision Snapshot, Engine Interface, Failure Taxonomy, Parameter Registry, Documentation Governance, AI Agent Implementation Guide)
 
-These five documents are deliberately **downstream of everything** — they
+These six documents are deliberately **downstream of everything** — they
 observe, classify, or index the pipeline's outputs and rules, they never
 feed a decision:
 
@@ -91,13 +96,24 @@ feed a decision:
 | `FAILURE_TAXONOMY.md` | State Machine, Output Contract, Risk, Data Source | Pass — classifies outcomes State Machine and Output Contract already define; does not originate a new outcome |
 | `PARAMETER_REGISTRY.md` | Risk, Portfolio, Market, Scanner, Playbook, Options, Committee, Red Team, Master Decision, Execution, State Machine, Verification Policy | Pass by design — indexes numbers already owned elsewhere; explicitly non-authoritative on conflict (§1 of that document) |
 | `DOCUMENTATION_GOVERNANCE.md` | Constitution | Pass — governs future document headers only, applies to nothing retroactively |
+| `AI_AGENT_IMPLEMENTATION_GUIDE.md` | State Machine, Constitution, Core Principles, Playbook Library, Data Source Policy, Verification Policy, Engine Interface Contract, Failure Taxonomy, Decision Snapshot Policy | Pass by design — a checklist restating existing constraints for an implementer; explicitly non-authoritative on conflict (§1 of that document), same relationship as Parameter Registry |
 
-None of the five may ever become a declared dependency of an engine
+None of the six may ever become a declared dependency of an engine
 document (Market, Portfolio, Risk, Scanner, Playbook, Options, Decision,
 Committee, Red Team, Master Decision, Execution). If a future change adds
 such a dependency, treat it the same as the Playbook → Master Decision cycle
 in §5 — remove it, because it would let a purely observational document
 retroactively constrain the pipeline it only reports on.
+
+## 3B. Machine Schema Layer (`schemas/*.schema.yaml`)
+
+The 11 files in `schemas/` each depend only on
+`system/ENGINE_INTERFACE_CONTRACT.md` (they are a mechanical rendering of
+its §2–§12, per `schemas/README.md`) and carry no other dependency. They are
+downstream of that document the same way `PARAMETER_REGISTRY.md` is
+downstream of every engine it indexes — pass by design, and they may never
+become a declared dependency of an engine or of
+`ENGINE_INTERFACE_CONTRACT.md` itself, for the same reason as §3A.
 
 ---
 
@@ -161,9 +177,11 @@ dependencies are now Market Engine (05), Scanner Engine (09), and
 - [ ] `docs/ARCHITECTURE.md` and `docs/RESPONSIBILITY_MATRIX.md` still match
       the corrected authority and dependency picture.
 - [ ] `DECISION_SNAPSHOT_POLICY.md`, `ENGINE_INTERFACE_CONTRACT.md`,
-      `FAILURE_TAXONOMY.md`, `PARAMETER_REGISTRY.md`, and
-      `DOCUMENTATION_GOVERNANCE.md` remain purely downstream/observational
-      per §3A — none has become a declared dependency of an engine.
+      `FAILURE_TAXONOMY.md`, `PARAMETER_REGISTRY.md`,
+      `DOCUMENTATION_GOVERNANCE.md`, and
+      `AI_AGENT_IMPLEMENTATION_GUIDE.md` remain purely
+      downstream/observational per §3A — none has become a declared
+      dependency of an engine.
 
 ---
 

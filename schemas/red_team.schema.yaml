@@ -1,0 +1,60 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §10.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/red_team.schema.yaml"
+title: TRX Red Team Engine Output
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "RED_TEAM_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, ticker, counter_thesis, attack_categories, critical_risk_flag, binding_result_if_flagged]
+    properties:
+      engine: { const: "RED_TEAM_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      ticker: { type: string }
+      counter_thesis: { type: string }
+      attack_categories:
+        type: array
+        minItems: 11
+        maxItems: 11
+        items:
+          type: object
+          additionalProperties: false
+          required: [category, finding, result]
+          properties:
+            category:
+              type: string
+              enum: [THESIS, DATA, ASSUMPTION, VALUATION, RISK, TIMING, EXECUTION, MACRO, TECHNICAL, PORTFOLIO, CATALYST]
+            finding: { type: string }
+            result:
+              type: string
+              enum: [survived, failed, not_applicable]
+              description: "not_applicable is valid only for VALUATION and EXECUTION categories, per §4A."
+      critical_risk_flag: { type: boolean }
+      binding_result_if_flagged:
+        type: [string, "null"]
+        enum: ["NO TRADE", "WATCH", "REDUCE", "EXIT", null]

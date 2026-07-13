@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-RISK-001
 Document Name    : Risk Engine
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : MARKET_ENGINE.md
@@ -207,6 +207,13 @@ alternatives, recorded here so they are not silently reintroduced:
 
 The 0–20% / 20–40% / 40–60% / 60–80% / 80%+ bands in §7 are the labels for
 this number, not an independent metric.
+
+**Units.** The formula above produces a dimensionless ratio (e.g. 0.35), not
+a percentage. Before comparing the result to the §7 bands or citing it in
+any report, output, or the Parameter Registry, it SHALL be multiplied by 100
+and expressed as a percentage (0.35 → 35%) — the bands, the Registry, and
+every downstream reference to "Portfolio Heat" are stated in percent, never
+as a raw fraction.
 
 If any position's Stop Price or Position Size is `UNKNOWN`, Portfolio Heat
 cannot be computed and the Risk Engine SHALL treat this the same as any
@@ -709,5 +716,5 @@ TRX Trading OS
 
 RISK_ENGINE.md
 
-Version 1.2.0
+Version 1.3.0
 ```

@@ -1,0 +1,81 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §4.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/risk.schema.yaml"
+title: TRX Risk Engine Output (Preliminary and Final Gate)
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "RISK_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required:
+      - engine
+      - engine_version
+      - schema_version
+      - gate
+      - portfolio_heat_pct
+      - position_heat_score
+      - risk_score
+      - risk_score_deductions
+      - gate_result
+      - veto
+      - veto_reason
+    properties:
+      engine: { const: "RISK_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      gate:
+        type: string
+        enum: [PRELIMINARY, FINAL]
+      portfolio_heat_pct:
+        oneOf:
+          - type: number
+            minimum: 0
+            maximum: 100
+            description: "Already converted from the §7A raw ratio to a percentage."
+          - const: "UNKNOWN"
+      position_heat_score:
+        oneOf:
+          - { type: number, minimum: 0, maximum: 100 }
+          - { const: "UNKNOWN" }
+      risk_score:
+        oneOf:
+          - { type: number, minimum: 0, maximum: 100 }
+          - { const: "UNKNOWN" }
+        description: "risk_score = UNKNOWN SHALL always co-occur with gate_result = REJECT, per RISK_ENGINE.md §26A."
+      risk_score_deductions:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          required: [flag, points]
+          properties:
+            flag: { type: string }
+            points: { type: number }
+      gate_result:
+        type: string
+        enum: [PASS, REJECT, RESTRICT]
+      veto: { type: boolean }
+      veto_reason: { type: [string, "null"] }

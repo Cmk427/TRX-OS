@@ -61,6 +61,50 @@ Status: completed in this repository.
   unreconciled score names (Portfolio Score, Option Score, Market
   Confidence) across `PORTFOLIO_ENGINE.md`, `DECISION_ENGINE.md`,
   `MARKET_ENGINE.md`, and their dependent templates and examples.
+- Sixth-review hardening: every one of the 11 `ENGINE_INTERFACE_CONTRACT.md`
+  example payloads now carries its own mandated `schema_version` field, and
+  several categorical fields (Market Engine's regime/trend/breadth/
+  volatility, Options Engine's assignment risk) are typed as the exact
+  enums their owning documents already define instead of bare strings;
+  `PARAMETER_REGISTRY.md` no longer verbatim-copies the Risk Score Layer
+  1/2 tables (cross-reference only); the Portfolio Heat formula
+  (`RISK_ENGINE.md` §7A) now states its ratio-to-percent unit conversion
+  explicitly; Options Engine gained numeric profit-taking and loss-cutting
+  review triggers (§8B) alongside its existing time-risk triggers; and
+  `MASTER_DECISION_ENGINE.md` §7 now states explicitly that a Risk Engine
+  Hard Reject's Risk Score of 0 is a valid computed WCS input, not
+  `UNKNOWN`.
+- Seventh-review hardening: `EXECUTION_ENGINE.md` gained an execution-timing
+  Gap Risk rule (§3F) and session-specific Pre-Market/After-Hours order-type
+  restrictions (§3D); four previously-unscaled Red Team outputs (Technical
+  Failure Probability, Portfolio Compatibility, Overall Risk Severity,
+  Failure Scenarios' Probability/Impact/Recovery Difficulty) now use the
+  system's existing categorical convention instead of an undefined or
+  false-precision numeric scale; `PORTFOLIO_ENGINE.md` §9A's dangling
+  reference to an undefined "Portfolio Fit Score" was removed in favour of
+  its actual mechanism; `OPTIONS_ENGINE.md`'s Liquidity Score was given its
+  already-implied 0–100 scale; and `PARAMETER_REGISTRY.md`'s remaining
+  verbatim-copied weight/mapping tables were replaced with
+  cross-references. Added `docs/AI_AGENT_IMPLEMENTATION_GUIDE.md`, a
+  non-authoritative implementer's checklist (stateless engines, never skip
+  the State Machine, never override the Constitution, never invent a
+  playbook, never generate missing data, how to use the Engine Interface
+  Contract, how to return failure) for whatever agent framework eventually
+  runs this document set.
+- Eighth-review hardening — the machine schema layer: `schemas/` now
+  contains 11 real, validated JSON Schema (Draft 2020-12) files, one per
+  engine, mechanically derived from `ENGINE_INTERFACE_CONTRACT.md` §2–§12,
+  so any AI model or tool can validate engine payloads against a common,
+  unambiguous shape rather than re-interpreting prose independently.
+  `playbooks/PLAYBOOK_LIBRARY.md` was fully re-templated to an identical
+  12-field structure across all 15 playbooks, each with a
+  `FAILURE_TAXONOMY.md`-mapped Failure Code. `STATE_MACHINE.md` gained
+  explicit exception-path diagrams (§2A). `docs/AI_AGENT_IMPLEMENTATION_GUIDE.md`
+  gained a Bad-vs-Good Agent Behaviour table and New Agent Checklist. Both
+  worked examples gained an at-a-glance version-targeting block.
+  Deliberately deferred: additional `DATA_FAILURE`/`RISK_REJECTION`/
+  `RED_TEAM_REJECTION` worked examples, flagged by the user as lower
+  priority.
 
 ## v1.1 — Operational Research Schemas
 

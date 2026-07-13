@@ -1,0 +1,51 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §8.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/decision.schema.yaml"
+title: TRX Decision Engine Output
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "DECISION_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, ticker, opportunity_score, component_breakdown]
+    properties:
+      engine: { const: "DECISION_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      ticker: { type: string }
+      opportunity_score: { type: number, minimum: 0, maximum: 100 }
+      component_breakdown:
+        type: object
+        additionalProperties: false
+        required: [market_alignment, technical, momentum, volume, catalyst, portfolio_fit, liquidity]
+        properties:
+          market_alignment: { type: number }
+          technical: { type: number }
+          momentum: { type: number }
+          volume: { type: number }
+          catalyst: { type: number }
+          portfolio_fit: { type: number }
+          liquidity: { type: number }

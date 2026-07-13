@@ -1,0 +1,95 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §12.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/execution.schema.yaml"
+title: TRX Execution Engine Output
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "EXECUTION_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required:
+      - engine
+      - engine_version
+      - schema_version
+      - ticker
+      - order_type
+      - entry_zone
+      - stop
+      - target
+      - position_size
+      - max_loss
+      - slippage_assumption
+      - expected_fill_price
+      - market_impact_note
+      - execution_gate
+      - gap_risk_note
+      - status
+    properties:
+      engine: { const: "EXECUTION_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      ticker: { type: string }
+      order_type:
+        type: string
+        enum: [market, limit, "stop-limit", not_applicable]
+      entry_zone:
+        type: object
+        additionalProperties: false
+        required: [low, high, as_of]
+        properties:
+          low: { type: number }
+          high: { type: number }
+          as_of: { type: string, format: date-time }
+      stop: { type: number }
+      target: { type: number }
+      position_size: { type: number }
+      max_loss: { type: number }
+      slippage_assumption:
+        type: number
+        description: "Half bid-ask spread + volatility buffer, in the quote's price unit, per §3C."
+      expected_fill_price:
+        type: number
+        description: "limit price adjusted by slippage_assumption, per §3C"
+      market_impact_note:
+        type: [string, "null"]
+        description: "Present when size approaches the §3B liquidity cap."
+      execution_gate:
+        type: object
+        additionalProperties: false
+        required: [quote_freshness_ok, liquidity_ok, spread_ok, market_status_ok, order_size_validated, human_approval_presented]
+        properties:
+          quote_freshness_ok: { type: boolean }
+          liquidity_ok: { type: boolean, description: "<= 10% ADV or <= 10% OI, per §3B" }
+          spread_ok: { type: boolean, description: "order type matches §3A tier" }
+          market_status_ok: { type: boolean, description: "session verified, no unconfirmed halt" }
+          order_size_validated: { type: boolean, description: "matches Risk Engine-approved size, per §1A check 5" }
+          human_approval_presented: { type: boolean }
+      gap_risk_note:
+        type: [string, "null"]
+        description: "Present when a new entry is timed near a gap-risk window or an existing position carries through one, per §3F."
+      status:
+        type: string
+        enum: [READY, "DO NOT EXECUTE — REVERIFY", "NOT APPLICABLE"]

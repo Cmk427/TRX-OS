@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-EIC-001
 Document Name    : Engine Interface Contract
-Version          : 1.2.0
+Version          : 1.4.0
 Status           : Active
 Classification   : Reference
 Dependencies     : STATE_MACHINE.md
@@ -102,14 +102,17 @@ example (`"confidence": 0.85`) would otherwise leave open.
 {
   "engine": "MARKET_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "as_of": "2026-07-10T14:35:00Z",
   "market_score": 84,
-  "regime": "Strong",
-  "trend": "string",
-  "breadth": "string",
-  "volatility": "string",
+  "regime": "STRONG RISK ON | RISK ON | NEUTRAL | RISK OFF | STRONG RISK OFF",
+  "trend": "Strong Bull | Bull | Sideways | Bear | Strong Bear",
+  "breadth": "Very Strong | Strong | Neutral | Weak | Very Weak",
+  "volatility": "LOW | NORMAL | HIGH | EXTREME",
   "macro_events": ["string"],
-  "sector_rotation": "string",
+  "sector_rotation": [
+    {"sector": "string", "momentum_score": "number", "relative_strength": "number", "capital_flow_rating": "string"}
+  ],
   "recommended_exposure_pct": 75,
   "regime_transition": {
     "detected": "boolean (band crossed vs. prior session, per §15A)",
@@ -117,10 +120,15 @@ example (`"confidence": 0.85`) would otherwise leave open.
     "exposure_cap_pct": "number | null (one Risk Multiplier tier more conservative while active)",
     "playbooks_requiring_reverification": ["string"]
   },
-  "confidence": "High",
   "evidence_refs": ["verification-ledger-row-id"]
 }
 ```
+
+There is no separate `confidence` field here — `market_score` already is the
+one number `MARKET_ENGINE.md` §14/§15 calls "Market Confidence"/"Market
+Score" (one number, two names, per that document). A second `confidence`
+field would either duplicate `market_score` or invent a value this engine's
+prose never defines; neither is acceptable per §1's naming/shape-only rule.
 
 ## 3. Portfolio Engine → downstream
 
@@ -128,13 +136,14 @@ example (`"confidence": 0.85`) would otherwise leave open.
 {
   "engine": "PORTFOLIO_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "as_of": "ISO8601",
   "portfolio_health_score": 88,
   "cash_pct": 31,
   "buying_power": "number",
   "largest_position": {"ticker": "string", "pct": "number"},
-  "sector_concentration": {"sector": "pct"},
-  "theme_concentration": {"theme": "pct"},
+  "sector_concentration": {"<sector-name>": "number (pct of portfolio value)"},
+  "theme_concentration": {"<theme-name>": "number (pct of portfolio value)"},
   "construction_limits": {
     "single_stock_max_pct": 10,
     "sector_max_pct": 30,
@@ -152,6 +161,7 @@ example (`"confidence": 0.85`) would otherwise leave open.
 {
   "engine": "RISK_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "gate": "PRELIMINARY | FINAL",
   "portfolio_heat_pct": "number | UNKNOWN",
   "position_heat_score": "number | UNKNOWN",
@@ -173,12 +183,13 @@ combination as a contract violation.
 {
   "engine": "SCANNER_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "candidates": [
     {
       "ticker": "string",
       "candidate_quality_score": "number",
-      "setup_quality": "string",
-      "portfolio_fit": "string",
+      "setup_quality": "number (0-100 component contribution, per §5)",
+      "portfolio_fit": "number (0-100 component contribution, per §5)",
       "catalyst_state": "V1 | V2 | V3 | V4 | V5",
       "exclusion_reason": "string | null"
     }
@@ -186,12 +197,18 @@ combination as a contract violation.
 }
 ```
 
+`setup_quality` and `portfolio_fit` are numeric component contributions to
+`candidate_quality_score` (§5's weighted table), not separately labelled
+bands — `SCANNER_ENGINE.md` defines no qualitative scale for either beyond
+the composite score itself.
+
 ## 6. Playbook Engine → Options Engine / Decision Engine
 
 ```json
 {
   "engine": "PLAYBOOK_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "playbook_library_version": "1.0.0",
   "ticker": "string",
   "playbook_id": "PB-001",
@@ -207,6 +224,7 @@ combination as a contract violation.
 {
   "engine": "OPTIONS_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "applicable": "boolean",
   "contract": {"strike": "number", "expiry": "date", "premium": "number"},
   "greeks": {"delta": "number", "gamma": "number", "theta": "number", "vega": "number"},
@@ -215,10 +233,10 @@ combination as a contract violation.
   "option_quality_score": "number",
   "named_risk_factors": {
     "theta_decay_ok": "boolean",
-    "iv_crush_exposure": "string | none",
+    "iv_crush_exposure": "string | null (null when no scheduled IV-moving event falls within the holding window, per §5A)",
     "gamma_risk_flag": "boolean",
     "expiration_risk": {"days_to_expiry": "number", "holding_period_days": "number"},
-    "assignment_risk": "not_applicable_long_call_buyer"
+    "assignment_risk": "not_applicable_long_call_buyer (fixed literal — this engine only analyzes bought Long Calls, per §1; assignment risk applies only to option sellers)"
   },
   "time_risk_rules": {
     "min_dte_at_entry_ok": "boolean (DTE >= 30, per §8A)",
@@ -226,6 +244,10 @@ combination as a contract violation.
     "theta_loss_review_triggered": "boolean (cumulative theta loss >= 20% of paid premium)",
     "iv_collapse_triggered": "boolean (IV Rank dropped >= 15 points intra-session without compensating price move, per §8A)",
     "exit_or_rejustify_required": "boolean (current DTE <= 5)"
+  },
+  "profit_loss_review_rules": {
+    "profit_take_review_triggered": "boolean (unrealized gain >= 100% of paid premium, per §8B)",
+    "loss_cut_review_triggered": "boolean (unrealized loss >= 50% of paid premium, per §8B)"
   },
   "max_risk_premium": "number"
 }
@@ -237,6 +259,7 @@ combination as a contract violation.
 {
   "engine": "DECISION_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "ticker": "string",
   "opportunity_score": "number",
   "component_breakdown": {"market_alignment": 20, "technical": 20, "momentum": 15, "volume": 15, "catalyst": 15, "portfolio_fit": 10, "liquidity": 5}
@@ -249,10 +272,13 @@ combination as a contract violation.
 {
   "engine": "COMMITTEE_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "ticker": "string",
   "votes": [
     {"role": "Chief Market Strategist | Technical Analyst | Portfolio Manager | Risk Manager | Options Specialist | Execution Specialist",
-     "vote": "STRONG BUY | BUY | WATCH | PASS | REDUCE | REJECT", "confidence": "string", "concern": "string"}
+     "vote": "STRONG BUY | BUY | WATCH | PASS | REDUCE | REJECT",
+     "confidence": "High | Medium | Low (member's own qualitative self-rating, per §9 — distinct from MASTER_DECISION_ENGINE.md §7's numeric Confidence Model)",
+     "concern": "string"}
   ],
   "consensus_score": "number (0-100, weighted per COMMITTEE_ENGINE.md §6/§10)",
   "consensus_label": "Unanimous | Strong Consensus | Moderate Consensus | Weak Consensus | No Consensus",
@@ -266,6 +292,7 @@ combination as a contract violation.
 {
   "engine": "RED_TEAM_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "ticker": "string",
   "counter_thesis": "string",
   "attack_categories": [
@@ -284,6 +311,7 @@ combination as a contract violation.
 {
   "engine": "MASTER_DECISION_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "confidence_model_version": "1.0.0",
   "ticker": "string",
   "final_outcome": "EXECUTE | WATCH | HOLD | REDUCE | EXIT | NO TRADE | INSUFFICIENT VERIFIED INFORMATION | SYSTEM REVIEW REQUIRED",
@@ -302,6 +330,7 @@ combination as a contract violation.
 {
   "engine": "EXECUTION_ENGINE",
   "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
   "ticker": "string",
   "order_type": "market | limit | stop-limit | not_applicable",
   "entry_zone": {"low": "number", "high": "number", "as_of": "ISO8601"},
@@ -309,7 +338,7 @@ combination as a contract violation.
   "target": "number",
   "position_size": "number",
   "max_loss": "number",
-  "slippage_assumption": "string",
+  "slippage_assumption": "number (half bid-ask spread + volatility buffer, in the quote's price unit, per §3C)",
   "expected_fill_price": "number (limit price adjusted by slippage_assumption, per §3C)",
   "market_impact_note": "string | null (present when size approaches the §3B liquidity cap)",
   "execution_gate": {
@@ -320,6 +349,7 @@ combination as a contract violation.
     "order_size_validated": "boolean (matches Risk Engine-approved size, per §1A check 5)",
     "human_approval_presented": "boolean"
   },
+  "gap_risk_note": "string | null (present when a new entry is timed near a gap-risk window or an existing position carries through one, per §3F)",
   "status": "READY | DO NOT EXECUTE — REVERIFY | NOT APPLICABLE"
 }
 ```

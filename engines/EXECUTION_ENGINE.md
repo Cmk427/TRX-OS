@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-EXE-001
 Document Name    : Execution Engine
-Version          : 1.1.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Critical
 Dependencies     : STATE_MACHINE.md
@@ -142,12 +142,41 @@ the order against a live order book.
   After-Hours) and SHALL NOT propose an order type or size appropriate only
   to Regular session liquidity if the current session is Pre-Market or
   After-Hours.
+- **Pre-Market rule**: a plan built in the Pre-Market session SHALL propose
+  a limit order only — never market — and SHALL flag that depth and spread
+  are typically thinner than Regular session, which the §3A Order Type
+  Decision and §3C slippage assumption do not otherwise account for.
+- **After-Hours rule**: the same limit-order-only requirement and thin-
+  liquidity flag apply to the After-Hours session; a plan SHALL NOT reuse a
+  Regular-session spread or slippage assumption computed earlier in the day
+  without restating it for current After-Hours conditions.
 - A trading halt, if known, invalidates the plan until confirmed resumed.
 - Per `DATA_SOURCE_POLICY.md` §3, current price/quote data has a freshness
   requirement. If the quote used to build this plan has gone stale by the
   time of self-audit or publication, the plan SHALL be marked
   `DO NOT EXECUTE — REVERIFY` rather than published with a stale price
   presented as current.
+
+## 3F. Gap Risk at Execution Timing
+
+`RISK_ENGINE.md` §15 defines Gap Risk generally; this section is the
+execution-specific application — an order-timing rule, not a restatement of
+that general concept:
+
+- **New entry timing**: the engine SHALL NOT propose a new-entry order timed
+  to open immediately before a known gap-risk window (scheduled earnings,
+  a scheduled macro release per `MARKET_ENGINE.md` §12/§13, or a weekend/
+  holiday close) unless the plan explicitly re-justifies the stop and
+  holding period against that specific gap exposure — silence is not
+  acceptable; the plan must show the gap was considered, not merely avoided
+  by omission.
+- **Existing-position carry**: when a plan carries an existing position
+  through a known gap-risk window, it SHALL state explicitly that a stop
+  order cannot guarantee execution at the stated stop price during a gap,
+  and SHALL state the maximum realistic loss under a gap-through scenario
+  (distinct from, and typically larger than, the normal Maximum Loss to
+  Stop used elsewhere) — see `RED_TEAM_ENGINE.md` §16 Worst Case Analysis
+  for the same style of gap-scenario estimate used there.
 
 ## 3E. Options-Specific Execution Fields
 
@@ -167,15 +196,17 @@ reasonably be managed.
 The engine SHALL:
 
 - apply the Order Type Decision, Liquidity/Spread Checks, Slippage
-  Assumption, and Market Hours / Stale Quote rules in §3A–§3D (and §3E for
-  options) to every plan — none of these may be skipped or defaulted;
+  Assumption, and Market Hours / Stale Quote rules in §3A–§3D (§3E for
+  options, §3F for gap risk) to every plan — none of these may be skipped
+  or defaulted;
 - prefer limit or other explicitly justified order types when liquidity or
   spread warrants it;
 - prohibit a plan whose stop, maximum loss, or position size is undefined;
 - respect Risk Engine limits, market restrictions, portfolio capacity, and
   final invalidation conditions;
-- flag earnings, macro events, option expiration, overnight gap, and liquidity
-  risks; and
+- apply §3F's gap-risk timing rule for earnings, macro events, option
+  expiration, and overnight/weekend gap exposure — not merely flag them;
+  and
 - produce an exit and review plan before the human acts.
 
 ---

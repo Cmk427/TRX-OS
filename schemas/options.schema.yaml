@@ -1,0 +1,109 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §7.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/options.schema.yaml"
+title: TRX Options Engine Output (conditional)
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "OPTIONS_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required:
+      - engine
+      - engine_version
+      - schema_version
+      - applicable
+      - contract
+      - greeks
+      - iv_rank
+      - liquidity_score
+      - option_quality_score
+      - named_risk_factors
+      - time_risk_rules
+      - profit_loss_review_rules
+      - max_risk_premium
+    properties:
+      engine: { const: "OPTIONS_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      applicable: { type: boolean }
+      contract:
+        type: object
+        additionalProperties: false
+        required: [strike, expiry, premium]
+        properties:
+          strike: { type: number }
+          expiry: { type: string, format: date }
+          premium: { type: number }
+      greeks:
+        type: object
+        additionalProperties: false
+        required: [delta, gamma, theta, vega]
+        properties:
+          delta: { type: number }
+          gamma: { type: number }
+          theta: { type: number }
+          vega: { type: number }
+      iv_rank: { type: number, minimum: 0, maximum: 100 }
+      liquidity_score: { type: number, minimum: 0, maximum: 100 }
+      option_quality_score: { type: number, minimum: 0, maximum: 100 }
+      named_risk_factors:
+        type: object
+        additionalProperties: false
+        required: [theta_decay_ok, iv_crush_exposure, gamma_risk_flag, expiration_risk, assignment_risk]
+        properties:
+          theta_decay_ok: { type: boolean }
+          iv_crush_exposure:
+            type: [string, "null"]
+            description: "null when no scheduled IV-moving event falls within the holding window, per §5A."
+          gamma_risk_flag: { type: boolean }
+          expiration_risk:
+            type: object
+            additionalProperties: false
+            required: [days_to_expiry, holding_period_days]
+            properties:
+              days_to_expiry: { type: number }
+              holding_period_days: { type: number }
+          assignment_risk:
+            const: "not_applicable_long_call_buyer"
+            description: "Fixed literal — this engine only analyzes bought Long Calls, per §1; assignment risk applies only to option sellers."
+      time_risk_rules:
+        type: object
+        additionalProperties: false
+        required: [min_dte_at_entry_ok, holding_period_within_cap, theta_loss_review_triggered, iv_collapse_triggered, exit_or_rejustify_required]
+        properties:
+          min_dte_at_entry_ok: { type: boolean, description: "DTE >= 30, per §8A" }
+          holding_period_within_cap: { type: boolean, description: "holding_period_days <= 0.6 * days_to_expiry" }
+          theta_loss_review_triggered: { type: boolean, description: "cumulative theta loss >= 20% of paid premium" }
+          iv_collapse_triggered: { type: boolean, description: "IV Rank dropped >= 15 points intra-session without compensating price move, per §8A" }
+          exit_or_rejustify_required: { type: boolean, description: "current DTE <= 5" }
+      profit_loss_review_rules:
+        type: object
+        additionalProperties: false
+        required: [profit_take_review_triggered, loss_cut_review_triggered]
+        properties:
+          profit_take_review_triggered: { type: boolean, description: "unrealized gain >= 100% of paid premium, per §8B" }
+          loss_cut_review_triggered: { type: boolean, description: "unrealized loss >= 50% of paid premium, per §8B" }
+      max_risk_premium: { type: number }

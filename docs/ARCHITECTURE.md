@@ -31,6 +31,8 @@ docs/                             Architecture, roadmap, and cross-reference map
   ROADMAP.md                      Version plan and promotion criteria
   RESPONSIBILITY_MATRIX.md        Quick-reference authority/veto index (derived from CONSTITUTION.md)
   DEPENDENCY_MAP.md                Document dependency graph and forward-dependency checks
+  AI_AGENT_IMPLEMENTATION_GUIDE.md Non-authoritative implementer's checklist (derived index)
+schemas/                          Machine-readable JSON Schema rendering of the Engine Interface Contract (derived, non-authoritative — see schemas/README.md)
 templates/                        Fill-in worksheets aligned to State Machine stages
   ANALYSIS_TEMPLATE.md            States 02–11 (input through options review)
   DECISION_TEMPLATE.md            States 12–18 (ranking through self audit)
@@ -119,19 +121,21 @@ table is that place:
 
 ```text
 system/     CORE_PRINCIPLES 1.0.0 · CONSTITUTION 1.1.0 · SYSTEM 1.1.0
-            OUTPUT_CONTRACT 1.1.0 · STATE_MACHINE 1.2.0
+            OUTPUT_CONTRACT 1.1.0 · STATE_MACHINE 1.3.0
             VERIFICATION_POLICY 1.2.0 · DATA_SOURCE_POLICY 1.1.0
-            DECISION_SNAPSHOT_POLICY 1.1.0 · ENGINE_INTERFACE_CONTRACT 1.2.0
-            FAILURE_TAXONOMY 1.1.0 · PARAMETER_REGISTRY 1.3.0
+            DECISION_SNAPSHOT_POLICY 1.1.0 · ENGINE_INTERFACE_CONTRACT 1.4.0
+            FAILURE_TAXONOMY 1.1.0 · PARAMETER_REGISTRY 1.5.0
             DOCUMENTATION_GOVERNANCE 1.0.0
-engines/    MARKET 1.3.0 · PORTFOLIO 1.2.0 · SCANNER 1.0.0 · PLAYBOOK 1.1.0
-            OPTIONS 1.2.0 · RISK 1.2.0 · DECISION 1.2.0
-            MASTER_DECISION 1.3.0 · COMMITTEE 1.3.0 · RED_TEAM 1.2.0
-            EXECUTION 1.1.0
-playbooks/  PLAYBOOK_LIBRARY 1.2.0
+engines/    MARKET 1.3.0 · PORTFOLIO 1.3.0 · SCANNER 1.0.0 · PLAYBOOK 1.1.0
+            OPTIONS 1.4.0 · RISK 1.3.0 · DECISION 1.2.0
+            MASTER_DECISION 1.4.0 · COMMITTEE 1.4.0 · RED_TEAM 1.3.0
+            EXECUTION 1.2.0
+playbooks/  PLAYBOOK_LIBRARY 1.3.0
+schemas/    11 files, each 1.0.0 (new — see schemas/README.md)
 templates/  ANALYSIS 1.2.0 · DECISION 1.2.0 · REPORT 1.3.0
-examples/   NO_TRADE 1.4.0 · EXECUTE_LONG_CALL 1.4.0
-docs/       RESPONSIBILITY_MATRIX 1.1.0 · DEPENDENCY_MAP 1.2.0
+examples/   NO_TRADE 1.7.0 · EXECUTE_LONG_CALL 1.7.0
+docs/       RESPONSIBILITY_MATRIX 1.1.0 · DEPENDENCY_MAP 1.5.0
+            AI_AGENT_IMPLEMENTATION_GUIDE 1.1.0
 workflows/  WORKFLOWS 1.0.0 (unchanged — still a placeholder)
 ```
 
@@ -139,16 +143,82 @@ A document at 1.0.0 above genuinely has not changed since the original
 architecture pass (`SCANNER_ENGINE.md`, `CORE_PRINCIPLES.md`,
 `DOCUMENTATION_GOVERNANCE.md`, `WORKFLOWS.md`) — that is a fact about their
 history, not a sign they were skipped. Each whole revision level above 1.0
-reflects one round of substantive fixes. `examples/` are at 1.4.0 (four
+reflects one round of substantive fixes. `examples/` are at 1.5.0 (five
 revision rounds) and `MASTER_DECISION_ENGINE.md`/`COMMITTEE_ENGINE.md`/
-`MARKET_ENGINE.md` are at 1.3.0 partly because a fifth audit round found
-that an earlier fix (removing an unscoped "WCS &lt; 70 caps Confidence at
-Low" rule from `MASTER_DECISION_ENGINE.md` §7) had not fully propagated —
-the same disavowed rule was still quoted in that document's own §17,
-`PARAMETER_REGISTRY.md` §8, and `templates/DECISION_TEMPLATE.md` §6. This is
-recorded here deliberately: propagation gaps are exactly the failure mode
-this matrix and the Decision Snapshot policy exist to catch, and pretending
-a fix round found nothing would defeat that purpose.
+`MARKET_ENGINE.md` are at 1.3.0/1.4.0 partly because a fifth audit round
+found that an earlier fix (removing an unscoped "WCS &lt; 70 caps Confidence
+at Low" rule from `MASTER_DECISION_ENGINE.md` §7) had not fully
+propagated — the same disavowed rule was still quoted in that document's
+own §17, `PARAMETER_REGISTRY.md` §8, and `templates/DECISION_TEMPLATE.md`
+§6. This is recorded here deliberately: propagation gaps are exactly the
+failure mode this matrix and the Decision Snapshot policy exist to catch,
+and pretending a fix round found nothing would defeat that purpose.
+
+A sixth audit round bumped `ENGINE_INTERFACE_CONTRACT.md` (1.2.0 → 1.3.0),
+`RISK_ENGINE.md` and `OPTIONS_ENGINE.md` (1.2.0 → 1.3.0),
+`MASTER_DECISION_ENGINE.md` and `COMMITTEE_ENGINE.md` (1.3.0 → 1.4.0), and
+`PARAMETER_REGISTRY.md` (1.3.0 → 1.4.0): every one of the 11 Engine
+Interface Contract example payloads was missing its own mandated
+`schema_version` field, several categorical fields (Market Engine's
+`trend`/`breadth`/`volatility`/`regime`, Options Engine's
+`assignment_risk`) were typed as bare strings instead of the enums their
+owning documents already define, `PARAMETER_REGISTRY.md` had verbatim-copied
+(not cross-referenced) the Risk Score Layer 1/Layer 2 tables, the Portfolio
+Heat formula's ratio-vs-percent unit conversion was never stated, Options
+Engine had no numeric profit-taking or loss-cutting trigger (only named
+fields with no threshold), and the Master Decision Engine never stated
+whether a Risk Engine Hard Reject's Risk Score of exactly 0 counts as a
+normal computed value or an `UNKNOWN` for WCS-blending purposes.
+
+A seventh audit round bumped `EXECUTION_ENGINE.md` (1.1.0 → 1.2.0),
+`RED_TEAM_ENGINE.md` (1.2.0 → 1.3.0), `PORTFOLIO_ENGINE.md` (1.2.0 →
+1.3.0), `OPTIONS_ENGINE.md` (1.3.0 → 1.4.0 — its second bump this cycle),
+`ENGINE_INTERFACE_CONTRACT.md` (1.3.0 → 1.4.0 — likewise), and
+`PARAMETER_REGISTRY.md` (1.4.0 → 1.5.0 — likewise): Execution Engine gained
+an explicit gap-risk order-timing rule (§3F) and session-specific
+Pre-Market/After-Hours order-type restrictions (§3D); four Red Team outputs
+(Technical Failure Probability, Portfolio Compatibility, Overall Risk
+Severity, and the Failure Scenarios' Probability/Impact/Recovery
+Difficulty) that previously had no stated scale now use the same
+categorical convention already established elsewhere in the system, rather
+than an invented numeric score that would misrepresent how precise these
+judgment calls actually are; Portfolio Engine's dangling reference to an
+undefined "Portfolio Fit Score" was removed in favour of its actual
+mechanism (the §9A concentration limits and §17 qualitative check); Options
+Engine's Liquidity Score was given its already-implied 0–100 scale; and
+Parameter Registry's remaining verbatim-copied weight/mapping tables
+(Confidence Model weights, Resilience Score deduction, Committee role
+weights, vote-to-points mapping) were replaced with cross-references, the
+same treatment already applied to the Risk Score tables the round before.
+This round also added `docs/AI_AGENT_IMPLEMENTATION_GUIDE.md`, a
+non-authoritative implementer's checklist for whatever agent framework
+eventually runs this document set — same "owning document always wins"
+relationship as `PARAMETER_REGISTRY.md`.
+
+An eighth audit round added the **machine schema layer** the user had
+flagged as the single most important remaining gap across three
+consecutive review rounds: `schemas/` now contains 11 real JSON Schema
+(Draft 2020-12, written in YAML) files, one per engine, mechanically
+transcribed from `ENGINE_INTERFACE_CONTRACT.md` §2–§12 — every schema was
+validated both for well-formedness and for actually accepting a correct
+payload while rejecting an invalid enum/phantom field. This round also:
+fully re-templated `playbooks/PLAYBOOK_LIBRARY.md` (1.2.0 → 1.3.0) — all 15
+playbooks now use an identical 12-field structure (Objective, Applicable
+Market, Scanner/Market/Portfolio Criteria, Required Data, Entry, Stop,
+Exit, Risk, Invalidation, Failure Code), each Failure Code cross-referenced
+to `FAILURE_TAXONOMY.md`; extended `docs/AI_AGENT_IMPLEMENTATION_GUIDE.md`
+(1.0.0 → 1.1.0) with a Bad-vs-Good Agent Behaviour table and a New Agent
+Checklist; added explicit exception-path diagrams to `STATE_MACHINE.md`
+(1.2.0 → 1.3.0, new §2A) — correcting, not copying, the user's suggested
+diagram, since a verification failure produces
+`INSUFFICIENT VERIFIED INFORMATION`, never `NO TRADE`, and those two
+outcomes are deliberately not interchangeable; added a
+"Specification Versions Targeted" at-a-glance block to both worked
+examples; and trimmed `README.md`'s Report Standard section into links
+rather than restating `OUTPUT_CONTRACT.md` inline. Not done this round,
+deliberately deferred as lower priority: three additional failure-path
+worked examples (`DATA_FAILURE`, `RISK_REJECTION`, `RED_TEAM_REJECTION`)
+the user suggested as a "P2" item.
 
 **Keeping this table honest**: any change to a document's `Version` header
 SHALL update its entry here in the same edit — this table is exactly as

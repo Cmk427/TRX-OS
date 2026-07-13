@@ -1,0 +1,87 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §3.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/portfolio.schema.yaml"
+title: TRX Portfolio Engine Output
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "PORTFOLIO_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required:
+      - engine
+      - engine_version
+      - schema_version
+      - as_of
+      - portfolio_health_score
+      - cash_pct
+      - buying_power
+      - largest_position
+      - sector_concentration
+      - theme_concentration
+      - construction_limits
+      - correlation_flags
+      - constraints
+    properties:
+      engine: { const: "PORTFOLIO_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      as_of: { type: string, format: date-time }
+      portfolio_health_score: { type: number, minimum: 0, maximum: 100 }
+      cash_pct: { type: number, minimum: 0, maximum: 100 }
+      buying_power: { type: number }
+      largest_position:
+        type: object
+        additionalProperties: false
+        required: [ticker, pct]
+        properties:
+          ticker: { type: string }
+          pct: { type: number, minimum: 0, maximum: 100 }
+      sector_concentration:
+        type: object
+        description: "Map of sector name -> pct of portfolio value."
+        additionalProperties: { type: number, minimum: 0, maximum: 100 }
+      theme_concentration:
+        type: object
+        description: "Map of theme name -> pct of portfolio value."
+        additionalProperties: { type: number, minimum: 0, maximum: 100 }
+      construction_limits:
+        type: object
+        additionalProperties: false
+        required: [single_stock_max_pct, sector_max_pct, theme_max_pct, breached]
+        properties:
+          single_stock_max_pct: { type: number }
+          sector_max_pct: { type: number }
+          theme_max_pct: { type: number }
+          breached:
+            type: array
+            items: { type: string }
+            description: "Which §9A limit, if any, is breached."
+      correlation_flags:
+        type: array
+        items: { type: string }
+      constraints:
+        type: array
+        items: { type: string }

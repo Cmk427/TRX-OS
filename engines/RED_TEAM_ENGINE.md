@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-RED-001
 Document Name    : Red Team Engine
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : COMMITTEE_ENGINE.md
@@ -224,7 +224,17 @@ Where would professionals sell?
 
 Output
 
-Technical Failure Probability
+Technical Failure Probability — a categorical estimate, not a numeric
+score (avoiding false precision on an inherently judgment-based call, per
+`CORE_PRINCIPLES.md`):
+
+LOW
+
+MEDIUM
+
+HIGH
+
+EXTREME
 
 -------------------------------------------------------------------------------
 8. PORTFOLIO CHALLENGE
@@ -244,7 +254,21 @@ Could cash produce a better expected outcome?
 
 Output
 
-Portfolio Compatibility
+Portfolio Compatibility — this is the Red Team's own adversarial finding
+for the Portfolio Challenge attack category (§4A), distinct from
+`PORTFOLIO_ENGINE.md` §17's New Position Compatibility check and
+`DECISION_ENGINE.md`'s pass/fail Portfolio Compatibility gate — those are
+upstream checks; this is the Red Team re-attacking the same question
+independently:
+
+COMPATIBLE
+
+MARGINAL
+
+INCOMPATIBLE
+
+`INCOMPATIBLE` here is a `failed` finding for the Portfolio Challenge
+category in §20's Attack Category Results.
 
 -------------------------------------------------------------------------------
 9. RISK CHALLENGE
@@ -266,7 +290,16 @@ Catalyst failure?
 
 Output
 
-Overall Risk Severity
+Overall Risk Severity — categorical, matching the convention already used
+for Macro Threat Level (§6) and Event Risk (`RISK_ENGINE.md` §16):
+
+LOW
+
+MEDIUM
+
+HIGH
+
+EXTREME
 
 -------------------------------------------------------------------------------
 10. EXECUTION CHALLENGE
@@ -382,13 +415,15 @@ Scenario E
 
 Volatility spikes.
 
-Estimate
+Estimate — each of the following is categorical per scenario, not a
+numeric score (a specific % probability for a hypothetical scenario would
+be false precision this system does not claim):
 
-Probability
+Probability: LOW | MEDIUM | HIGH
 
-Impact
+Impact: LOW | MEDIUM | HIGH | EXTREME
 
-Recovery Difficulty
+Recovery Difficulty: LOW | MEDIUM | HIGH | EXTREME
 
 -------------------------------------------------------------------------------
 16. WORST CASE ANALYSIS
@@ -573,5 +608,5 @@ TRX Trading OS
 
 RED_TEAM_ENGINE.md
 
-Version 1.2.0
+Version 1.3.0
 ```

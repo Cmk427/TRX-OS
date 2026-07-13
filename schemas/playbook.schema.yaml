@@ -1,0 +1,55 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §6.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/playbook.schema.yaml"
+title: TRX Playbook Engine Output
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "PLAYBOOK_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required:
+      - engine
+      - engine_version
+      - schema_version
+      - playbook_library_version
+      - ticker
+      - playbook_id
+      - match_score
+      - no_trade
+      - no_trade_reason
+    properties:
+      engine: { const: "PLAYBOOK_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      playbook_library_version: { type: string }
+      ticker: { type: string }
+      playbook_id:
+        type: string
+        pattern: "^PB-[0-9]{3}$"
+        description: "Must match an entry in playbooks/PLAYBOOK_LIBRARY.md exactly as currently versioned — never invented at runtime."
+      match_score: { type: number, minimum: 0, maximum: 100 }
+      no_trade: { type: boolean }
+      no_trade_reason: { type: [string, "null"] }
