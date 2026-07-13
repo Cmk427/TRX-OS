@@ -1,10 +1,11 @@
-# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §13.
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §14.
 # Non-authoritative: if this ever disagrees with that document, the
 # Markdown document wins and this file is a bug. See schemas/README.md.
-# schema_version bumped 1.0.0 -> 1.1.0 here (and only here) because this
-# shape gained two new fields (max_slippage, priority) per §1A's rule that
-# a field added/removed/retyped bumps schema_version, distinct from
-# engine_version. Other schema files in this folder are unaffected.
+# schema_version bumped 1.0.0 -> 1.1.0 -> 1.2.0 (and only for this file)
+# because this shape has gained fields twice (max_slippage/priority, then
+# valid_for/if_not_filled) per §1A's rule that a field added/removed/
+# retyped bumps schema_version, distinct from engine_version. Other schema
+# files in this folder are unaffected.
 $schema: "https://json-schema.org/draft/2020-12/schema"
 $id: "trx://schemas/execution.schema.yaml"
 title: TRX Execution Engine Output
@@ -20,7 +21,7 @@ $defs:
     properties:
       engine: { const: "EXECUTION_ENGINE" }
       engine_version: { type: string }
-      schema_version: { const: "1.1.0" }
+      schema_version: { const: "1.2.0" }
       failure_state:
         type: object
         additionalProperties: false
@@ -52,11 +53,13 @@ $defs:
       - priority
       - execution_gate
       - gap_risk_note
+      - valid_for
+      - if_not_filled
       - status
     properties:
       engine: { const: "EXECUTION_ENGINE" }
       engine_version: { type: string }
-      schema_version: { const: "1.1.0" }
+      schema_version: { const: "1.2.0" }
       ticker: { type: string }
       order_type:
         type: string
@@ -103,6 +106,12 @@ $defs:
       gap_risk_note:
         type: [string, "null"]
         description: "Present when a new entry is timed near a gap-risk window or an existing position carries through one, per §3F."
+      valid_for:
+        type: string
+        description: "Order time-in-force, e.g. '5 Trading Days'; default per PARAMETER_REGISTRY.md §7 unless justified otherwise."
+      if_not_filled:
+        type: string
+        enum: ["Re-evaluate", "Cancel", "Resubmit at adjusted price"]
       status:
         type: string
         enum: [READY, "DO NOT EXECUTE — REVERIFY", "NOT APPLICABLE"]

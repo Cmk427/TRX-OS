@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-EIC-001
 Document Name    : Engine Interface Contract
-Version          : 1.5.0
+Version          : 1.6.0
 Status           : Active
 Classification   : Reference
 Dependencies     : STATE_MACHINE.md
@@ -19,6 +19,7 @@ Dependencies     : STATE_MACHINE.md
                    RED_TEAM_ENGINE.md
                    MASTER_DECISION_ENGINE.md
                    PORTFOLIO_OPTIMIZATION_ENGINE.md
+                   CAPITAL_ALLOCATION_ENGINE.md
                    EXECUTION_ENGINE.md
 Applies To       : Engine-to-engine data exchange
 ```
@@ -51,7 +52,7 @@ otherwise. Any field whose value is unavailable SHALL be the literal string
 
 ## 1A. Schema Conventions
 
-These conventions apply to every JSON block in this document (§2–§13) and
+These conventions apply to every JSON block in this document (§2–§14) and
 to any future engine added to the pipeline. They exist so an agent
 validating against this schema has a fixed rule for every ambiguity a bare
 example (`"confidence": 0.85`) would otherwise leave open.
@@ -351,18 +352,41 @@ SHALL treat any mismatch against `MASTER_DECISION_ENGINE.md` §11's
 `final_outcome` for the same ticker as a contract violation in this
 engine's output, never as a newer or overriding value.
 
-## 13. Execution Engine → Human
+## 13. Capital Allocation Engine → Execution Engine
 
-`schema_version` is `"1.1.0"` for this shape only (not `"1.0.0"` like every
-other engine in this document) — this shape gained two new fields
-(`max_slippage`, `priority`) per §1A's rule that a field added/removed/
-retyped bumps `schema_version`, independent of `engine_version`.
+```json
+{
+  "engine": "CAPITAL_ALLOCATION_ENGINE",
+  "engine_version": "1.0.0",
+  "schema_version": "1.0.0",
+  "source_ticker": "string",
+  "amount": "number",
+  "decision": "Deploy | Wait",
+  "destination_ticker": "string | null (the same-run EXECUTE candidate if Deploy; null if Wait)",
+  "wait_category": "Hold Cash | Reserve for Earnings | Reserve for Volatility | Wait for Better Setup | null (null if Deploy)",
+  "reason": "string",
+  "status": "READY | CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED"
+}
+```
+
+`decision: "Deploy"` SHALL always co-occur with a non-null
+`destination_ticker` and a null `wait_category`; `decision: "Wait"` SHALL
+always co-occur with the reverse — a consumer MAY treat any other
+combination as a contract violation.
+
+## 14. Execution Engine → Human
+
+`schema_version` is `"1.2.0"` for this shape only (not `"1.0.0"` like every
+other engine in this document) — this shape has gained fields twice now
+(`max_slippage`/`priority`, then `valid_for`/`if_not_filled`) per §1A's rule
+that a field added/removed/retyped bumps `schema_version`, independent of
+`engine_version`.
 
 ```json
 {
   "engine": "EXECUTION_ENGINE",
   "engine_version": "1.0.0",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "ticker": "string",
   "order_type": "market | limit | stop-limit | not_applicable",
   "entry_zone": {"low": "number", "high": "number", "as_of": "ISO8601"},
@@ -384,13 +408,15 @@ retyped bumps `schema_version`, independent of `engine_version`.
     "human_approval_presented": "boolean"
   },
   "gap_risk_note": "string | null (present when a new entry is timed near a gap-risk window or an existing position carries through one, per §3F)",
+  "valid_for": "string (order time-in-force, e.g. '5 Trading Days'; default per PARAMETER_REGISTRY.md §7 unless justified otherwise)",
+  "if_not_filled": "Re-evaluate | Cancel | Resubmit at adjusted price",
   "status": "READY | DO NOT EXECUTE — REVERIFY | NOT APPLICABLE"
 }
 ```
 
 ---
 
-## 14. Versioning
+## 15. Versioning
 
 Each engine's `engine_version` field SHALL match that engine document's
 `Version` header at the time the output was produced, feeding directly into

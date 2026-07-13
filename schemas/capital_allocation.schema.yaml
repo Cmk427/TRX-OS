@@ -1,0 +1,65 @@
+# Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §13.
+# Non-authoritative: if this ever disagrees with that document, the
+# Markdown document wins and this file is a bug. See schemas/README.md.
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "trx://schemas/capital_allocation.schema.yaml"
+title: TRX Capital Allocation Engine Output
+oneOf:
+  - $ref: "#/$defs/success"
+  - $ref: "#/$defs/failure"
+
+$defs:
+  failure:
+    type: object
+    additionalProperties: false
+    required: [engine, engine_version, schema_version, failure_state]
+    properties:
+      engine: { const: "CAPITAL_ALLOCATION_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      failure_state:
+        type: object
+        additionalProperties: false
+        required: [category, reason]
+        properties:
+          category:
+            type: string
+            enum: [DATA_FAILURE, MODEL_FAILURE, CONFLICT_FAILURE, RISK_REJECTION, EXECUTION_INVALID, SYSTEM_ERROR]
+          reason: { type: string }
+
+  success:
+    type: object
+    additionalProperties: false
+    required:
+      - engine
+      - engine_version
+      - schema_version
+      - source_ticker
+      - amount
+      - decision
+      - destination_ticker
+      - wait_category
+      - reason
+      - status
+    properties:
+      engine: { const: "CAPITAL_ALLOCATION_ENGINE" }
+      engine_version: { type: string }
+      schema_version: { const: "1.0.0" }
+      source_ticker:
+        type: string
+        description: "The REDUCE/EXIT ticker that released this capital, per PORTFOLIO_OPTIMIZATION_ENGINE.md §6."
+      amount: { type: number }
+      decision:
+        type: string
+        enum: [Deploy, Wait]
+      destination_ticker:
+        type: [string, "null"]
+        description: "The same-run EXECUTE candidate if Deploy; null if Wait."
+      wait_category:
+        type: [string, "null"]
+        enum: ["Hold Cash", "Reserve for Earnings", "Reserve for Volatility", "Wait for Better Setup", null]
+        description: "One of PORTFOLIO_ENGINE.md §16's existing categories if Wait; null if Deploy."
+      reason: { type: string }
+      status:
+        type: string
+        enum: ["READY", "CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED"]

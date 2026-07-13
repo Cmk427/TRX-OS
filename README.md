@@ -72,11 +72,12 @@ TRX-Trading-Research-eXecution--main/
 │   ├── STATE_MACHINE.md
 │   ├── VERIFICATION_POLICY.md
 │   ├── DATA_SOURCE_POLICY.md
-│   ├── DECISION_SNAPSHOT_POLICY.md   # 每次決策鎖定的資料／版本快照
+│   ├── DECISION_SNAPSHOT_POLICY.md   # 每次決策鎖定的資料／版本快照，含 Decision History 政策
 │   ├── ENGINE_INTERFACE_CONTRACT.md  # 引擎間結構化介面（僅命名/格式，不改權限）
 │   ├── FAILURE_TAXONOMY.md           # 非 EXECUTE 結果的分類法
 │   ├── PARAMETER_REGISTRY.md         # 數值參數索引（僅供查閱，衝突時以原文件為準）
-│   └── DOCUMENTATION_GOVERNANCE.md   # 新文件標頭標準（Owner/Last Updated），不追溯舊文件
+│   ├── DOCUMENTATION_GOVERNANCE.md   # 新文件標頭標準（Owner/Last Updated），不追溯舊文件
+│   └── INVESTMENT_POLICY.md          # 單一持倉／板塊／現金集中度上限與資金優先順序原則的唯一owner
 ├── engines/
 │   ├── MARKET_ENGINE.md
 │   ├── PORTFOLIO_ENGINE.md
@@ -89,6 +90,7 @@ TRX-Trading-Research-eXecution--main/
 │   ├── COMMITTEE_ENGINE.md
 │   ├── RED_TEAM_ENGINE.md
 │   ├── PORTFOLIO_OPTIMIZATION_ENGINE.md  # State 17：已發布結果的目標權重／股數／資金
+│   ├── CAPITAL_ALLOCATION_ENGINE.md      # State 18：釋出資金的 Deploy／Wait 決定
 │   ├── EXECUTION_ENGINE.md
 │   ├── POSITION_MANAGEMENT_ENGINE.md     # 觸發式持倉覆核（無 State，會開新一輪分析）
 │   └── PORTFOLIO_REBALANCING_ENGINE.md   # 週期性板塊／主題再平衡（無 State，會開新一輪分析）
@@ -105,7 +107,8 @@ TRX-Trading-Research-eXecution--main/
 ├── templates/
 │   ├── ANALYSIS_TEMPLATE.md
 │   ├── DECISION_TEMPLATE.md
-│   └── REPORT_TEMPLATE.md
+│   ├── REPORT_TEMPLATE.md
+│   └── PORTFOLIO_PROFILE_TEMPLATE.md     # 選填的人類風格／風險偏好／持有期填空表
 ├── workflows/
 │   └── WORKFLOWS.md        # 尚未定義具體自動化工作流；佔位並列出規則
 └── examples/
@@ -125,7 +128,7 @@ TRX-Trading-Research-eXecution--main/
 輸入 → 驗證資料 → 市場及宏觀分析 → 投資組合檢視
 → 初步風險閘門 → 持倉檢視 → 機會掃描 → Playbook 分類
 → 期權檢視（如適用）→ 排名 → Committee → Red Team
-→ 最終風險閘門 → Master Decision → 投資組合優化
+→ 最終風險閘門 → Master Decision → 投資組合優化 → 資金配置
 → 執行計劃（如可行）→ 自我審核 → 最終報告
 ```
 
@@ -150,7 +153,8 @@ TRX-Trading-Research-eXecution--main/
 | Committee / Red Team | 多角色獨立評估、保留異議、反證及替代方案（Red Team 持 Constraint Authority） |
 | Decision / Master Decision | 候選排序，以及唯一最終結果整合與報告發布（Publication Authority，不持否決權） |
 | Portfolio Optimization | 將已發布結果換算為目標權重、股數、釋出資金；只量化，不重新決定 |
-| Execution | 人類覆核的入場、止損、目標、退出、下單類型／流動性／滑價與再驗證清單；不下單 |
+| Capital Allocation | 對已釋出資金決定 Deploy（投入本輪已核准候選）或 Wait；不創造新機會 |
+| Execution | 人類覆核的完整 Execution Package（入場、止損、目標、下單類型、有效期、未成交後續處理、流動性／滑價）；不下單 |
 | Position Management / Portfolio Rebalancing | 觸發式／週期性覆核，決定何時開啟新一輪分析；本身不發布任何持倉決定 |
 
 詳見 [Architecture](docs/ARCHITECTURE.md)、[Responsibility Matrix](docs/RESPONSIBILITY_MATRIX.md)（誰可以做什麼的速查表）及 [Dependency Map](docs/DEPENDENCY_MAP.md)（文件間依賴關係，避免循環依賴）。
@@ -165,8 +169,8 @@ TRX-Trading-Research-eXecution--main/
 
 依序使用 [templates/](templates/) 三份填空模板即可完成一次分析：
 [ANALYSIS_TEMPLATE.md](templates/ANALYSIS_TEMPLATE.md)（State 02–11）→
-[DECISION_TEMPLATE.md](templates/DECISION_TEMPLATE.md)（State 12–19）→
-[REPORT_TEMPLATE.md](templates/REPORT_TEMPLATE.md)（State 20 最終報告）。
+[DECISION_TEMPLATE.md](templates/DECISION_TEMPLATE.md)（State 12–20）→
+[REPORT_TEMPLATE.md](templates/REPORT_TEMPLATE.md)（State 21 最終報告）。
 [examples/](examples/) 提供兩份虛構完整示範可供對照
 （`NO_TRADE_EXAMPLE.md`、`EXECUTE_LONG_CALL_EXAMPLE.md`）。
 

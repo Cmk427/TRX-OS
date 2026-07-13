@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-DSN-001
 Document Name    : Decision Snapshot Policy
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Active
 Classification   : Critical
 Dependencies     : VERIFICATION_POLICY.md
@@ -85,7 +85,7 @@ produced the same answer?" It is not a performance record and does not
 imply the decision was correct — only that it is traceable.
 
 If any required field cannot be populated, the analysis SHALL still
-complete, but the Self Audit (State 19) SHALL flag the incomplete snapshot as
+complete, but the Self Audit (State 20) SHALL flag the incomplete snapshot as
 a defect per `OUTPUT_CONTRACT.md` §4.
 
 ---
@@ -96,6 +96,36 @@ Per `CONSTITUTION.md` §7 (Versioning and Amendments) and
 `SYSTEM.md` §7 (Audit Record), a Decision Snapshot is append-only. A later
 document-version change never rewrites a prior snapshot's recorded versions
 — it only affects snapshots for analyses run after the change.
+
+---
+
+## 5. Decision History
+
+Day-over-day comparison (e.g. "MUU: yesterday Hold → today Reduce, because
+—") requires more than a single snapshot; it requires retaining prior
+snapshots to compare against. This section defines what that retention
+must contain, without prescribing a runtime storage mechanism — TRX v1.0
+has no implementation layer yet (`workflows/` is a placeholder; this
+document's own Prompt-version/Model-identifier fields in §2 are marked N/A
+for the identical reason).
+
+**Required for comparison, once a future implementation exists:**
+
+- One retained entry per Decision ID (§2), append-only, never overwritten.
+- For each retained entry: ticker, the prior Decision (if any), the new
+  Decision, and the as-of timestamp of both, so a later reviewer can state
+  not just *what* changed but *between which two points in time*.
+- The comparison itself SHALL cite the reason already recorded in the
+  newer Decision Snapshot's rationale — it SHALL NOT infer a new
+  explanation not already present in that record.
+
+**Storage format and path: `RESERVED — NOT APPLICABLE to v1.0
+document-driven analysis.`** This is listed now, the same way the two
+"reserved" fields in §2 are, so that when `workflows/` (see
+`workflows/WORKFLOWS.md`) is eventually populated, no implementation omits
+day-over-day comparison as an afterthought. Concrete file paths, formats,
+or a `.history/`-style layout are an implementation-layer concern
+(`docs/ROADMAP.md` v2.1) — not a v1.0 document-driven decision.
 
 ---
 

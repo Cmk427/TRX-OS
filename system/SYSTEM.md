@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-SYS-001
 Document Name    : System Governance
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Active
 Classification   : Critical
 Applies To       : Entire System
@@ -51,6 +51,7 @@ The following documents have distinct, non-overlapping authority:
 | Data integrity | `VERIFICATION_POLICY.md`, `DATA_SOURCE_POLICY.md` | Evidence state, source quality, freshness, degradation |
 | Workflow | `STATE_MACHINE.md` | The only valid analysis order and state transitions |
 | Presentation | `OUTPUT_CONTRACT.md` | Mandatory final-report structure |
+| Investment policy | `INVESTMENT_POLICY.md` | Position/sector/cash concentration limits and capital-priority principles — engines reference it, none re-define it |
 | Domain rules | `engines/*.md`, `playbooks/*.md` | Analysis within their assigned responsibility |
 
 If a document conflicts with `CORE_PRINCIPLES.md`, the Core Principles prevail.
@@ -91,6 +92,7 @@ User Input
   → Final Risk Gate
   → Master Decision Engine
   → Portfolio Optimization Engine
+  → Capital Allocation Engine
   → Execution Engine
   → Self Audit and Final Report
 ```
@@ -118,7 +120,7 @@ The final report SHALL state exactly one primary outcome:
 research recommendation for human review.
 
 Separately, `DO NOT EXECUTE — REVERIFY` is **not** a seventh primary
-outcome — it is a status the Execution Plan section (State 18) can carry
+outcome — it is a status the Execution Plan section (State 19) can carry
 underneath an `EXECUTE`/`REDUCE`/`EXIT` primary outcome, when the execution
 plan's own inputs (price, session, liquidity) have gone stale by the time of
 publication. The primary outcome stays `EXECUTE` (etc.); only the plan
@@ -126,11 +128,12 @@ itself is marked not-ready (`EXECUTION_ENGINE.md` §1A, §3D).
 
 The same non-primary-outcome pattern applies to
 `PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED`
-(`PORTFOLIO_OPTIMIZATION_ENGINE.md` §15) — a status the Portfolio Action
-Plan section (State 17) can carry when portfolio weight or cash data is
-incomplete. It never changes the primary outcome already published by
-Master Decision (State 16); only that section's own detail is marked
-incomplete.
+(`PORTFOLIO_OPTIMIZATION_ENGINE.md` §15, State 17) and
+`CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED`
+(`CAPITAL_ALLOCATION_ENGINE.md` §6, State 18) — statuses their respective
+report sections can carry when their own inputs are incomplete. Neither
+changes the primary outcome already published by Master Decision (State
+16); only that section's own detail is marked incomplete.
 
 ---
 

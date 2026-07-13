@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-CON-001
 Document Name    : System Constitution
-Version          : 1.1.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Critical
 Applies To       : Entire System
@@ -39,6 +39,7 @@ valid safety veto.
 | Component | May do | May not do |
 |---|---|---|
 | Verification / Data Policy | Classify evidence and its usability | Infer a trade thesis |
+| Investment Policy | Define position/sector/cash concentration limits and capital-priority principles | Compute risk, decide an outcome, or override a veto |
 | Market Engine | Classify market environment and deployment regime | Select a final trade |
 | Portfolio Engine | Assess holdings, capacity, concentration, and portfolio fit | Override a risk veto |
 | Risk Engine | Measure risk and issue binding risk vetoes | Override data failure or human authority |
@@ -48,6 +49,8 @@ valid safety veto.
 | Committee Engine | Produce independent role-based assessments and preserve dissent | Publish the final recommendation |
 | Red Team Engine | Seek counter-evidence and issue a binding critical-risk veto | Suppress the original thesis or dissent |
 | Master Decision Engine | Integrate valid outputs and publish one final outcome | Override verification, Risk, or Red Team vetoes |
+| Portfolio Optimization Engine | Convert a published outcome into target weight, shares, and capital | Re-decide Hold/Reduce/Exit/Execute |
+| Capital Allocation Engine | Decide Deploy-vs-Wait for capital already released this run | Invent a new investment opportunity |
 | Execution Engine | Translate an approved outcome into a human review checklist | Place, transmit, or imply placement of an order |
 
 ---

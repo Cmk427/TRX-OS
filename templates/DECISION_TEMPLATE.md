@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-TPL-002
 Document Name    : Decision Template
-Version          : 1.3.0
+Version          : 1.4.0
 Status           : Active
 Classification   : Template
 Dependencies     : STATE_MACHINE.md
@@ -14,10 +14,11 @@ Dependencies     : STATE_MACHINE.md
                    RISK_ENGINE.md
                    MASTER_DECISION_ENGINE.md
                    PORTFOLIO_OPTIMIZATION_ENGINE.md
+                   CAPITAL_ALLOCATION_ENGINE.md
                    EXECUTION_ENGINE.md
                    ANALYSIS_TEMPLATE.md
                    DECISION_SNAPSHOT_POLICY.md
-Applies To       : States 12–19 (Ranking through Self Audit)
+Applies To       : States 12–20 (Ranking through Self Audit)
 ```
 
 ---
@@ -26,9 +27,10 @@ Applies To       : States 12–19 (Ranking through Self Audit)
 
 This worksheet continues where `ANALYSIS_TEMPLATE.md` leaves off. It carries
 each surviving candidate through Ranking, Committee, Red Team, the Final Risk
-Gate, Master Decision, Portfolio Optimization, the Execution Plan, and Self
-Audit (`STATE_MACHINE.md` States 12–19). Its output feeds directly into
-`REPORT_TEMPLATE.md`. One copy per run, covering all candidates from that run.
+Gate, Master Decision, Portfolio Optimization, Capital Allocation, the
+Execution Plan, and Self Audit (`STATE_MACHINE.md` States 12–20). Its
+output feeds directly into `REPORT_TEMPLATE.md`. One copy per run, covering
+all candidates from that run.
 
 ---
 
@@ -219,7 +221,32 @@ Outcome already recorded in §6.
 
 ---
 
-## 8. State 18 — Execution Plan (conditional)
+## 8. State 18 — Capital Allocation
+
+Repeat per capital-releasing action from §7 (Portfolio Optimization):
+
+```text
+Source Ticker           :
+Amount                  :
+Decision                :   Deploy / Wait
+Destination Ticker (if Deploy) :
+Wait Category (if Wait) :   Hold Cash / Reserve for Earnings /
+                             Reserve for Volatility / Wait for Better Setup
+Reason                  :
+```
+
+`Deploy` is only valid into an `EXECUTE` candidate already published in §6
+above — this engine never selects its own candidate. If deploying would
+leave cash below `INVESTMENT_POLICY.md` §4's minimum, default to `Wait`.
+
+If capital/candidate data is incomplete: status
+`CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED`
+(`CAPITAL_ALLOCATION_ENGINE.md` §6) — does not change the Final Outcome in
+§6.
+
+---
+
+## 9. State 19 — Execution Plan (conditional)
 
 `Not Applicable` unless Final Outcome is `EXECUTE`, `REDUCE`, or `EXIT`.
 
@@ -248,6 +275,8 @@ Time horizon / review date  :
 Liquidity check (§3B: ≤10% ADV / ≤10% OI) :
 Slippage assumption (§3C: half-spread + volatility buffer) :
 Maximum slippage (§3C hard cap, distinct from the assumption above) :
+Valid For (order time-in-force, default 5 trading days) :
+If Not Filled                :   Re-evaluate / Cancel / Resubmit at adjusted price
 Execution Priority (§3G)    :   P1 / P2 / P3
 Market session assumed / halt status (§3D) :
 Options-only: bid-ask, IV, OI, days-to-expiry buffer (§3E) :
@@ -262,7 +291,7 @@ repeating a single-ticket block per row.
 
 ---
 
-## 9. State 19 — Self Audit
+## 10. State 20 — Self Audit
 
 Confirm each, per `OUTPUT_CONTRACT.md` §4:
 
@@ -275,13 +304,15 @@ Confirm each, per `OUTPUT_CONTRACT.md` §4:
 - [ ] Master Decision did not override a verification, Risk, or Red Team veto.
 - [ ] Every §7 Portfolio Optimization `Decision` value matches its §6 Master
       Decision `Final Outcome` for the same ticker — no re-decision.
+- [ ] Every §8 Capital Allocation `Deploy` destination is an `EXECUTE`
+      candidate already published in §6 — no invented opportunity.
 
 If any box is unchecked, return to the earliest defective state per
 `STATE_MACHINE.md` §6 before publishing.
 
 ---
 
-## 10. Handoff to Report Template
+## 11. Handoff to Report Template
 
 Transfer every section above into the matching section of
 `REPORT_TEMPLATE.md`, translating into Traditional Chinese for the final

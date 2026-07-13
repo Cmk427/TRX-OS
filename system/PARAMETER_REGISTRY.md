@@ -5,11 +5,12 @@
 Document ID      : TRX-PRM-001
 Document Name    : Parameter Registry
 Owner            : TRX project owner
-Last Updated     : 2026-07-13
-Version          : 1.6.0
+Last Updated     : 2026-07-14
+Version          : 1.7.0
 Status           : Active
 Classification   : Reference
-Dependencies     : RISK_ENGINE.md
+Dependencies     : INVESTMENT_POLICY.md
+                   RISK_ENGINE.md
                    PORTFOLIO_ENGINE.md
                    MARKET_ENGINE.md
                    SCANNER_ENGINE.md
@@ -19,6 +20,7 @@ Dependencies     : RISK_ENGINE.md
                    RED_TEAM_ENGINE.md
                    MASTER_DECISION_ENGINE.md
                    PORTFOLIO_OPTIMIZATION_ENGINE.md
+                   CAPITAL_ALLOCATION_ENGINE.md
                    EXECUTION_ENGINE.md
                    STATE_MACHINE.md
                    VERIFICATION_POLICY.md
@@ -69,26 +71,30 @@ this file is short and easy to read before the engine it summarizes):
 | Minimum Reward/Risk | 2:1 minimum (hard reject below this, see Layer 1 above), 3:1 preferred, 4:1+ exceptional | §19 |
 | Position size, daily/weekly/monthly loss limits | Set per Account Risk Profile (Conservative/Balanced/Growth/Aggressive/Maximum Aggressive) — no single fixed number | §4, §10–12 |
 
-## 3. Portfolio Construction Parameters — owned by `PORTFOLIO_ENGINE.md`
+## 3. Portfolio Construction Parameters — owned by `INVESTMENT_POLICY.md`
+
+As of this registry's 1.7.0 revision, these concentration/target/cash
+numbers moved from being owned independently by `PORTFOLIO_ENGINE.md` and
+`PORTFOLIO_OPTIMIZATION_ENGINE.md` to a single canonical owner,
+`INVESTMENT_POLICY.md` — both engines now cross-reference it rather than
+each stating their own copy:
 
 | Parameter | Value | Section |
 |---|---|---|
-| Max single stock concentration | 10% of portfolio value (default) | §9A |
-| Max sector concentration | 30% of portfolio value (default) | §9A |
-| Max theme concentration | 40% of portfolio value (default) | §9A |
-| Portfolio Health Score bands | 90–100 Excellent, 80–89 Healthy, 70–79 Acceptable, 60–69 Weak, <60 Critical | §4 |
+| Max single stock concentration | 10% of portfolio value (default) | `INVESTMENT_POLICY.md` §2 |
+| Max sector concentration | 30% of portfolio value (default) | `INVESTMENT_POLICY.md` §2 |
+| Max theme concentration | 40% of portfolio value (default) | `INVESTMENT_POLICY.md` §2 |
+| Max Small-Cap exposure | 25% of portfolio value (default) | `INVESTMENT_POLICY.md` §2 |
+| Max Options exposure (aggregate Premium at Risk) | 15% of portfolio value (default) | `INVESTMENT_POLICY.md` §2 |
+| Preferred single-stock target | 6% of portfolio value — a tighter, non-binding target used only once a `REDUCE`/`EXIT`/`EXECUTE` Decision already requires computing one; never a competing ceiling to the hard cap above | `INVESTMENT_POLICY.md` §3 |
+| Advisory review band | 8%–10% of portfolio value — approaching, not breaching, the hard cap; triggers an optional, non-binding note only | `INVESTMENT_POLICY.md` §3 |
+| Minimum cash reserve | 5% of portfolio value | `INVESTMENT_POLICY.md` §4 |
+| Preferred cash reserve | 10% of portfolio value | `INVESTMENT_POLICY.md` §4 |
+| Portfolio Health Score bands | 90–100 Excellent, 80–89 Healthy, 70–79 Acceptable, 60–69 Weak, <60 Critical | `PORTFOLIO_ENGINE.md` §4 (unchanged — a score formula, not a policy limit) |
 
-All three concentration defaults scale with Account Risk Profile the same
-way `RISK_ENGINE.md` §4 limits do — tighter for Conservative, never looser.
-
-## 3A. Portfolio Optimization Parameters — owned by `PORTFOLIO_OPTIMIZATION_ENGINE.md`
-
-| Parameter | Value | Section |
-|---|---|---|
-| Preferred single-stock target | 6% of portfolio value — a tighter, non-binding target used only once a `REDUCE`/`EXIT`/`EXECUTE` Decision already requires computing one; never a competing ceiling to the 10% hard cap above | §7A |
-| Advisory review band | 8%–10% of portfolio value — approaching, not breaching, the §9A hard cap; triggers an optional, non-binding note only | §7A |
-| Minimum cash reserve | 5% of portfolio value (new parameter — no prior owning document defined a numeric cash-reserve threshold) | §7B |
-| Preferred cash reserve | 10% of portfolio value | §7B |
+All limits above scale with Account Risk Profile the same way `RISK_ENGINE.md`
+§4 limits do — tighter for Conservative, never looser
+(`INVESTMENT_POLICY.md` §8).
 
 ## 4. Market Parameters — owned by `MARKET_ENGINE.md`
 
@@ -128,6 +134,7 @@ way `RISK_ENGINE.md` §4 limits do — tighter for Conservative, never looser.
 | Liquidity cap | ≤ 10% of ADV (equity) or ≤ 10% of OI (option) | §3B |
 | Maximum Slippage (hard cap, distinct from the computed Slippage Assumption) | Defaults to the §3A tier boundary for the plan's spread tier; a plan may state a tighter cap, never a looser one without a recorded reason | §3C |
 | Execution Priority | P1 risk-driven REDUCE/EXIT; P2 thesis-driven optimization move; P3 opportunistic/cosmetic rebalancing | §3G |
+| Default order validity (Valid For) | 5 trading days unless explicitly justified otherwise | §3 |
 | Minimum DTE for new options entry | > 5 calendar days unless explicitly justified | §3E |
 
 ## 8. Decision Parameters — owned by `MASTER_DECISION_ENGINE.md`

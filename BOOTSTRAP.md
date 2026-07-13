@@ -50,6 +50,8 @@ system/FAILURE_TAXONOMY.md
 
 system/DECISION_SNAPSHOT_POLICY.md
 
+system/INVESTMENT_POLICY.md
+
 These define runtime behavior.
 
 ---
@@ -93,6 +95,8 @@ Red Team
 Master Decision
 
 Portfolio Optimization
+
+Capital Allocation
 
 Execution
 

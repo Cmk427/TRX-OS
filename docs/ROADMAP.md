@@ -123,6 +123,23 @@ Status: completed in this repository.
   take-profit tiers and scaling rules across all 15 playbooks. A new
   glossary, `docs/PORTFOLIO_MANAGEMENT_GUIDE.md`, reconciles Hold/Add/
   Reduce/Exit/Rotate/Optimize/Rebalance terminology in one place.
+- Tenth-review hardening — Investment Policy consolidation and a Capital
+  Allocation step: `system/INVESTMENT_POLICY.md` is now the sole owner of
+  every position/sector/cash concentration limit and the capital-priority
+  order, replacing near-duplicate copies previously held independently by
+  `PORTFOLIO_ENGINE.md` and `PORTFOLIO_OPTIMIZATION_ENGINE.md`. A new
+  pipeline state, State 18 Capital Allocation
+  (`engines/CAPITAL_ALLOCATION_ENGINE.md`), makes the Deploy-vs-Wait
+  decision for released capital its own gated step
+  (`STATE_MACHINE.md` renumbered 18→19/19→20/20→21 accordingly).
+  `EXECUTION_ENGINE.md` gained an explicit Execution Package requirement
+  (Valid For, If Not Filled) so no action is left as a bare label.
+  `PORTFOLIO_REBALANCING_ENGINE.md` gained an Optimization Score reusing
+  the existing Portfolio Health Score formula. `DECISION_SNAPSHOT_POLICY.md`
+  gained a Decision History policy (storage path deliberately deferred as
+  a v2.1 implementation-layer concern), and a new
+  `templates/PORTFOLIO_PROFILE_TEMPLATE.md` gives the human an optional
+  style/risk/holding-period worksheet.
 
 ## v1.1 — Operational Research Schemas
 

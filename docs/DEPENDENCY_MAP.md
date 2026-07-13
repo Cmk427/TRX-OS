@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-DEP-001
 Document Name    : Dependency Map
-Version          : 1.6.0
+Version          : 1.7.0
 Status           : Active
 Classification   : Reference
 Dependencies     : STATE_MACHINE.md
@@ -43,9 +43,15 @@ basis. `VERIFICATION_POLICY.md`, `DATA_SOURCE_POLICY.md`, and
 CORE_PRINCIPLES.md   (root — no dependencies)
   ├─ SYSTEM.md               (prose reference, no formal field)
   ├─ CONSTITUTION.md         (prose reference, no formal field)
+  ├─ INVESTMENT_POLICY.md    (declares CORE_PRINCIPLES, CONSTITUTION only — foundational, same tier as this cluster)
   ├─ VERIFICATION_POLICY.md  ←→ DATA_SOURCE_POLICY.md ←→ STATE_MACHINE.md
   └─ OUTPUT_CONTRACT.md      (depends on STATE_MACHINE, VERIFICATION_POLICY, DATA_SOURCE_POLICY)
 ```
+
+`INVESTMENT_POLICY.md` is depended *on* by `PORTFOLIO_ENGINE.md`,
+`PORTFOLIO_OPTIMIZATION_ENGINE.md`, `CAPITAL_ALLOCATION_ENGINE.md`,
+`POSITION_MANAGEMENT_ENGINE.md`, and `PORTFOLIO_REBALANCING_ENGINE.md` —
+never the reverse, per §1's forward-dependency rule.
 
 The three-way mutual reference between Verification, Data Source, and State
 Machine is treated as an **allowed peer cluster**, not a violation: none of
@@ -70,8 +76,9 @@ hierarchy that breaks their intentionally shared authority over State 04.
 | 13 | `COMMITTEE_ENGINE.md` | Market (05), Portfolio (06), Scanner (09), Options (11), Decision (12), Constitution, State Machine | Pass — all upstream |
 | 14 | `RED_TEAM_ENGINE.md` | Committee (13), Decision (12), Scanner (09), Market (05), Constitution, Data Source | Pass — all upstream |
 | 16 | `MASTER_DECISION_ENGINE.md` | ALL ENGINES (05–15) | Pass by design — it is the aggregator; see §5 |
-| 17 | `PORTFOLIO_OPTIMIZATION_ENGINE.md` | State Machine, Portfolio (06/08), Risk (07/15), Committee (13, context only), Master Decision (16) | Pass — all upstream; echoes but never depends on anything at or after 17 |
-| 18 | `EXECUTION_ENGINE.md` | State Machine, Master Decision (16), Portfolio Optimization (17), Risk, Output Contract, Data Source | Pass — downstream of 16 and 17 |
+| 17 | `PORTFOLIO_OPTIMIZATION_ENGINE.md` | State Machine, Portfolio (06/08), Risk (07/15), Committee (13, context only), Master Decision (16), Investment Policy (governance, foundational) | Pass — all upstream; echoes but never depends on anything at or after 17 |
+| 18 | `CAPITAL_ALLOCATION_ENGINE.md` | State Machine, Portfolio Optimization (17), Investment Policy (governance, foundational), Portfolio (06) | Pass — downstream of 17 |
+| 19 | `EXECUTION_ENGINE.md` | State Machine, Master Decision (16), Portfolio Optimization (17), Capital Allocation (18), Risk, Output Contract, Data Source | Pass — downstream of 16, 17, and 18 |
 
 `playbooks/PLAYBOOK_LIBRARY.md` depends on `PLAYBOOK_ENGINE.md` (parent),
 `SCANNER_ENGINE.md` (09, upstream of 10), `MARKET_ENGINE.md` (05, upstream
@@ -93,7 +100,7 @@ feed a decision:
 | Document | Declared dependencies | Forward-dependency check |
 |---|---|---|
 | `DECISION_SNAPSHOT_POLICY.md` | Verification, Data Source, Master Decision (16) | Pass — reads engine version fields after the fact; not a dependency *of* any engine |
-| `ENGINE_INTERFACE_CONTRACT.md` | State Machine, all engines (05–18) | Pass by design, same shape as Master Decision's aggregator role — but unlike Master Decision, no document declares this contract as a dependency, so no cycle is possible |
+| `ENGINE_INTERFACE_CONTRACT.md` | State Machine, all engines (05–19) | Pass by design, same shape as Master Decision's aggregator role — but unlike Master Decision, no document declares this contract as a dependency, so no cycle is possible |
 | `FAILURE_TAXONOMY.md` | State Machine, Output Contract, Risk, Data Source | Pass — classifies outcomes State Machine and Output Contract already define; does not originate a new outcome |
 | `PARAMETER_REGISTRY.md` | Risk, Portfolio, Market, Scanner, Playbook, Options, Committee, Red Team, Master Decision, Execution, State Machine, Verification Policy | Pass by design — indexes numbers already owned elsewhere; explicitly non-authoritative on conflict (§1 of that document) |
 | `DOCUMENTATION_GOVERNANCE.md` | Constitution | Pass — governs future document headers only, applies to nothing retroactively |
@@ -108,7 +115,7 @@ retroactively constrain the pipeline it only reports on.
 
 ## 3B. Machine Schema Layer (`schemas/*.schema.yaml`)
 
-The 12 files in `schemas/` each depend only on
+The 13 files in `schemas/` each depend only on
 `system/ENGINE_INTERFACE_CONTRACT.md` (they are a mechanical rendering of
 its §2–§12, per `schemas/README.md`) and carry no other dependency. They are
 downstream of that document the same way `PARAMETER_REGISTRY.md` is
@@ -146,15 +153,17 @@ are never consumed mid-run).
 | `VERIFICATION_POLICY.md` | Data Source, State Machine, Output Contract, Market, Portfolio, Scanner, Decision, Parameter Registry |
 | `DATA_SOURCE_POLICY.md` | Verification, State Machine, Output Contract, Market, Portfolio, Risk, Scanner, Options, Red Team, Execution, Playbook Library |
 | `MARKET_ENGINE.md` | Risk, Scanner, Options, Committee, Red Team, Playbook, Parameter Registry, Engine Interface Contract |
-| `PORTFOLIO_ENGINE.md` | Risk, Scanner, Options, Committee, Parameter Registry, Engine Interface Contract |
+| `PORTFOLIO_ENGINE.md` | Risk, Scanner, Options, Committee, Capital Allocation Engine, Parameter Registry, Engine Interface Contract |
+| `INVESTMENT_POLICY.md` | Portfolio, Portfolio Optimization, Capital Allocation, Position Management, Portfolio Rebalancing, Parameter Registry |
 | `RISK_ENGINE.md` | Scanner, Options, Committee (via Risk Manager vote), Execution, Playbook Library, Parameter Registry, Engine Interface Contract |
 | `SCANNER_ENGINE.md` | Playbook, Options, Committee, Red Team, Playbook Library, Parameter Registry, Engine Interface Contract |
 | `PLAYBOOK_ENGINE.md` | Options, Parameter Registry, Engine Interface Contract |
 | `DECISION_ENGINE.md` | Committee, Red Team, Engine Interface Contract |
 | `COMMITTEE_ENGINE.md` | Red Team, Parameter Registry, Engine Interface Contract |
 | `RED_TEAM_ENGINE.md` | Parameter Registry, Engine Interface Contract |
-| `MASTER_DECISION_ENGINE.md` | Execution, Portfolio Optimization, Decision Snapshot Policy, Parameter Registry, Engine Interface Contract |
-| `PORTFOLIO_OPTIMIZATION_ENGINE.md` | Execution, Output Contract, Parameter Registry, Engine Interface Contract |
+| `MASTER_DECISION_ENGINE.md` | Execution, Portfolio Optimization, Capital Allocation, Decision Snapshot Policy, Parameter Registry, Engine Interface Contract |
+| `PORTFOLIO_OPTIMIZATION_ENGINE.md` | Execution, Capital Allocation Engine, Output Contract, Parameter Registry, Engine Interface Contract |
+| `CAPITAL_ALLOCATION_ENGINE.md` | Execution, Parameter Registry, Engine Interface Contract |
 | `OUTPUT_CONTRACT.md` | Execution, Portfolio Optimization (and every final report), Decision Snapshot Policy, Failure Taxonomy |
 | `DECISION_SNAPSHOT_POLICY.md` | Output Contract (references it, does not gate it) |
 | `ENGINE_INTERFACE_CONTRACT.md` | Nothing (v1.0) — reserved for `workflows/` |

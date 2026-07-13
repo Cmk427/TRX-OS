@@ -4,12 +4,13 @@
 ```text
 Document ID      : TRX-EXE-001
 Document Name    : Execution Engine
-Version          : 1.3.0
+Version          : 1.4.0
 Status           : Active
 Classification   : Critical
 Dependencies     : STATE_MACHINE.md
                    MASTER_DECISION_ENGINE.md
                    PORTFOLIO_OPTIMIZATION_ENGINE.md
+                   CAPITAL_ALLOCATION_ENGINE.md
                    RISK_ENGINE.md
                    OUTPUT_CONTRACT.md
                    DATA_SOURCE_POLICY.md
@@ -94,9 +95,19 @@ Every actionable plan SHALL specify:
 - initial stop, thesis invalidation, target / partial-exit logic, and emergency
   exit condition;
 - time horizon, review time, event trigger, and expiry handling when relevant;
-- liquidity, spread, and slippage considerations; and
+- liquidity, spread, and slippage considerations;
+- an explicit **Valid For** — the order's own time-in-force (default 5
+  trading days unless justified otherwise, `PARAMETER_REGISTRY.md` §7) —
+  and an explicit **If Not Filled** fallback (Re-evaluate / Cancel /
+  Resubmit at an adjusted price), so a plan is never left as a bare action
+  label with no expiry or contingency; and
 - a pre-flight checklist confirming the human has independently reviewed the
   current order screen and account constraints.
+
+Together, the action, order type, entry, size, stop/target, Valid For, and
+If Not Filled fallback form one **Execution Package** — every actionable
+row this engine produces SHALL be a complete, standalone Execution Package,
+never a bare "Reduce"/"Execute" label missing any of these fields.
 
 Prices are planning parameters, not live instructions. The human trader must
 reverify all time-sensitive values before any order is submitted.
@@ -223,14 +234,21 @@ adding to another). When it does, this engine SHALL present them as one
 batch table rather than several disconnected single-ticket plans — every row
 still individually satisfies §1A's Execution Gate and §3A–§3F:
 
-| Ticker | Action | Shares | Preferred Order | Suggested Price | Alternative | Priority | Maximum Slippage | Review After |
-|---|---|---|---|---|---|---|---|---|
-| MUU | Reduce | 5 | Limit | 975 | 965–980 | P1 | (§3C) | 5 trading days |
+| Ticker | Action | Shares | Preferred Order | Suggested Price | Alternative | Valid For | If Not Filled | Priority | Maximum Slippage | Review After |
+|---|---|---|---|---|---|---|---|---|---|---|
+| MUU | Reduce | 5 | Limit | 975 | 965–980 | 5 Trading Days | Re-evaluate | P1 | (§3C) | 5 trading days |
+
+Each row is a complete Execution Package (§3) — never a bare action label.
 
 - **Action** and **Shares** come from `PORTFOLIO_OPTIMIZATION_ENGINE.md` §6
-  (Suggested Shares), never recomputed here.
+  (Suggested Shares), never recomputed here. For a `Deploy` decision from
+  `CAPITAL_ALLOCATION_ENGINE.md` (State 18), Action/Shares/capital instead
+  reflect that engine's destination ticker and amount.
 - **Preferred Order** and **Suggested Price / Alternative** follow §3A's
   spread/liquidity table.
+- **Valid For** is the order's time-in-force; **If Not Filled** is the
+  fallback (Re-evaluate / Cancel / Resubmit at an adjusted price) — neither
+  may be silently omitted.
 - **Execution Priority** SHALL be one of:
 
 | Priority | Meaning | Trigger |

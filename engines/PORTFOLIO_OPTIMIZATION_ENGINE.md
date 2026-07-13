@@ -5,8 +5,8 @@
 Document ID      : TRX-PFO-001
 Document Name    : Portfolio Optimization Engine
 Owner            : TRX project owner
-Last Updated     : 2026-07-13
-Version          : 1.0.0
+Last Updated     : 2026-07-14
+Version          : 1.1.0
 Status           : Active
 Classification   : Critical
 Dependencies     : STATE_MACHINE.md
@@ -14,6 +14,8 @@ Dependencies     : STATE_MACHINE.md
                    RISK_ENGINE.md
                    COMMITTEE_ENGINE.md
                    MASTER_DECISION_ENGINE.md
+                   INVESTMENT_POLICY.md
+                   CAPITAL_ALLOCATION_ENGINE.md
 Applies To       : State 17 — Post-Master-Decision Portfolio Allocation
 ```
 
@@ -54,6 +56,12 @@ Consequently:
 - It cannot override a Risk Engine veto, a Red Team critical-risk veto, or
   any binding gate result. It operates entirely downstream of State 16,
   after every constraint has already been applied.
+- This engine's `Priority` field (§6: `P1`/`P2`/`P3`) ranks **execution
+  ordering of already-approved actions**, computed post-decision. It is a
+  different concept from `PORTFOLIO_ENGINE.md` §15's Exit Priority (a 1–5
+  urgency ranking of existing positions computed pre-decision, at State
+  06/08) — the two share the word "priority" but never the same input or
+  timing, and SHALL NOT be conflated.
 
 ---
 
@@ -161,72 +169,58 @@ Execution Required  : true
 
 ### 7A. Concentration — Hard Cap vs. Preferred Target
 
-`PORTFOLIO_ENGINE.md` §9A's default maximum concentration percentages
-(Single Stock 10%, Sector 30%, Theme 40%, each modified by Account Risk
-Profile) are the **binding hard ceiling**. This engine never redefines,
-raises, or relaxes them — that would create exactly the competing-authority
-problem `PARAMETER_REGISTRY.md` §1 and `docs/DEPENDENCY_MAP.md` §3A exist to
-prevent. Because Portfolio Review (State 06/08) runs before Master Decision
-in the same analysis run, any hard-cap breach is already reflected in that
-run's Master-Decision-published `Decision` value before this engine ever
-sees it — this engine does not encounter a breach whose `Decision` does not
-already account for it.
+`INVESTMENT_POLICY.md` §2's default maximum concentration percentages
+(Single Stock, Sector, Theme, Small-Cap, Options — each modified by Account
+Risk Profile per that document's §8) are the **binding hard ceiling**. This
+engine never redefines, raises, or relaxes them — that would recreate
+exactly the competing-authority problem `PARAMETER_REGISTRY.md` §1 and
+`docs/DEPENDENCY_MAP.md` §3A exist to prevent. Because Portfolio Review
+(State 06/08) runs before Master Decision in the same analysis run, any
+hard-cap breach is already reflected in that run's Master-Decision-published
+`Decision` value before this engine ever sees it — this engine does not
+encounter a breach whose `Decision` does not already account for it.
 
-This engine additionally defines a new, tighter, and non-competing
-parameter — **owned here, not by `PORTFOLIO_ENGINE.md`** — a **Preferred
-Target Band**, used only to compute a target weight once a `Decision` of
-`REDUCE`, `EXIT`, or `EXECUTE` already requires one:
-
-| Parameter | Value |
-|---|---|
-| Preferred single-stock target | 6% of portfolio value |
-| Advisory review band | 8%–10% (approaching, but not breaching, the §9A hard cap) |
+The **Preferred Target Band** this engine uses to compute a target weight
+once a `Decision` of `REDUCE`, `EXIT`, or `EXECUTE` already requires one is
+defined in `INVESTMENT_POLICY.md` §3 (preferred single-stock target and
+advisory review band) — not restated here.
 
 For a ticker whose Master-Decision `Decision` is `HOLD` or `WATCH`, this
 engine SHALL NOT force a target weight change. If that ticker's current
-weight sits inside the 8%–10% advisory band, this engine MAY add a single
-labelled **Optional Risk-Reduction Note** (not a `Suggested Shares` value,
-not an `Execution Required: true`) — clearly marked non-binding, since
-converting it into a forced action would be a re-decision this engine is
-not authorized to make.
+weight sits inside `INVESTMENT_POLICY.md` §3's advisory review band, this
+engine MAY add a single labelled **Optional Risk-Reduction Note** (not a
+`Suggested Shares` value, not an `Execution Required: true`) — clearly
+marked non-binding, since converting it into a forced action would be a
+re-decision this engine is not authorized to make.
 
 ### 7B. Cash Reserve
 
-No existing document defines a numeric cash-reserve threshold —
-`PORTFOLIO_ENGINE.md` §13 names "Recommended Cash Reserve" only as an
-unquantified capital-allocation category. This engine is the owning
-document for the following new parameters:
-
-| Parameter | Value |
-|---|---|
-| Minimum cash reserve | 5% of portfolio value |
-| Preferred cash reserve | 10% of portfolio value |
-
-A run that would leave cash below the minimum after applying every §6 action
-SHALL flag this in the Reason field and reduce the lowest-priority `EXECUTE`
-allocation first, per §8's capital-priority order — it SHALL NOT silently
-deploy below the minimum.
+The minimum and preferred cash-reserve percentages are defined in
+`INVESTMENT_POLICY.md` §4 — not restated here. A run that would leave cash
+below that minimum after applying every §6 action SHALL flag this in the
+Reason field and reduce the lowest-priority `EXECUTE` allocation first, per
+§11's capital-priority order — it SHALL NOT silently deploy below the
+minimum.
 
 ---
 
-## 8. Capital Allocation Rules
+## 8. Capital Allocation Handoff
 
-When a `REDUCE` or `EXIT` releases capital, this engine SHALL classify the
-destination using `PORTFOLIO_ENGINE.md` §16's existing categories — it does
-not invent new ones:
-
-- Immediate Redeployment (into an already-approved `EXECUTE` candidate from
-  this same run)
-- Hold Cash
-- Reserve for Earnings
-- Reserve for Volatility
-- Wait for Better Setup
+This engine states **how much** capital a `REDUCE`/`EXIT` releases
+(`Capital Released`, §6) — it does not decide **where that capital goes**.
+That decision (Deploy into an already-approved same-run `EXECUTE`
+candidate, or Wait — categorized per `PORTFOLIO_ENGINE.md` §16's existing
+categories) belongs entirely to `CAPITAL_ALLOCATION_ENGINE.md` (State 18),
+which consumes this engine's `capital_released` output as its own input.
+This split keeps "how much" (a sizing computation, this engine's job) and
+"deploy or wait" (a capital-allocation decision, a distinct step with its
+own failure modes) from being one engine's overloaded responsibility.
 
 A "rotation" (release from one ticker, deploy into another) is always
 expressed as the paired `EXIT`/`REDUCE` (source) and `EXECUTE` (destination)
 `Decision` values already published by Master Decision, per
-`MASTER_DECISION_ENGINE.md` §9 — never as a single atomic action this engine
-invents.
+`MASTER_DECISION_ENGINE.md` §9 — never as a single atomic action either this
+engine or Capital Allocation Engine invents.
 
 ---
 
@@ -279,21 +273,9 @@ recorded only after `EXECUTION_ENGINE.md` §5's Completion Record.
 
 ## 11. Constraints and Priority
 
-This engine's priority order is the same order `PORTFOLIO_ENGINE.md` §19
-already establishes — restated here as the order this engine's own
-optimization math SHALL follow, not a competing list:
-
-```text
-Protect Capital
-  ↓
-Reduce Weak Positions
-  ↓
-Strengthen Strong Positions
-  ↓
-Increase Cash (if below §7B minimum)
-  ↓
-Deploy New Capital
-```
+This engine's priority order is `INVESTMENT_POLICY.md` §6's canonical
+capital-priority order — not restated here, and not a competing list.
+`PORTFOLIO_ENGINE.md` §19 follows the identical cross-reference.
 
 This engine SHALL never optimize solely for expected return. Capital
 preservation, then risk, then diversification, outrank return whenever they
@@ -369,8 +351,8 @@ A successful Portfolio Optimization pass SHALL:
 
 - Translate every Master-Decision outcome into a concrete, execution-ready
   number without altering that outcome;
-- Respect `PORTFOLIO_ENGINE.md` §9A's hard concentration limits and this
-  engine's own §7B cash-reserve minimum;
+- Respect `INVESTMENT_POLICY.md` §2's hard concentration limits and §4's
+  cash-reserve minimum;
 - Never leave a `REDUCE`/`EXIT`/`EXECUTE` `Decision` without a Suggested
   Shares and Capital Released/Required value; and
 - Produce a Portfolio Optimization Report (§10) legible as a single

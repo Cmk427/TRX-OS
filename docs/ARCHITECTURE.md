@@ -19,13 +19,15 @@ system/                           Governance, principles, policies, workflow, ou
   STATE_MACHINE.md                Sole workflow source of truth
   VERIFICATION_POLICY.md          V1–V5 evidence classification
   DATA_SOURCE_POLICY.md           Source quality, freshness, critical-data rules
-  DECISION_SNAPSHOT_POLICY.md     What is locked/recorded per published decision
+  DECISION_SNAPSHOT_POLICY.md     What is locked/recorded per published decision, plus Decision History policy
   ENGINE_INTERFACE_CONTRACT.md    Structured engine-to-engine schema (naming/shape only)
   FAILURE_TAXONOMY.md             Classification of every non-EXECUTE outcome
   PARAMETER_REGISTRY.md           Numeric-threshold index (derived view; owning engine wins on conflict)
   DOCUMENTATION_GOVERNANCE.md     Header standard (Owner/Last Updated) for new documents only
+  INVESTMENT_POLICY.md            Sole owner of position/sector/cash concentration limits and capital-priority principles
 engines/                          Specialist research and decision components
   PORTFOLIO_OPTIMIZATION_ENGINE.md Post-Master-Decision target weight/shares/capital (State 17)
+  CAPITAL_ALLOCATION_ENGINE.md     Deploy-or-Wait decision for released capital (State 18)
   POSITION_MANAGEMENT_ENGINE.md    Trigger-based ongoing position review (no State Machine position — starts a new run)
   PORTFOLIO_REBALANCING_ENGINE.md  Periodic sector/theme drift correction (no State Machine position — starts a new run)
 playbooks/                        Repeatable, rule-based setup definitions
@@ -37,10 +39,12 @@ docs/                             Architecture, roadmap, and cross-reference map
   AI_AGENT_IMPLEMENTATION_GUIDE.md Non-authoritative implementer's checklist (derived index)
   PORTFOLIO_MANAGEMENT_GUIDE.md    Non-authoritative glossary (Hold/Add/Reduce/Exit/Rotate/Optimize/Rebalance)
 schemas/                          Machine-readable JSON Schema rendering of the Engine Interface Contract (derived, non-authoritative — see schemas/README.md)
+  (includes capital_allocation.schema.yaml, portfolio_optimization.schema.yaml)
 templates/                        Fill-in worksheets aligned to State Machine stages
   ANALYSIS_TEMPLATE.md            States 02–11 (input through options review)
-  DECISION_TEMPLATE.md            States 12–19 (ranking through self audit)
-  REPORT_TEMPLATE.md              State 20 — direct fill-in version of OUTPUT_CONTRACT.md
+  DECISION_TEMPLATE.md            States 12–20 (ranking through self audit)
+  REPORT_TEMPLATE.md              State 21 — direct fill-in version of OUTPUT_CONTRACT.md
+  PORTFOLIO_PROFILE_TEMPLATE.md   Optional human-supplied style/risk/holding-period context (not a State Machine stage)
 workflows/                        Reserved for future tool-level orchestration definitions
 examples/                         Fictional worked examples of a completed report
 ```
@@ -53,7 +57,8 @@ examples/                         Fictional worked examples of a completed repor
 Validate Input → Verify Data → Market & Macro → Portfolio
   → Preliminary Risk → Positions → Scanner → Playbook → Options (conditional)
   → Ranking → Committee → Red Team → Final Risk → Master Decision
-  → Portfolio Optimization → Execution Plan (conditional) → Self Audit
+  → Portfolio Optimization → Capital Allocation
+  → Execution Plan (conditional) → Self Audit
   → Final Report
 ```
 
@@ -86,6 +91,7 @@ Engine's Publication Authority does not make it a constraint.
 | State Machine | Constraint (procedural) | Valid order of work, recovery transitions, and the §6A revision-cycle limit |
 | Master Decision Engine | Publication | Only publisher of the final integrated outcome; holds no veto |
 | Committee Engine | Neither | Independent multi-role assessment; preserves dissent |
+| Investment Policy | Neither (governance data, not a runtime veto) | Defines position/sector/cash limits and capital-priority principles; `PORTFOLIO_ENGINE.md` §17 and Risk Engine sizing enforce them, this document computes and vetoes nothing itself |
 | Specialist engines | Neither | Evidence, analysis, classification, and proposed plans |
 
 The Master Decision Engine integrates outputs but cannot override an upstream
@@ -109,7 +115,8 @@ Decision integration) for the case where these disagree.
 | Red Team | Counter-evidence and critical-risk challenge | Suppressing evidence or dissent |
 | Master Decision | Final integration and report publication | Veto override |
 | Portfolio Optimization | Target weight, share count, capital released/required for an already-published outcome | Re-decide Hold/Reduce/Exit/Execute, or override Master Decision |
-| Execution | Human review plan and re-verification checklist | Broker access or order placement |
+| Capital Allocation | Deploy-vs-Wait decision for capital already released this run | Invent a new investment opportunity |
+| Execution | Human review plan and re-verification checklist (Execution Package: order, price, Valid For, If Not Filled) | Broker access or order placement |
 | Position Management *(trigger document, no State Machine position)* | Determine when a gain/loss/earnings/IV trigger starts a new run | Publish a position decision itself |
 | Portfolio Rebalancing *(trigger document, no State Machine position)* | Determine when periodic sector/theme drift starts a new run | Assign a specific new ticker, or bypass Scanner/Committee/Risk |
 
@@ -134,25 +141,27 @@ that says what the current, coherent set of versions actually is. This
 table is that place:
 
 ```text
-system/     CORE_PRINCIPLES 1.0.0 · CONSTITUTION 1.1.0 · SYSTEM 1.2.0
-            OUTPUT_CONTRACT 1.2.0 · STATE_MACHINE 1.4.0
+system/     CORE_PRINCIPLES 1.0.0 · CONSTITUTION 1.2.0 · SYSTEM 1.3.0
+            OUTPUT_CONTRACT 1.2.0 · STATE_MACHINE 1.5.0
             VERIFICATION_POLICY 1.2.0 · DATA_SOURCE_POLICY 1.1.0
-            DECISION_SNAPSHOT_POLICY 1.2.0 · ENGINE_INTERFACE_CONTRACT 1.5.0
-            FAILURE_TAXONOMY 1.1.0 · PARAMETER_REGISTRY 1.6.0
-            DOCUMENTATION_GOVERNANCE 1.0.0
-engines/    MARKET 1.3.0 · PORTFOLIO 1.3.0 · SCANNER 1.0.0 · PLAYBOOK 1.1.0
+            DECISION_SNAPSHOT_POLICY 1.3.0 · ENGINE_INTERFACE_CONTRACT 1.6.0
+            FAILURE_TAXONOMY 1.1.0 · PARAMETER_REGISTRY 1.7.0
+            DOCUMENTATION_GOVERNANCE 1.0.0 · INVESTMENT_POLICY 1.0.0 (new)
+engines/    MARKET 1.3.0 · PORTFOLIO 1.4.0 · SCANNER 1.0.0 · PLAYBOOK 1.1.0
             OPTIONS 1.4.0 · RISK 1.3.0 · DECISION 1.2.0
-            MASTER_DECISION 1.4.0 · COMMITTEE 1.4.0 · RED_TEAM 1.4.0
-            PORTFOLIO_OPTIMIZATION 1.0.0 (new) · EXECUTION 1.3.0
-            POSITION_MANAGEMENT 1.0.0 (new) · PORTFOLIO_REBALANCING 1.0.0 (new)
+            MASTER_DECISION 1.4.0 · COMMITTEE 1.4.0 · RED_TEAM 1.5.0
+            PORTFOLIO_OPTIMIZATION 1.1.0 · EXECUTION 1.4.0
+            CAPITAL_ALLOCATION 1.0.0 (new)
+            POSITION_MANAGEMENT 1.0.0 · PORTFOLIO_REBALANCING 1.1.0
 playbooks/  PLAYBOOK_LIBRARY 1.4.0
-schemas/    12 files, each 1.0.0 except execution.schema.yaml 1.1.0
-            (new field addition — see schemas/README.md)
-templates/  ANALYSIS 1.2.0 · DECISION 1.3.0 · REPORT 1.4.0
+schemas/    13 files, each 1.0.0 except execution.schema.yaml 1.2.0
+            (two rounds of field additions — see schemas/README.md)
+templates/  ANALYSIS 1.2.0 · DECISION 1.4.0 · REPORT 1.5.0
+            PORTFOLIO_PROFILE 1.0.0 (new)
 examples/   NO_TRADE 1.7.0 · EXECUTE_LONG_CALL 1.7.0
-docs/       RESPONSIBILITY_MATRIX 1.2.0 · DEPENDENCY_MAP 1.6.0
+docs/       RESPONSIBILITY_MATRIX 1.3.0 · DEPENDENCY_MAP 1.7.0
             AI_AGENT_IMPLEMENTATION_GUIDE 1.1.0
-            PORTFOLIO_MANAGEMENT_GUIDE 1.0.0 (new)
+            PORTFOLIO_MANAGEMENT_GUIDE 1.0.0
 workflows/  WORKFLOWS 1.0.0 (unchanged — still a placeholder)
 ```
 
@@ -292,6 +301,53 @@ State 18, and `DECISION_SNAPSHOT_POLICY.md` (1.1.0→1.2.0) had its Self
 Audit reference updated from State 18 to State 19 — both are exactly the
 kind of propagation gap this table's own history (see the fifth audit round
 note above) exists to catch rather than let drift.
+
+A tenth audit round addressed a second round of user feedback on the
+portfolio optimization layer: **Execution was still too passive** (a bare
+"Reduce MUU" with no order mechanics), **policy numbers were scattered**
+across engines with some genuinely hardcoded, and **capital raised by a
+Reduce/Exit had no explicit Deploy-vs-Wait decision**. This round added
+`system/INVESTMENT_POLICY.md` (new, 1.0.0) as the single canonical owner of
+every position/sector/cash concentration limit, preferred-target band, and
+the capital-priority order — numbers previously owned independently (and,
+in the capital-priority case, restated near-identically) by
+`PORTFOLIO_ENGINE.md` §9A/§19 and `PORTFOLIO_OPTIMIZATION_ENGINE.md`
+§7A/§7B/§11, both of which now cross-reference this one document instead.
+Two genuinely new parameters (Maximum Small-Cap Exposure 25%, Maximum
+Options Exposure 15%) are recorded there as having no prior owner anywhere
+in the repository. A new pipeline state, **State 18 — Capital Allocation**
+(`engines/CAPITAL_ALLOCATION_ENGINE.md`, new, 1.0.0), was inserted between
+Portfolio Optimization (17) and Execution Plan (renumbered 18→19; Self
+Audit 19→20; Final Report 20→21 — `STATE_MACHINE.md` 1.4.0→1.5.0); it
+decides Deploy (into an already-approved same-run `EXECUTE` candidate,
+never one it invents) or Wait for capital Portfolio Optimization Engine
+released, a responsibility Portfolio Optimization Engine's own §8
+previously held as an under-specified afterthought.
+`EXECUTION_ENGINE.md` (1.3.0→1.4.0) gained an explicit **Execution
+Package** requirement — Valid For (order time-in-force) and an If Not
+Filled fallback (Re-evaluate/Cancel/Resubmit) alongside every action, so no
+row is ever a bare label. `PORTFOLIO_REBALANCING_ENGINE.md` (1.0.0→1.1.0)
+gained an Optimization Score reusing `PORTFOLIO_ENGINE.md`'s existing
+Portfolio Health Score formula (current vs. projected allocation) rather
+than inventing a new one. `DECISION_SNAPSHOT_POLICY.md` (1.2.0→1.3.0)
+gained a Decision History policy section — deliberately deferring concrete
+storage paths as `RESERVED — NOT APPLICABLE to v1.0`, the same treatment
+already given its Prompt-version/Model-identifier fields, since TRX v1.0
+has no implementation layer yet. A new `templates/PORTFOLIO_PROFILE_TEMPLATE.md`
+(1.0.0) gives the human an optional, non-authoritative style/risk/
+holding-period worksheet engines may read as context, never as a limit.
+Finally, this round added explicit "this status is preliminary, not final"
+language to `PORTFOLIO_ENGINE.md` §7/§18 (1.3.0→1.4.0) and a one-line
+disambiguation between that document's own Exit Priority (1–5, pre-decision)
+and `EXECUTION_ENGINE.md`/`PORTFOLIO_OPTIMIZATION_ENGINE.md`'s Execution
+Priority (P1–P3, post-decision) — the two share a word but never a
+timeline, and the user's suspected "engine overlap" turned out to be this
+naming collision rather than a real competing authority. One more
+propagation-gap fix, caught by this round's own verification pass:
+`RED_TEAM_ENGINE.md` (1.4.0→1.5.0) still referenced "State 18" for the
+Execution Plan's not-yet-reached check (§4A) — correct after round nine's
+renumbering, stale after this round's second renumbering — now updated to
+State 19.
 
 **Keeping this table honest**: any change to a document's `Version` header
 SHALL update its entry here in the same edit — this table is exactly as

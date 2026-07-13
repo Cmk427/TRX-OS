@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-SM-001
 Document Name    : State Machine
-Version          : 1.4.0
+Version          : 1.5.0
 Status           : Active
 Classification   : Critical
 Dependencies     : CORE_PRINCIPLES.md
@@ -33,7 +33,7 @@ WAIT → RECEIVE INPUT → VALIDATE INPUT → VERIFY DATA
   → PRELIMINARY RISK GATE → POSITION REVIEW
   → OPPORTUNITY SCAN → PLAYBOOK ASSIGNMENT → OPTIONS REVIEW (if applicable)
   → RANKING → COMMITTEE REVIEW → RED TEAM REVIEW → FINAL RISK GATE
-  → MASTER DECISION → PORTFOLIO OPTIMIZATION
+  → MASTER DECISION → PORTFOLIO OPTIMIZATION → CAPITAL ALLOCATION
   → EXECUTION PLAN (if actionable) → SELF AUDIT
   → FINAL REPORT → END
 ```
@@ -83,7 +83,12 @@ Portfolio Optimization cannot compute (State 17, incomplete weight/cash data)
   — see `PORTFOLIO_OPTIMIZATION_ENGINE.md` §15 and §4 Outcome Semantics
   below)
 
-Execution-time stale/invalid data (State 18, after Portfolio Optimization)
+Capital Allocation cannot compute (State 18, incomplete capital/candidate data)
+  → CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED
+  (same non-blocking pattern as above — see `CAPITAL_ALLOCATION_ENGINE.md`
+  §6; does not change the primary outcome from State 16)
+
+Execution-time stale/invalid data (State 19, after Capital Allocation)
   → DO NOT EXECUTE — REVERIFY → return to State 04
   (the only exception path that re-enters the flow instead of ending it —
   every other path above is terminal for that run)
@@ -101,7 +106,7 @@ failure-vs-ordinary-non-match distinction at the playbook level).
 
 ## 2B. Post-Execution Monitoring
 
-A completed run still ends at `END` after State 20 (Final Report) — this
+A completed run still ends at `END` after State 21 (Final Report) — this
 section adds no new pipeline state. Ongoing monitoring of positions between
 runs (a large unrealized gain, a scheduled earnings date, an IV spike, a
 loss threshold) is deliberately out-of-band: it is defined in
@@ -139,9 +144,10 @@ any other state of the new run it starts.
 | 15 FINAL RISK GATE | Risk Engine | Red Team result (14), Preliminary Risk Gate context (07) | Final sizing, maximum loss, portfolio heat, stop and event-risk review | Binding `NO TRADE`, `REDUCE`, or `EXIT` |
 | 16 MASTER DECISION | Master Decision Engine | All engine outputs from States 05–15 | One final outcome integrating valid outputs | Must honour prior vetoes and data failures |
 | 17 PORTFOLIO OPTIMIZATION | Portfolio Optimization Engine | Master Decision outcome (16), Portfolio Engine holdings/weights (06/08), Risk Engine sizing (07/15) | Per-position target weight, share count, capital released/required, and reallocation, echoing (never altering) each Decision from State 16 | Incomplete weight/cash data: `PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED`, non-blocking to the State 16 outcome |
-| 18 EXECUTION PLAN | Execution Engine | Master Decision outcome (16), Portfolio Optimization output (17), current verified pricing | Human-reviewable plan for EXECUTE / REDUCE / EXIT | Stale execution data: `DO NOT EXECUTE — REVERIFY` |
-| 19 SELF AUDIT | Master Decision Engine | Full Decision Snapshot / all state outputs through State 18 | Contract, consistency, evidence, and veto checklist | Return to earliest defective state |
-| 20 FINAL REPORT | Master Decision Engine | Self Audit result (19) | Output Contract-compliant report | End |
+| 18 CAPITAL ALLOCATION | Capital Allocation Engine | Portfolio Optimization's capital released (17), Master Decision's already-published EXECUTE candidates (16), current cash/buying power | Deploy (into an already-approved same-run candidate) or Wait (categorized) decision for every released amount | Incomplete capital/candidate data: `CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED`, non-blocking to the State 16 outcome |
+| 19 EXECUTION PLAN | Execution Engine | Master Decision outcome (16), Portfolio Optimization output (17), Capital Allocation output (18), current verified pricing | Human-reviewable Execution Package (action, order type, price, size, Valid For, If Not Filled) for EXECUTE / REDUCE / EXIT | Stale execution data: `DO NOT EXECUTE — REVERIFY` |
+| 20 SELF AUDIT | Master Decision Engine | Full Decision Snapshot / all state outputs through State 19 | Contract, consistency, evidence, and veto checklist | Return to earliest defective state |
+| 21 FINAL REPORT | Master Decision Engine | Self Audit result (20) | Output Contract-compliant report | End |
 
 ---
 
@@ -190,8 +196,8 @@ result that has become materially stale.
 
 Recovery transitions make correction possible, but without a bound they also
 make an unterminated loop possible — for example Master Decision (16) →
-Self Audit (19) finds a defect → returns to Final Risk Gate (15) → Risk
-requires a change → Master Decision (16) re-integrates → Self Audit (19)
+Self Audit (20) finds a defect → returns to Final Risk Gate (15) → Risk
+requires a change → Master Decision (16) re-integrates → Self Audit (20)
 finds another defect → and so on indefinitely.
 
 Each analysis run SHALL maintain one global revision counter for the entire

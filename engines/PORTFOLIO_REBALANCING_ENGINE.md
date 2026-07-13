@@ -5,13 +5,14 @@
 Document ID      : TRX-PRB-001
 Document Name    : Portfolio Rebalancing Engine
 Owner            : TRX project owner
-Last Updated     : 2026-07-13
-Version          : 1.0.0
+Last Updated     : 2026-07-14
+Version          : 1.1.0
 Status           : Active
 Classification   : Critical
 Dependencies     : STATE_MACHINE.md
                    PORTFOLIO_ENGINE.md
                    PORTFOLIO_OPTIMIZATION_ENGINE.md
+                   INVESTMENT_POLICY.md
 Applies To       : Periodic sector/theme allocation review (no State Machine position)
 ```
 
@@ -102,7 +103,34 @@ top-down to satisfy an allocation target.
 
 ---
 
-## 5. Failure Conditions
+## 5. Optimization Score
+
+To help a human judge whether a rebalance is worth the transaction cost and
+effort, this engine SHALL compute `PORTFOLIO_ENGINE.md` §4/§5's existing
+Portfolio Health Score — not a new, separately-invented score — twice:
+
+```text
+Current Portfolio  →  Portfolio Health Score computed against §3's
+                       Current Allocation
+
+Projected Portfolio →  the same formula, computed against §4's Rebalance
+                        Plan applied hypothetically to the current holdings
+```
+
+Example:
+
+```text
+Optimization Score:  Current 78  →  Projected 91
+```
+
+A projected score that is not materially higher than the current one is a
+signal that the proposed rebalance may not be worth its transaction cost —
+this engine states the two numbers; it does not itself decide whether to
+proceed, which remains a human judgment informed by this comparison.
+
+---
+
+## 6. Failure Conditions
 
 If current allocation data is incomplete, or no target allocation exists
 (user-supplied or carried forward), this engine SHALL NOT compute a gap. It
@@ -111,15 +139,17 @@ input is missing, rather than substituting an assumed target.
 
 ---
 
-## 6. Success Criteria
+## 7. Success Criteria
 
 A successful periodic review SHALL:
 
 - State every material sector/theme gap, over- and under-weight alike;
-- Never assign a specific new ticker to fill an underweight; and
+- Never assign a specific new ticker to fill an underweight;
 - Route every proposed action through the existing pipeline (Portfolio
   Optimization Engine for existing positions, the full candidate pipeline
-  for new capital) rather than acting as a parallel decision path.
+  for new capital) rather than acting as a parallel decision path; and
+- State the §5 Optimization Score (current vs. projected) for every
+  Rebalance Plan it produces.
 
 ---
 

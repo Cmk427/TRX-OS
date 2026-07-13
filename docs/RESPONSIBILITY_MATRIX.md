@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-RSM-001
 Document Name    : Responsibility Matrix
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Active
 Classification   : Reference
 Dependencies     : CONSTITUTION.md
@@ -45,6 +45,7 @@ document is a derived view, not an independent source of authority.
 | `FAILURE_TAXONOMY.md` | Classification of non-`EXECUTE` outcomes | Defines audit categories only | Create a new terminal status or rank vetoes by severity |
 | `PARAMETER_REGISTRY.md` | Numeric-threshold index | Convenience lookup only | Override its owning engine document if they ever disagree |
 | `DOCUMENTATION_GOVERNANCE.md` | Header standard for new documents | Applies to documents created from this point forward | Require retrofitting existing files |
+| `INVESTMENT_POLICY.md` | Position/sector/cash concentration limits and capital-priority principles | Sole owner of these numbers — engines reference it | Compute risk, decide an outcome, or override a veto |
 
 ---
 
@@ -68,7 +69,8 @@ constrains eligibility or ranking but is never itself a binding override.
 | Red Team Engine | 14 | **Constraint** | Seek counter-evidence, counter-thesis, alternatives | Suppress the original thesis or dissent | Critical-risk veto — binding downgrade or `NO TRADE` |
 | Master Decision Engine | 16 | **Publication** | Integrate all valid outputs into one outcome; compute Confidence (never outcome) via §7 Weighted Composite Score | Override verification, Risk, or Red Team vetoes, or use Confidence to relax a gate | None — it enforces upstream vetoes, it does not hold one |
 | Portfolio Optimization Engine | 17 | Neither | Convert an already-published Master Decision outcome into target weight, share count, capital released/required, and reallocation | Re-decide Hold/Reduce/Exit/Execute, or override a Master Decision outcome | None — its `Decision` field is a verbatim echo, never a competing value |
-| Execution Engine | 18 | Neither | Produce human-reviewable entry/stop/target/size plan with order-type, liquidity, and slippage rules | Place, transmit, or imply placement of an order | `DO NOT EXECUTE — REVERIFY` on stale critical input |
+| Capital Allocation Engine | 18 | Neither | Decide Deploy (into an already-approved same-run candidate) or Wait for capital Portfolio Optimization released | Invent a new investment opportunity | None — defaults to `Wait` rather than force a fit below the cash minimum |
+| Execution Engine | 19 | Neither | Produce human-reviewable Execution Package (entry/stop/target/size, Valid For, If Not Filled) with order-type, liquidity, and slippage rules | Place, transmit, or imply placement of an order | `DO NOT EXECUTE — REVERIFY` on stale critical input |
 
 ---
 
@@ -108,9 +110,9 @@ Human Trader
 ```
 
 A component not listed with a veto (Market, Portfolio, Scanner, Playbook,
-Options, Decision, Committee, Master Decision, Portfolio Optimization) still
-constrains eligibility or ranking — it simply cannot issue a binding
-override the way Risk and Red Team can. See [Dependency Map](DEPENDENCY_MAP.md) for how these responsibilities
+Options, Decision, Committee, Master Decision, Portfolio Optimization,
+Capital Allocation) still constrains eligibility or ranking — it simply
+cannot issue a binding override the way Risk and Red Team can. See [Dependency Map](DEPENDENCY_MAP.md) for how these responsibilities
 translate into document-level dependencies, and [Architecture](ARCHITECTURE.md)
 for the full data-flow diagram.
 

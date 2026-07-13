@@ -4,13 +4,14 @@
 ```text
 Document ID      : TRX-PORT-001
 Document Name    : Portfolio Engine
-Version          : 1.3.0
+Version          : 1.4.0
 Status           : Stable
 Classification   : Critical
 Dependencies     : CORE_PRINCIPLES.md
                    VERIFICATION_POLICY.md
                    DATA_SOURCE_POLICY.md
                    STATE_MACHINE.md
+                   INVESTMENT_POLICY.md
 Applies To       : Portfolio Analysis
 ```
 
@@ -212,6 +213,13 @@ INVALID
 
 Data insufficient.
 
+This status is **preliminary** — assigned at State 06/08, before Committee
+(13), Red Team (14), and the Final Risk Gate (15) have reviewed it.
+Committee/Red Team/Risk MAY change it; Master Decision (16) publishes the
+final value, which may differ from this preliminary one.
+`PORTFOLIO_OPTIMIZATION_ENGINE.md` (17) acts only on the State-16 final
+value — it never reads this preliminary status directly.
+
 -------------------------------------------------------------------------------
 8. POSITION REVIEW
 -------------------------------------------------------------------------------
@@ -283,30 +291,31 @@ Portfolio Risk increases.
 9A. PORTFOLIO CONSTRUCTION RULES
 -------------------------------------------------------------------------------
 
-"Acceptable limits" above are defined here, as default maximum
-concentration percentages of total portfolio value:
+"Acceptable limits" above are the default maximum concentration
+percentages of total portfolio value defined in `INVESTMENT_POLICY.md` §2
+(Single Stock, Sector, Theme — a cross-sector grouping such as "AI" or "EV",
+see §10 Correlation Review for how hidden theme overlap is identified —
+plus Small-Cap and Options exposure). This document does not restate those
+numbers; if this section and `INVESTMENT_POLICY.md` §2 ever disagree, the
+policy document wins and the mismatch is a bug here, the same relationship
+`PARAMETER_REGISTRY.md` has with every engine it indexes.
 
-Single Stock: 10%
-
-Sector: 30%
-
-Theme (a cross-sector grouping such as "AI" or "EV" — see §10 Correlation
-Review for how hidden theme overlap is identified): 40%
-
-These defaults are modified by the account's Risk Profile
-(`RISK_ENGINE.md` §4 Account Risk Profile) the same way Position Size and
-Portfolio Exposure limits already are — a Conservative profile SHALL use
-tighter limits, not looser ones, and any profile-specific override SHALL be
-recorded explicitly rather than silently assumed.
+Those defaults are modified by the account's Risk Profile
+(`RISK_ENGINE.md` §4 Account Risk Profile, per `INVESTMENT_POLICY.md` §8) —
+a Conservative profile SHALL use tighter limits, not looser ones, and any
+profile-specific override SHALL be recorded explicitly rather than silently
+assumed.
 
 The New Position Compatibility check (§17) SHALL reject or flag any
-candidate whose addition would breach these limits, before Risk Engine
-sizing is even attempted — this is a portfolio-shape constraint, distinct
-from and prior to Risk Engine's position-level sizing math. (There is no
-separate numeric "Portfolio Fit Score" in this document — the concentration
-percentages above and §17's qualitative check are the actual mechanism;
-`SCANNER_ENGINE.md` §5's "Portfolio fit" weighted component is a different,
-Scanner-owned number and SHALL NOT be conflated with this check.)
+candidate whose addition would breach `INVESTMENT_POLICY.md` §2's limits,
+before Risk Engine sizing is even attempted — this is a portfolio-shape
+constraint, distinct from and prior to Risk Engine's position-level sizing
+math. This document owns the enforcement mechanism (this check); it no
+longer owns the numbers themselves. (There is no separate numeric
+"Portfolio Fit Score" in this document — the concentration limits above and
+§17's qualitative check are the actual mechanism; `SCANNER_ENGINE.md` §5's
+"Portfolio fit" weighted component is a different, Scanner-owned number and
+SHALL NOT be conflated with this check.)
 
 -------------------------------------------------------------------------------
 10. CORRELATION REVIEW
@@ -516,29 +525,24 @@ existing-position shortcut) — they are not separate outcomes. "ROTATE"
 position) and, separately, EXECUTE (the new position) once that candidate
 completes its own full pipeline — never a single atomic action here.
 
+Like §7's Position Status, every action assigned here is the **preliminary**
+State 06/08 assessment, not the final one. This document's own §15 Exit
+Priority (a 1–5 urgency ranking of existing positions, used pre-decision) is
+a different concept from `EXECUTION_ENGINE.md` §3G's Execution Priority
+(P1–P3, used post-decision to order actually-approved trades) — the two
+share the word "priority" but rank different things at different pipeline
+stages and SHALL NOT be conflated.
+
 -------------------------------------------------------------------------------
 19. PORTFOLIO PRIORITY
 -------------------------------------------------------------------------------
 
-Priority Order
-
-Protect Capital
-
-↓
-
-Reduce Weak Positions
-
-↓
-
-Strengthen Strong Positions
-
-↓
-
-Increase Cash (if needed)
-
-↓
-
-Deploy New Capital
+The capital-priority order (Protect Capital → Reduce Weak Positions →
+Strengthen Strong Positions → Increase Cash if below the minimum → Deploy
+New Capital) is defined once, canonically, in `INVESTMENT_POLICY.md` §6.
+This document does not restate it — `PORTFOLIO_OPTIMIZATION_ENGINE.md` §11
+follows the identical cross-reference, so the order exists in exactly one
+place.
 
 -------------------------------------------------------------------------------
 20. PORTFOLIO DASHBOARD
