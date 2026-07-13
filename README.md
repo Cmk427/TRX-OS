@@ -1,3 +1,13 @@
+## AI Runtime
+
+All AI systems (Claude, ChatGPT, Gemini, Codex, etc.) should initialize TRX through:
+
+trx/BOOTSTRAP.md
+
+Do not load documents manually.
+
+The bootstrap process defines the required loading order and runtime behavior.
+
 # TRX Trading OS
 
 **Trading Research eXecution Operating System**  
