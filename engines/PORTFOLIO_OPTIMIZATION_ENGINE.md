@@ -6,7 +6,7 @@ Document ID      : TRX-PFO-001
 Document Name    : Portfolio Optimization Engine
 Owner            : TRX project owner
 Last Updated     : 2026-07-14
-Version          : 1.1.0
+Version          : 1.2.0
 Status           : Active
 Classification   : Critical
 Dependencies     : STATE_MACHINE.md
@@ -24,13 +24,21 @@ Applies To       : State 17 — Post-Master-Decision Portfolio Allocation
 ## 1. Purpose and Boundary
 
 Master Decision Engine (State 16) can publish that a position should be
-`REDUCE`d or that a candidate should be `EXECUTE`d — but "Reduce MUU" alone
-does not say how much, to what target weight, freeing how much cash, or
-reinvested where. This engine closes that gap: it converts an
-**already-published** Master Decision outcome into concrete portfolio
-allocation math — target weight, share count, capital released, and
-reallocation destination — for every position and candidate the current run
-touched.
+`REDUCE`d — but "Reduce MUU" alone does not say how much, to what target
+weight, or freeing how much cash. This engine closes that gap for
+**existing positions**: it converts an already-published Master Decision
+outcome of `HOLD`, `REDUCE`, `EXIT`, or `WATCH` into concrete portfolio
+allocation math — target weight, share count, and capital released.
+
+**This engine never processes an `EXECUTE` decision.** A new position's
+sizing (how many shares, how much capital) is decided entirely by
+`CAPITAL_ALLOCATION_ENGINE.md` (State 18), bounded by the Risk Engine's
+already-approved size for that candidate. This split exists because both
+engines could otherwise independently compute "buy N shares of ORCL" for
+the same candidate — a genuine overlap the user identified. Drawing the
+line at "existing position" (this engine) versus "new position / released
+capital" (Capital Allocation Engine) means exactly one engine ever answers
+"how many shares of this ticker," never two.
 
 This engine's primary question is **"given what Master Decision already
 decided, what does the portfolio look like afterward?"**, not "what should
@@ -83,13 +91,16 @@ out-of-band and is not a further pipeline state after Execution — see
 ## 3. Required Inputs
 
 - **Master Decision Engine (16)** — the published `final_outcome` per
-  ticker/candidate for this run (`ENGINE_INTERFACE_CONTRACT.md` §11),
-  including `EXECUTE`, `HOLD`, `REDUCE`, `EXIT`, `WATCH`, or `NO TRADE`.
+  existing position for this run (`ENGINE_INTERFACE_CONTRACT.md` §11):
+  `HOLD`, `REDUCE`, `EXIT`, or `WATCH`. A ticker whose outcome is `EXECUTE`
+  or `NO TRADE` is out of this engine's scope entirely — `EXECUTE` routes
+  directly to `CAPITAL_ALLOCATION_ENGINE.md` (18).
 - **Portfolio Engine (06/08)** — current holdings, per-position current
   weight, cash balance, buying power, and the §9A concentration state for
   every position (already computed before Master Decision integrated it).
-- **Risk Engine (07/15)** — approved position sizing and Portfolio Heat for
-  any `EXECUTE` candidate, per `RISK_ENGINE.md` §6/§24.
+- **Risk Engine (07/15)** — current Portfolio Heat, for context in the
+  Reason field only; this engine does not perform Risk Engine's sizing
+  math (that applies to `EXECUTE` candidates, out of scope here).
 - **Committee Engine (13)** — context only (concerns, dissent) for the
   Reason field in §6; this engine does not re-weigh Committee votes.
 
@@ -106,12 +117,13 @@ Given the inputs above, this engine SHALL answer, per ticker/candidate:
 2. What is the target portfolio weight consistent with Master Decision's
    published outcome and `PORTFOLIO_ENGINE.md`'s construction limits (§9A)?
 3. What share count moves the position from current to target weight?
-4. How much capital does this release (if reducing/exiting) or require (if
-   executing)?
-5. Where does released capital go — cash, or reinvestment into another
-   already-approved candidate (§8)?
-6. What is the resulting portfolio shape after every action in this run is
+4. How much capital does this release (if reducing/exiting)?
+5. What is the resulting portfolio shape after every action in this run is
    applied (§10)?
+
+Questions 4's capital, once released, is handed off entirely — see §8. This
+engine never decides where released capital goes, and never sizes a new
+position.
 
 This engine SHALL NOT ask or answer "should this position be reduced
 instead of held" — that question belongs to State 16 and earlier.
@@ -133,17 +145,19 @@ state:
 
 ## 6. Required Output
 
-Every actionable ticker/candidate SHALL produce one row:
+Every existing position carried into this state SHALL produce one row —
+`EXECUTE` tickers never appear in this table at all (see
+`CAPITAL_ALLOCATION_ENGINE.md` instead):
 
 | Field | Content |
 |---|---|
 | Ticker | string |
-| Decision | `EXECUTE \| HOLD \| REDUCE \| EXIT \| WATCH` — echoed from Master Decision (16); never computed here |
+| Decision | `HOLD \| REDUCE \| EXIT \| WATCH` — echoed from Master Decision (16); never computed here |
 | Current Weight | percent of portfolio value |
 | Target Weight | percent of portfolio value |
-| Suggested Shares | signed share count (negative = sell, positive = buy); `0` for `HOLD`/`WATCH` unless §7's advisory applies |
-| Capital Released | currency amount freed by a reduction/exit; `null` for `EXECUTE` (capital required instead) or `HOLD`/`WATCH` |
-| Reason | one line, tracing to the Master Decision rationale and any construction-limit or capital-allocation rule applied |
+| Suggested Shares | signed share count, always ≤ 0 (a sell or no change) — this engine never produces a positive (buy) share count; `0` for `HOLD`/`WATCH` unless §7's advisory applies |
+| Capital Released | currency amount freed by a reduction/exit; `null` for `HOLD`/`WATCH` with no advisory |
+| Reason | one line, tracing to the Master Decision rationale and any construction-limit rule applied |
 | Priority | `P1 \| P2 \| P3` per `EXECUTION_ENGINE.md` §3G |
 | Execution Required | boolean — `false` for `HOLD`/`WATCH` with no advisory triggered |
 
@@ -181,9 +195,9 @@ hard-cap breach is already reflected in that run's Master-Decision-published
 encounter a breach whose `Decision` does not already account for it.
 
 The **Preferred Target Band** this engine uses to compute a target weight
-once a `Decision` of `REDUCE`, `EXIT`, or `EXECUTE` already requires one is
-defined in `INVESTMENT_POLICY.md` §3 (preferred single-stock target and
-advisory review band) — not restated here.
+once a `Decision` of `REDUCE` or `EXIT` already requires one is defined in
+`INVESTMENT_POLICY.md` §3 (preferred single-stock target and advisory
+review band) — not restated here.
 
 For a ticker whose Master-Decision `Decision` is `HOLD` or `WATCH`, this
 engine SHALL NOT force a target weight change. If that ticker's current
@@ -196,31 +210,40 @@ re-decision this engine is not authorized to make.
 ### 7B. Cash Reserve
 
 The minimum and preferred cash-reserve percentages are defined in
-`INVESTMENT_POLICY.md` §4 — not restated here. A run that would leave cash
-below that minimum after applying every §6 action SHALL flag this in the
-Reason field and reduce the lowest-priority `EXECUTE` allocation first, per
-§11's capital-priority order — it SHALL NOT silently deploy below the
-minimum.
+`INVESTMENT_POLICY.md` §4 — not restated here. This engine's own §6 actions
+(Reduce/Exit on existing positions) only ever release capital, never
+deploy it, so they cannot themselves breach the cash minimum. Whether
+released capital is then held toward that minimum (`Reserve Cash`) or
+deployed is `CAPITAL_ALLOCATION_ENGINE.md`'s decision, per §11's
+capital-priority order.
 
 ---
 
 ## 8. Capital Allocation Handoff
 
 This engine states **how much** capital a `REDUCE`/`EXIT` releases
-(`Capital Released`, §6) — it does not decide **where that capital goes**.
-That decision (Deploy into an already-approved same-run `EXECUTE`
-candidate, or Wait — categorized per `PORTFOLIO_ENGINE.md` §16's existing
-categories) belongs entirely to `CAPITAL_ALLOCATION_ENGINE.md` (State 18),
-which consumes this engine's `capital_released` output as its own input.
-This split keeps "how much" (a sizing computation, this engine's job) and
-"deploy or wait" (a capital-allocation decision, a distinct step with its
-own failure modes) from being one engine's overloaded responsibility.
+(`Capital Released`, §6). Everything downstream of that number belongs
+entirely to `CAPITAL_ALLOCATION_ENGINE.md` (State 18):
+
+- **Where it goes** — Deploy into an already-approved same-run `EXECUTE`
+  candidate, Rotate (a Deploy specifically paired with this engine's own
+  releasing ticker), Reserve Cash (toward `INVESTMENT_POLICY.md` §4's
+  minimum/preferred reserve), or Wait (categorized per
+  `PORTFOLIO_ENGINE.md` §16's remaining categories).
+- **How much of a new position to buy** — Capital Allocation Engine sizes
+  every `EXECUTE` candidate itself, bounded by the Risk Engine's approved
+  size; this engine never computes a buy-side share count for any ticker.
+
+This split keeps "how much did an existing position release" (this
+engine's job) and "where does capital go, including sizing a new position"
+(Capital Allocation Engine's job) as two single-owner questions rather than
+one engine's overloaded responsibility.
 
 A "rotation" (release from one ticker, deploy into another) is always
-expressed as the paired `EXIT`/`REDUCE` (source) and `EXECUTE` (destination)
-`Decision` values already published by Master Decision, per
-`MASTER_DECISION_ENGINE.md` §9 — never as a single atomic action either this
-engine or Capital Allocation Engine invents.
+expressed as the paired `EXIT`/`REDUCE` (source, this engine) and `EXECUTE`
+(destination, sized by Capital Allocation Engine) `Decision` values already
+published by Master Decision, per `MASTER_DECISION_ENGINE.md` §9 — never as
+a single atomic action either engine invents.
 
 ---
 
@@ -299,16 +322,17 @@ long-term risk-adjusted portfolio quality, in this priority order:
 
 ## 13. Decision Validation
 
-Before finalizing §6's output for any `REDUCE`, `EXIT`, or `EXECUTE` row,
-this engine SHALL answer four questions about the **sizing/optimization
-choice** — not about the Hold/Reduce/Exit/Execute decision itself, which was
-already made and reviewed at State 16 and is not reopened here:
+Before finalizing §6's output for any `REDUCE` or `EXIT` row, this engine
+SHALL answer four questions about the **sizing/optimization choice** — not
+about the Hold/Reduce/Exit decision itself, which was already made and
+reviewed at State 16 and is not reopened here:
 
 1. Why is this target weight/share count better than making no allocation
    change at all?
 2. Why is this specific size better than a larger or smaller adjustment?
-3. Why raise cash rather than rotate directly into another already-approved
-   candidate (§8)?
+3. Is the released capital amount (§6) correctly stated for Capital
+   Allocation Engine to act on — not whether it should be deployed or held,
+   which is that engine's decision (§8), not this one?
 4. What could make this sizing wrong (e.g., a liquidity constraint, a
    subsequent price move, a stale weight input)?
 
@@ -353,8 +377,9 @@ A successful Portfolio Optimization pass SHALL:
   number without altering that outcome;
 - Respect `INVESTMENT_POLICY.md` §2's hard concentration limits and §4's
   cash-reserve minimum;
-- Never leave a `REDUCE`/`EXIT`/`EXECUTE` `Decision` without a Suggested
-  Shares and Capital Released/Required value; and
+- Never leave a `REDUCE`/`EXIT` `Decision` without a Suggested Shares and
+  Capital Released value, and never produce a row for an `EXECUTE` ticker
+  at all; and
 - Produce a Portfolio Optimization Report (§10) legible as a single
   before/after view of the whole portfolio.
 

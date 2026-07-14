@@ -89,8 +89,8 @@ TRX-Trading-Research-eXecution--main/
 │   ├── MASTER_DECISION_ENGINE.md
 │   ├── COMMITTEE_ENGINE.md
 │   ├── RED_TEAM_ENGINE.md
-│   ├── PORTFOLIO_OPTIMIZATION_ENGINE.md  # State 17：已發布結果的目標權重／股數／資金
-│   ├── CAPITAL_ALLOCATION_ENGINE.md      # State 18：釋出資金的 Deploy／Wait 決定
+│   ├── PORTFOLIO_OPTIMIZATION_ENGINE.md  # State 17：既有持倉之目標權重／股數／釋出資金（不含 EXECUTE）
+│   ├── CAPITAL_ALLOCATION_ENGINE.md      # State 18：Deploy／Rotate／Reserve Cash／Wait，並為 EXECUTE 候選計算股數
 │   ├── EXECUTION_ENGINE.md
 │   ├── POSITION_MANAGEMENT_ENGINE.md     # 觸發式持倉覆核（無 State，會開新一輪分析）
 │   └── PORTFOLIO_REBALANCING_ENGINE.md   # 週期性板塊／主題再平衡（無 State，會開新一輪分析）
@@ -108,7 +108,9 @@ TRX-Trading-Research-eXecution--main/
 │   ├── ANALYSIS_TEMPLATE.md
 │   ├── DECISION_TEMPLATE.md
 │   ├── REPORT_TEMPLATE.md
-│   └── PORTFOLIO_PROFILE_TEMPLATE.md     # 選填的人類風格／風險偏好／持有期填空表
+│   └── PORTFOLIO_PROFILE_TEMPLATE.md     # 空白表格——請勿直接編輯，複製到 memory/
+├── memory/
+│   └── PORTFOLIO_PROFILE.md              # 上述範本的實際填寫版本，引擎讀取的固定路徑
 ├── workflows/
 │   └── WORKFLOWS.md        # 尚未定義具體自動化工作流；佔位並列出規則
 └── examples/
@@ -153,7 +155,7 @@ TRX-Trading-Research-eXecution--main/
 | Committee / Red Team | 多角色獨立評估、保留異議、反證及替代方案（Red Team 持 Constraint Authority） |
 | Decision / Master Decision | 候選排序，以及唯一最終結果整合與報告發布（Publication Authority，不持否決權） |
 | Portfolio Optimization | 將已發布結果換算為目標權重、股數、釋出資金；只量化，不重新決定 |
-| Capital Allocation | 對已釋出資金決定 Deploy（投入本輪已核准候選）或 Wait；不創造新機會 |
+| Capital Allocation | 對資金決定 Deploy／Rotate／Reserve Cash／Wait，並為每個 EXECUTE 候選計算股數（上限為 Risk Engine 已核准倉位）；不創造新機會 |
 | Execution | 人類覆核的完整 Execution Package（入場、止損、目標、下單類型、有效期、未成交後續處理、流動性／滑價）；不下單 |
 | Position Management / Portfolio Rebalancing | 觸發式／週期性覆核，決定何時開啟新一輪分析；本身不發布任何持倉決定 |
 

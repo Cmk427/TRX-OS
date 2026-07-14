@@ -44,7 +44,9 @@ templates/                        Fill-in worksheets aligned to State Machine st
   ANALYSIS_TEMPLATE.md            States 02–11 (input through options review)
   DECISION_TEMPLATE.md            States 12–20 (ranking through self audit)
   REPORT_TEMPLATE.md              State 21 — direct fill-in version of OUTPUT_CONTRACT.md
-  PORTFOLIO_PROFILE_TEMPLATE.md   Optional human-supplied style/risk/holding-period context (not a State Machine stage)
+  PORTFOLIO_PROFILE_TEMPLATE.md   Blank worksheet — do not edit directly, copy to memory/
+memory/                           Human-maintained instance data (not runtime-accumulating state)
+  PORTFOLIO_PROFILE.md             Populated copy of the template above, at a fixed path engines reference
 workflows/                        Reserved for future tool-level orchestration definitions
 examples/                         Fictional worked examples of a completed report
 ```
@@ -114,8 +116,8 @@ Decision integration) for the case where these disagree.
 | Committee | Independent expert-style votes and dissent | Final output / risk override |
 | Red Team | Counter-evidence and critical-risk challenge | Suppressing evidence or dissent |
 | Master Decision | Final integration and report publication | Veto override |
-| Portfolio Optimization | Target weight, share count, capital released/required for an already-published outcome | Re-decide Hold/Reduce/Exit/Execute, or override Master Decision |
-| Capital Allocation | Deploy-vs-Wait decision for capital already released this run | Invent a new investment opportunity |
+| Portfolio Optimization | Target weight, share count, capital released for an already-published existing-position outcome (Hold/Reduce/Exit/Watch) | Re-decide Hold/Reduce/Exit/Watch, override Master Decision, or process an EXECUTE decision |
+| Capital Allocation | Deploy/Rotate/Reserve/Wait decision for capital, and sizing every new-position EXECUTE candidate (bounded by Risk Engine's approval) | Invent a new investment opportunity, or size beyond Risk Engine's approval |
 | Execution | Human review plan and re-verification checklist (Execution Package: order, price, Valid For, If Not Filled) | Broker access or order placement |
 | Position Management *(trigger document, no State Machine position)* | Determine when a gain/loss/earnings/IV trigger starts a new run | Publish a position decision itself |
 | Portfolio Rebalancing *(trigger document, no State Machine position)* | Determine when periodic sector/theme drift starts a new run | Assign a specific new ticker, or bypass Scanner/Committee/Risk |
@@ -142,26 +144,29 @@ table is that place:
 
 ```text
 system/     CORE_PRINCIPLES 1.0.0 · CONSTITUTION 1.2.0 · SYSTEM 1.3.0
-            OUTPUT_CONTRACT 1.2.0 · STATE_MACHINE 1.5.0
+            OUTPUT_CONTRACT 1.3.0 · STATE_MACHINE 1.6.0
             VERIFICATION_POLICY 1.2.0 · DATA_SOURCE_POLICY 1.1.0
-            DECISION_SNAPSHOT_POLICY 1.3.0 · ENGINE_INTERFACE_CONTRACT 1.6.0
+            DECISION_SNAPSHOT_POLICY 1.3.0 · ENGINE_INTERFACE_CONTRACT 1.7.0
             FAILURE_TAXONOMY 1.1.0 · PARAMETER_REGISTRY 1.7.0
-            DOCUMENTATION_GOVERNANCE 1.0.0 · INVESTMENT_POLICY 1.0.0 (new)
+            DOCUMENTATION_GOVERNANCE 1.0.0 · INVESTMENT_POLICY 1.0.0
 engines/    MARKET 1.3.0 · PORTFOLIO 1.4.0 · SCANNER 1.0.0 · PLAYBOOK 1.1.0
             OPTIONS 1.4.0 · RISK 1.3.0 · DECISION 1.2.0
             MASTER_DECISION 1.4.0 · COMMITTEE 1.4.0 · RED_TEAM 1.5.0
-            PORTFOLIO_OPTIMIZATION 1.1.0 · EXECUTION 1.4.0
-            CAPITAL_ALLOCATION 1.0.0 (new)
-            POSITION_MANAGEMENT 1.0.0 · PORTFOLIO_REBALANCING 1.1.0
+            PORTFOLIO_OPTIMIZATION 1.2.0 · EXECUTION 1.5.0
+            CAPITAL_ALLOCATION 1.1.0
+            POSITION_MANAGEMENT 1.1.0 · PORTFOLIO_REBALANCING 1.1.0
 playbooks/  PLAYBOOK_LIBRARY 1.4.0
-schemas/    13 files, each 1.0.0 except execution.schema.yaml 1.2.0
-            (two rounds of field additions — see schemas/README.md)
-templates/  ANALYSIS 1.2.0 · DECISION 1.4.0 · REPORT 1.5.0
-            PORTFOLIO_PROFILE 1.0.0 (new)
-examples/   NO_TRADE 1.7.0 · EXECUTE_LONG_CALL 1.7.0
-docs/       RESPONSIBILITY_MATRIX 1.3.0 · DEPENDENCY_MAP 1.7.0
+schemas/    13 files, each 1.0.0 except execution.schema.yaml 1.2.0,
+            portfolio_optimization.schema.yaml 1.1.0, and
+            capital_allocation.schema.yaml 1.1.0 — see schemas/README.md
+templates/  ANALYSIS 1.3.0 · DECISION 1.5.0 · REPORT 1.6.0
+            PORTFOLIO_PROFILE 1.1.0
+examples/   NO_TRADE 1.8.0 · EXECUTE_LONG_CALL 1.8.0
+docs/       RESPONSIBILITY_MATRIX 1.4.0 · DEPENDENCY_MAP 1.8.0
             AI_AGENT_IMPLEMENTATION_GUIDE 1.1.0
             PORTFOLIO_MANAGEMENT_GUIDE 1.0.0
+memory/     PORTFOLIO_PROFILE.md — deliberately unversioned; it is
+            human-edited instance data, not a governed spec document
 workflows/  WORKFLOWS 1.0.0 (unchanged — still a placeholder)
 ```
 
@@ -348,6 +353,45 @@ propagation-gap fix, caught by this round's own verification pass:
 Execution Plan's not-yet-reached check (§4A) — correct after round nine's
 renumbering, stale after this round's second renumbering — now updated to
 State 19.
+
+An eleventh audit round closed a real overlap the user identified between
+Portfolio Optimization Engine and Capital Allocation Engine: both could
+independently compute "buy N shares of this ticker" for the same `EXECUTE`
+candidate. Resolved by narrowing scope rather than adding coordination
+logic — `PORTFOLIO_OPTIMIZATION_ENGINE.md` (1.1.0→1.2.0) now processes
+existing positions only (`HOLD`/`REDUCE`/`EXIT`/`WATCH`) and never an
+`EXECUTE` decision at all; `CAPITAL_ALLOCATION_ENGINE.md` (1.0.0→1.1.0)
+took over sizing every `EXECUTE` candidate itself, bounded by the Risk
+Engine's already-approved size, and gained a four-way decision
+(`Deploy`/`Rotate`/`Reserve Cash`/`Wait`, replacing the prior
+`Deploy`/`Wait`) so a same-run Exit-funds-Execute rotation is labelled
+distinctly from a generic deploy. `OUTPUT_CONTRACT.md` (1.2.0→1.3.0) gained
+its own missing Capital Allocation report section (item 14) — a gap this
+round's audit found: the templates already had one, the normative contract
+never did. `ENGINE_INTERFACE_CONTRACT.md` (1.6.0→1.7.0) and both affected
+schemas were updated to match, each schema's `schema_version` bumped per
+§1A's field-retyping rule. This round also closed a second, independently
+requested compliance gap: a full-repo audit for hardcoded Investment
+Policy numbers (P0 from the tenth round) found that `ANALYSIS_TEMPLATE.md`,
+`DECISION_TEMPLATE.md`, `REPORT_TEMPLATE.md`, and both worked examples had
+inherited "≤10%/≤30%/≤40%" as literal text rather than a cross-reference —
+all four now defer to `INVESTMENT_POLICY.md` §2, and the two examples'
+stale `DECISION_SNAPSHOT_POLICY.md`/`PLAYBOOK_LIBRARY.md` version citations
+were corrected in the same pass. `POSITION_MANAGEMENT_ENGINE.md`
+(1.0.0→1.1.0) gained a quick-reference Trigger Matrix and a new Guidance
+Cut trigger (distinct from Earnings Review — content-triggered, not
+event-triggered) that routes to a mandatory Committee re-evaluation in the
+new run it starts. `memory/PORTFOLIO_PROFILE.md` (new) is the
+actual populated instance of `templates/PORTFOLIO_PROFILE_TEMPLATE.md`
+(1.0.0→1.1.0) at a fixed path engines can reference — the template alone
+had no predictable location a real engine reference could point to.
+This round's own verification pass caught two more propagation gaps from
+the Portfolio Optimization / Capital Allocation boundary change:
+`STATE_MACHINE.md` (1.5.0→1.6.0) §3's State 18 row still described the old
+Deploy/Wait-only decision, and `EXECUTION_ENGINE.md` (1.4.0→1.5.0) §3G
+still said a bare "`Deploy`" fed its Action/Shares fields without
+mentioning `Rotate` or the Risk Engine sizing ceiling — both updated to
+match the four-way decision.
 
 **Keeping this table honest**: any change to a document's `Version` header
 SHALL update its entry here in the same edit — this table is exactly as

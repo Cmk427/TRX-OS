@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-TPL-001
 Document Name    : Analysis Template
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Active
 Classification   : Template
 Dependencies     : STATE_MACHINE.md
@@ -16,6 +16,7 @@ Dependencies     : STATE_MACHINE.md
                    SCANNER_ENGINE.md
                    PLAYBOOK_ENGINE.md
                    OPTIONS_ENGINE.md
+                   INVESTMENT_POLICY.md
 Applies To       : States 02–11 (Input through Options Review)
 ```
 
@@ -105,7 +106,8 @@ Cash %                         :
 Buying power                   :
 Largest position (ticker, %)   :
 Sector / theme concentration   :
-Portfolio Construction check (§9A) :      Single stock ≤10%? __  Sector ≤30%? __  Theme ≤40%? __
+Portfolio Construction check (§9A, limits defined in `INVESTMENT_POLICY.md` §2) :
+                                          Single stock within limit? __  Sector within limit? __  Theme within limit? __
                                           (limits scale with Account Risk Profile — record any override)
 Correlation risk                :
 Constraints on new exposure    :

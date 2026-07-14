@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-OUT-001
 Document Name    : Output Contract
-Version          : 1.2.0
+Version          : 1.3.0
 Status           : Active
 Classification   : Core
 Dependencies     : STATE_MACHINE.md
@@ -13,6 +13,7 @@ Dependencies     : STATE_MACHINE.md
                    DECISION_SNAPSHOT_POLICY.md
                    FAILURE_TAXONOMY.md
                    PORTFOLIO_OPTIMIZATION_ENGINE.md
+                   CAPITAL_ALLOCATION_ENGINE.md
 Applies To       : Every final report
 ```
 
@@ -108,17 +109,34 @@ elsewhere in the report.
     results.
 13. **Portfolio Action Plan** — `Not Applicable` (with reason) or a fixed
     four-tier structure per `PORTFOLIO_OPTIMIZATION_ENGINE.md` §6/§10:
-    **Immediate Action**, **This Week**, **Monitor**, **No Action**. Every
-    entry under a tier SHALL state Ticker, Shares, Execution (order type/
-    priority per `EXECUTION_ENGINE.md` §3G), and Reason. Every `Decision`
-    value shown here SHALL trace to a `Decision` already published in
-    section 12 (Master Decision) for that ticker — this section quantifies
-    an outcome, it never introduces one. When portfolio weight or cash data
+    **Immediate Action**, **This Week**, **Monitor**, **No Action**, scoped
+    to **existing positions only** (`HOLD`/`REDUCE`/`EXIT`/`WATCH`) — no
+    `EXECUTE` ticker appears here, since Portfolio Optimization Engine
+    never processes one (`PORTFOLIO_OPTIMIZATION_ENGINE.md` §1); new
+    positions appear in item 14 instead. Every entry under a tier SHALL
+    state Ticker, Shares, Execution (order type/priority per
+    `EXECUTION_ENGINE.md` §3G), and Reason. Every `Decision` value shown
+    here SHALL trace to a `Decision` already published in section 12
+    (Master Decision) for that ticker — this section quantifies an
+    outcome, it never introduces one. When portfolio weight or cash data
     is incomplete, this section instead shows
     `PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED`
     (`PORTFOLIO_OPTIMIZATION_ENGINE.md` §15) without changing the report's
-    primary outcome, the same non-blocking pattern as item 14 below.
-14. **Execution Plan** — `Not Applicable`; or a plan with action, order type,
+    primary outcome, the same non-blocking pattern as item 15 below.
+14. **Capital Allocation** — `Not Applicable` (with reason) or one entry per
+    same-run `EXECUTE` candidate and per capital-releasing action from item
+    13: Decision (`Deploy`/`Rotate`/`Reserve Cash`/`Wait`), Destination
+    Ticker, Source Ticker (if `Rotate`), Shares (if `Deploy`/`Rotate`,
+    computed per `CAPITAL_ALLOCATION_ENGINE.md` §5 and never exceeding the
+    Risk Engine's approved size), Amount, and Reason
+    (`CAPITAL_ALLOCATION_ENGINE.md` §6). A `Deploy`/`Rotate` destination
+    SHALL always trace to an `EXECUTE` candidate already published in
+    section 12 — this section never introduces a new opportunity. When
+    capital or candidate data is incomplete, this section instead shows
+    `CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED`
+    (`CAPITAL_ALLOCATION_ENGINE.md` §7), the same non-blocking pattern as
+    item 15 below.
+15. **Execution Plan** — `Not Applicable`; or a plan with action, order type,
     entry, stop, target, size, capital, exit conditions, human pre-flight
     checks, and review schedule; or, when execution-time inputs (price,
     session, liquidity) have gone stale since publication, the plan status
@@ -129,7 +147,7 @@ elsewhere in the report.
     a run with several actionable positions, this section may be presented
     as the `EXECUTION_ENGINE.md` §3G batch table rather than one single-
     ticket plan.
-15. **Self Audit** — result of every required check below.
+16. **Self Audit** — result of every required check below.
 
 ---
 
@@ -146,10 +164,15 @@ The final report SHALL verify:
 - Committee, Red Team, and Risk outcomes are shown;
 - Master Decision did not override a verification, Risk, or Red Team veto;
   and
-- the Portfolio Action Plan (§3 item 13) is present, and every ticker listed
-  there traces to a `Decision` already published in the Master Decision
-  section — no ticker appears in the Portfolio Action Plan with a
-  `Decision` value absent from Master Decision.
+- the Portfolio Action Plan (§3 item 13) is present, scoped to existing
+  positions only, and every ticker listed there traces to a `Decision`
+  already published in the Master Decision section — no ticker appears in
+  the Portfolio Action Plan with a `Decision` value absent from Master
+  Decision, and no `EXECUTE` ticker appears there at all; and
+- the Capital Allocation section (§3 item 14) is present, and every
+  `Deploy`/`Rotate` destination traces to an `EXECUTE` candidate already
+  published in the Master Decision section, with no `Shares` value
+  exceeding the Risk Engine's approved size for that candidate.
 
 ---
 

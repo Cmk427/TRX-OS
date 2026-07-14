@@ -140,6 +140,22 @@ Status: completed in this repository.
   a v2.1 implementation-layer concern), and a new
   `templates/PORTFOLIO_PROFILE_TEMPLATE.md` gives the human an optional
   style/risk/holding-period worksheet.
+- Eleventh-review hardening — closing the Portfolio Optimization / Capital
+  Allocation overlap and a policy-number compliance audit:
+  `PORTFOLIO_OPTIMIZATION_ENGINE.md` now processes existing positions only
+  and never an `EXECUTE` decision; `CAPITAL_ALLOCATION_ENGINE.md` took over
+  sizing every new position (bounded by Risk Engine's approval) and gained
+  a four-way `Deploy`/`Rotate`/`Reserve Cash`/`Wait` decision so a same-run
+  rotation is labelled distinctly. `OUTPUT_CONTRACT.md` gained a missing
+  Capital Allocation report section the templates already implemented but
+  the contract itself never defined. A full-repo audit found four
+  templates/examples still hardcoding Investment Policy percentages
+  instead of cross-referencing `INVESTMENT_POLICY.md` §2 — corrected, along
+  with two stale version citations in the worked examples.
+  `POSITION_MANAGEMENT_ENGINE.md` gained a quick-reference Trigger Matrix
+  and a new Guidance Cut trigger. `memory/PORTFOLIO_PROFILE.md` is now the
+  actual populated instance of the Portfolio Profile template, at a fixed
+  path engines can reference.
 
 ## v1.1 — Operational Research Schemas
 

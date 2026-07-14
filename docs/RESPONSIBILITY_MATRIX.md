@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-RSM-001
 Document Name    : Responsibility Matrix
-Version          : 1.3.0
+Version          : 1.4.0
 Status           : Active
 Classification   : Reference
 Dependencies     : CONSTITUTION.md
@@ -68,8 +68,8 @@ constrains eligibility or ranking but is never itself a binding override.
 | Committee Engine | 13 | Neither | Six independent role votes, compute Consensus Score (§10 formula), preserve dissent | Publish the final recommendation or veto anything itself | `WATCH` on no consensus; Risk Manager voting REDUCE/REJECT forces mandatory Risk Engine escalation (not an automatic veto) |
 | Red Team Engine | 14 | **Constraint** | Seek counter-evidence, counter-thesis, alternatives | Suppress the original thesis or dissent | Critical-risk veto — binding downgrade or `NO TRADE` |
 | Master Decision Engine | 16 | **Publication** | Integrate all valid outputs into one outcome; compute Confidence (never outcome) via §7 Weighted Composite Score | Override verification, Risk, or Red Team vetoes, or use Confidence to relax a gate | None — it enforces upstream vetoes, it does not hold one |
-| Portfolio Optimization Engine | 17 | Neither | Convert an already-published Master Decision outcome into target weight, share count, capital released/required, and reallocation | Re-decide Hold/Reduce/Exit/Execute, or override a Master Decision outcome | None — its `Decision` field is a verbatim echo, never a competing value |
-| Capital Allocation Engine | 18 | Neither | Decide Deploy (into an already-approved same-run candidate) or Wait for capital Portfolio Optimization released | Invent a new investment opportunity | None — defaults to `Wait` rather than force a fit below the cash minimum |
+| Portfolio Optimization Engine | 17 | Neither | Convert an already-published Master Decision outcome (existing positions only: Hold/Reduce/Exit/Watch) into target weight, share count, and capital released | Re-decide Hold/Reduce/Exit/Watch, override a Master Decision outcome, or process an `EXECUTE` decision | None — its `Decision` field is a verbatim echo, never a competing value |
+| Capital Allocation Engine | 18 | Neither | Decide Deploy/Rotate/Reserve Cash/Wait for released or available capital, and size every `EXECUTE` candidate (bounded by Risk Engine's approved size) | Invent a new investment opportunity, or size beyond Risk Engine's approval | None — defaults to `Reserve Cash` rather than force a fit below the cash minimum |
 | Execution Engine | 19 | Neither | Produce human-reviewable Execution Package (entry/stop/target/size, Valid For, If Not Filled) with order-type, liquidity, and slippage rules | Place, transmit, or imply placement of an order | `DO NOT EXECUTE — REVERIFY` on stale critical input |
 
 ---

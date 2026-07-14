@@ -1,6 +1,10 @@
 # Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §12.
 # Non-authoritative: if this ever disagrees with that document, the
 # Markdown document wins and this file is a bug. See schemas/README.md.
+# schema_version bumped 1.0.0 -> 1.1.0: decision dropped EXECUTE (this
+# engine never processes it, per PORTFOLIO_OPTIMIZATION_ENGINE.md §1) and
+# capital_required was removed (no longer a valid field once EXECUTE was
+# dropped) — both a field/enum retyping per §1A's schema_version rule.
 $schema: "https://json-schema.org/draft/2020-12/schema"
 $id: "trx://schemas/portfolio_optimization.schema.yaml"
 title: TRX Portfolio Optimization Engine Output
@@ -16,7 +20,7 @@ $defs:
     properties:
       engine: { const: "PORTFOLIO_OPTIMIZATION_ENGINE" }
       engine_version: { type: string }
-      schema_version: { const: "1.0.0" }
+      schema_version: { const: "1.1.0" }
       failure_state:
         type: object
         additionalProperties: false
@@ -40,7 +44,6 @@ $defs:
       - target_weight_pct
       - suggested_shares
       - capital_released
-      - capital_required
       - reason
       - priority
       - execution_required
@@ -48,26 +51,24 @@ $defs:
     properties:
       engine: { const: "PORTFOLIO_OPTIMIZATION_ENGINE" }
       engine_version: { type: string }
-      schema_version: { const: "1.0.0" }
+      schema_version: { const: "1.1.0" }
       ticker: { type: string }
       decision:
         type: string
-        enum: [EXECUTE, HOLD, REDUCE, EXIT, WATCH]
-        description: "Echoed verbatim from MASTER_DECISION_ENGINE.md §11 final_outcome for this ticker; never computed here. A mismatch against that value is a contract violation in this engine's output, not a newer or overriding value."
+        enum: [HOLD, REDUCE, EXIT, WATCH]
+        description: "Echoed verbatim from MASTER_DECISION_ENGINE.md §11 final_outcome for this ticker; never computed here. This engine never processes EXECUTE — see CAPITAL_ALLOCATION_ENGINE.md. A mismatch against Master Decision's value is a contract violation in this engine's output, not a newer or overriding value."
       current_weight_pct: { type: number, description: "Percent of portfolio value, from PORTFOLIO_ENGINE.md." }
       target_weight_pct: { type: number, description: "Percent of portfolio value, computed per PORTFOLIO_OPTIMIZATION_ENGINE.md §7." }
       suggested_shares:
         type: number
-        description: "Signed share count: negative = sell, positive = buy. 0 for HOLD/WATCH unless an advisory note applies, per §7A."
+        maximum: 0
+        description: "Signed share count, always <= 0 (a sell or no change) — this engine never produces a positive/buy share count. 0 for HOLD/WATCH unless an advisory note applies, per §7A."
       capital_released:
         type: [number, "null"]
-        description: "Currency amount freed by a REDUCE/EXIT. null for EXECUTE (see capital_required) or HOLD/WATCH with no advisory."
-      capital_required:
-        type: [number, "null"]
-        description: "Currency amount needed for an EXECUTE. null unless decision is EXECUTE."
+        description: "Currency amount freed by a REDUCE/EXIT. null for HOLD/WATCH with no advisory."
       reason:
         type: string
-        description: "Traces to the Master Decision rationale and any construction-limit or capital-allocation rule applied, per §6/§8."
+        description: "Traces to the Master Decision rationale and any construction-limit rule applied, per §6."
       priority:
         type: string
         enum: [P1, P2, P3]

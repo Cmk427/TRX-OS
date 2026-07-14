@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-EIC-001
 Document Name    : Engine Interface Contract
-Version          : 1.6.0
+Version          : 1.7.0
 Status           : Active
 Classification   : Reference
 Dependencies     : STATE_MACHINE.md
@@ -328,18 +328,21 @@ the composite score itself.
 
 ## 12. Portfolio Optimization Engine → Execution Engine / Report
 
+This engine never processes an `EXECUTE` decision — see
+`PORTFOLIO_OPTIMIZATION_ENGINE.md` §1. `decision` is therefore a 4-value
+enum, not 5; a payload with `decision: "EXECUTE"` is a contract violation.
+
 ```json
 {
   "engine": "PORTFOLIO_OPTIMIZATION_ENGINE",
-  "engine_version": "1.0.0",
-  "schema_version": "1.0.0",
+  "engine_version": "1.2.0",
+  "schema_version": "1.1.0",
   "ticker": "string",
-  "decision": "EXECUTE | HOLD | REDUCE | EXIT | WATCH (echoed verbatim from MASTER_DECISION_ENGINE.md §11 final_outcome for this ticker; never computed here)",
+  "decision": "HOLD | REDUCE | EXIT | WATCH (echoed verbatim from MASTER_DECISION_ENGINE.md §11 final_outcome for this ticker; never computed here; EXECUTE never appears here)",
   "current_weight_pct": "number",
   "target_weight_pct": "number",
-  "suggested_shares": "number (signed; negative = sell, positive = buy; 0 for HOLD/WATCH unless an advisory note applies, per PORTFOLIO_OPTIMIZATION_ENGINE.md §7A)",
-  "capital_released": "number | null (null for EXECUTE — see capital_required — or for HOLD/WATCH with no advisory)",
-  "capital_required": "number | null (null unless decision is EXECUTE)",
+  "suggested_shares": "number (always <= 0 — a sell or no change; this engine never produces a positive/buy share count; 0 for HOLD/WATCH unless an advisory note applies, per PORTFOLIO_OPTIMIZATION_ENGINE.md §7A)",
+  "capital_released": "number | null (null for HOLD/WATCH with no advisory)",
   "reason": "string",
   "priority": "P1 | P2 | P3 (per EXECUTION_ENGINE.md §3G)",
   "execution_required": "boolean (false for HOLD/WATCH with no advisory triggered, per §7A)",
@@ -354,25 +357,36 @@ engine's output, never as a newer or overriding value.
 
 ## 13. Capital Allocation Engine → Execution Engine
 
+This engine sizes every `EXECUTE` candidate (bounded by the Risk Engine's
+approved size, `RISK_ENGINE.md` §6/§24) — Portfolio Optimization Engine
+never does, per §12 above. Exactly one engine ever computes a buy-side
+share count for a given ticker.
+
 ```json
 {
   "engine": "CAPITAL_ALLOCATION_ENGINE",
-  "engine_version": "1.0.0",
-  "schema_version": "1.0.0",
-  "source_ticker": "string",
+  "engine_version": "1.1.0",
+  "schema_version": "1.1.0",
+  "decision": "Deploy | Rotate | Reserve Cash | Wait",
+  "destination_ticker": "string | null (the same-run EXECUTE candidate if Deploy/Rotate; null otherwise)",
+  "source_ticker": "string | null (the releasing REDUCE/EXIT ticker if Rotate; null otherwise)",
+  "shares": "number | null (computed per CAPITAL_ALLOCATION_ENGINE.md §5, never exceeding the Risk Engine-approved size; null unless Deploy/Rotate)",
   "amount": "number",
-  "decision": "Deploy | Wait",
-  "destination_ticker": "string | null (the same-run EXECUTE candidate if Deploy; null if Wait)",
-  "wait_category": "Hold Cash | Reserve for Earnings | Reserve for Volatility | Wait for Better Setup | null (null if Deploy)",
+  "wait_category": "Reserve for Earnings | Reserve for Volatility | Wait for Better Setup | null (null unless decision is Wait)",
   "reason": "string",
   "status": "READY | CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED"
 }
 ```
 
-`decision: "Deploy"` SHALL always co-occur with a non-null
-`destination_ticker` and a null `wait_category`; `decision: "Wait"` SHALL
-always co-occur with the reverse — a consumer MAY treat any other
-combination as a contract violation.
+`decision: "Deploy"` or `"Rotate"` SHALL always co-occur with a non-null
+`destination_ticker` and `shares`, and a null `wait_category`; `"Rotate"`
+additionally requires a non-null `source_ticker`, which `"Deploy"` does
+not. `decision: "Reserve Cash"` or `"Wait"` SHALL always co-occur with null
+`destination_ticker`/`source_ticker`/`shares`; `"Wait"` additionally
+requires a non-null `wait_category`, which `"Reserve Cash"` does not (its
+purpose — building the `INVESTMENT_POLICY.md` §4 reserve — is stated in
+`reason` instead). A consumer MAY treat any other combination as a
+contract violation.
 
 ## 14. Execution Engine → Human
 

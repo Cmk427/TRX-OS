@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-TPL-002
 Document Name    : Decision Template
-Version          : 1.4.0
+Version          : 1.5.0
 Status           : Active
 Classification   : Template
 Dependencies     : STATE_MACHINE.md
@@ -195,24 +195,26 @@ Outcome (append during later Position Review or Journal entry) :
 
 ## 7. State 17 — Portfolio Optimization
 
-Repeat this row per ticker/candidate carried into this state. `Decision` is
-copied verbatim from §6 above — it is never re-decided here
-(`PORTFOLIO_OPTIMIZATION_ENGINE.md` §1):
+Repeat this row per **existing position** carried into this state — never
+for an `EXECUTE` candidate; this engine does not process `EXECUTE` at all
+(`PORTFOLIO_OPTIMIZATION_ENGINE.md` §1; sizing a new position is
+`CAPITAL_ALLOCATION_ENGINE.md`'s job, §8 below). `Decision` is copied
+verbatim from §6 above — it is never re-decided here:
 
 ```text
 Ticker                  :
-Decision (echoed from §6, not recomputed) : EXECUTE / HOLD / REDUCE / EXIT / WATCH
+Decision (echoed from §6, not recomputed) : HOLD / REDUCE / EXIT / WATCH
 Current Weight          :
 Target Weight           :
-Suggested Shares        :
-Capital Released / Required :
+Suggested Shares (always <= 0 — sell or no change) :
+Capital Released        :
 Reason                  :
 Priority (§3G in EXECUTION_ENGINE.md) : P1 / P2 / P3
 ```
 
-Concentration check (§7A): current weight vs. the 10% single-stock hard cap
-(`PORTFOLIO_ENGINE.md` §9A, unchanged by this engine) and this engine's own
-6% preferred target / 8–10% advisory band.
+Concentration check (§7A): current weight vs. the single-stock hard cap and
+the preferred target / advisory band — both defined in
+`INVESTMENT_POLICY.md` §2/§3, never restated here.
 
 If portfolio weight or cash data is incomplete: status
 `PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED`
@@ -223,25 +225,31 @@ Outcome already recorded in §6.
 
 ## 8. State 18 — Capital Allocation
 
-Repeat per capital-releasing action from §7 (Portfolio Optimization):
+Repeat per `EXECUTE` candidate from §6 and per capital-releasing action
+from §7 (Portfolio Optimization):
 
 ```text
-Source Ticker           :
+Decision                :   Deploy / Rotate / Reserve Cash / Wait
+Destination Ticker (if Deploy/Rotate) :
+Source Ticker (if Rotate — the §7 releasing ticker) :
+Shares (if Deploy/Rotate — computed here, §5, capped at Risk
+  Engine's approved size, never exceeding it) :
 Amount                  :
-Decision                :   Deploy / Wait
-Destination Ticker (if Deploy) :
-Wait Category (if Wait) :   Hold Cash / Reserve for Earnings /
+Wait Category (if Wait) :   Reserve for Earnings /
                              Reserve for Volatility / Wait for Better Setup
 Reason                  :
 ```
 
-`Deploy` is only valid into an `EXECUTE` candidate already published in §6
-above — this engine never selects its own candidate. If deploying would
-leave cash below `INVESTMENT_POLICY.md` §4's minimum, default to `Wait`.
+`Deploy`/`Rotate` are only valid into an `EXECUTE` candidate already
+published in §6 above — this engine never selects its own candidate, and
+never sizes beyond the Risk Engine's approved size (§5). `Rotate` is used
+specifically when the capital source is a same-run §7 release; `Deploy`
+otherwise. If deploying would leave cash below `INVESTMENT_POLICY.md` §4's
+minimum, choose `Reserve Cash` instead.
 
-If capital/candidate data is incomplete: status
+If capital/candidate/Risk-approved-size data is incomplete: status
 `CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED`
-(`CAPITAL_ALLOCATION_ENGINE.md` §6) — does not change the Final Outcome in
+(`CAPITAL_ALLOCATION_ENGINE.md` §7) — does not change the Final Outcome in
 §6.
 
 ---
@@ -303,9 +311,12 @@ Confirm each, per `OUTPUT_CONTRACT.md` §4:
 - [ ] Committee, Red Team, and Risk outcomes are shown, including dissent.
 - [ ] Master Decision did not override a verification, Risk, or Red Team veto.
 - [ ] Every §7 Portfolio Optimization `Decision` value matches its §6 Master
-      Decision `Final Outcome` for the same ticker — no re-decision.
-- [ ] Every §8 Capital Allocation `Deploy` destination is an `EXECUTE`
-      candidate already published in §6 — no invented opportunity.
+      Decision `Final Outcome` for the same ticker — no re-decision, and no
+      `EXECUTE` ticker appears in §7 at all.
+- [ ] Every §8 Capital Allocation `Deploy`/`Rotate` destination is an
+      `EXECUTE` candidate already published in §6 — no invented
+      opportunity — and no `Shares` value exceeds the Risk Engine's
+      approved size for that candidate.
 
 If any box is unchecked, return to the earliest defective state per
 `STATE_MACHINE.md` §6 before publishing.

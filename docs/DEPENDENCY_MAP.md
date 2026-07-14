@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-DEP-001
 Document Name    : Dependency Map
-Version          : 1.7.0
+Version          : 1.8.0
 Status           : Active
 Classification   : Reference
 Dependencies     : STATE_MACHINE.md
@@ -76,8 +76,8 @@ hierarchy that breaks their intentionally shared authority over State 04.
 | 13 | `COMMITTEE_ENGINE.md` | Market (05), Portfolio (06), Scanner (09), Options (11), Decision (12), Constitution, State Machine | Pass — all upstream |
 | 14 | `RED_TEAM_ENGINE.md` | Committee (13), Decision (12), Scanner (09), Market (05), Constitution, Data Source | Pass — all upstream |
 | 16 | `MASTER_DECISION_ENGINE.md` | ALL ENGINES (05–15) | Pass by design — it is the aggregator; see §5 |
-| 17 | `PORTFOLIO_OPTIMIZATION_ENGINE.md` | State Machine, Portfolio (06/08), Risk (07/15), Committee (13, context only), Master Decision (16), Investment Policy (governance, foundational) | Pass — all upstream; echoes but never depends on anything at or after 17 |
-| 18 | `CAPITAL_ALLOCATION_ENGINE.md` | State Machine, Portfolio Optimization (17), Investment Policy (governance, foundational), Portfolio (06) | Pass — downstream of 17 |
+| 17 | `PORTFOLIO_OPTIMIZATION_ENGINE.md` | State Machine, Portfolio (06/08), Risk (07/15, context only — no sizing math), Committee (13, context only), Master Decision (16), Investment Policy (governance, foundational) | Pass — all upstream; echoes but never depends on anything at or after 17. Never processes `EXECUTE` (§1) |
+| 18 | `CAPITAL_ALLOCATION_ENGINE.md` | State Machine, Portfolio Optimization (17), Risk (07/15, approved size for EXECUTE candidates), Master Decision (16), Investment Policy (governance, foundational), Portfolio (06) | Pass — downstream of 17; sizes every `EXECUTE` candidate itself (§5), a responsibility Portfolio Optimization Engine (17) never holds |
 | 19 | `EXECUTION_ENGINE.md` | State Machine, Master Decision (16), Portfolio Optimization (17), Capital Allocation (18), Risk, Output Contract, Data Source | Pass — downstream of 16, 17, and 18 |
 
 `playbooks/PLAYBOOK_LIBRARY.md` depends on `PLAYBOOK_ENGINE.md` (parent),
@@ -134,7 +134,7 @@ occupying a numbered state itself. Their declared dependencies:
 
 | Document | Declared dependencies | Forward-dependency check |
 |---|---|---|
-| `POSITION_MANAGEMENT_ENGINE.md` | State Machine, Portfolio (06/08), Risk (07/15), Options (11), Portfolio Optimization (17) | Pass — all upstream of the run it will start; it does not feed the run currently in progress |
+| `POSITION_MANAGEMENT_ENGINE.md` | State Machine, Portfolio (06/08), Risk (07/15), Options (11), Committee (13), Portfolio Optimization (17) | Pass — all upstream of the run it will start; it does not feed the run currently in progress |
 | `PORTFOLIO_REBALANCING_ENGINE.md` | State Machine, Portfolio (06/08), Portfolio Optimization (17) | Pass — same reasoning; its gap analysis is input to a new run's Portfolio Review/Portfolio Optimization, not a bypass of Scanner/Committee/Risk |
 
 Neither document may become a dependency of any pipeline-state engine — the
@@ -155,11 +155,11 @@ are never consumed mid-run).
 | `MARKET_ENGINE.md` | Risk, Scanner, Options, Committee, Red Team, Playbook, Parameter Registry, Engine Interface Contract |
 | `PORTFOLIO_ENGINE.md` | Risk, Scanner, Options, Committee, Capital Allocation Engine, Parameter Registry, Engine Interface Contract |
 | `INVESTMENT_POLICY.md` | Portfolio, Portfolio Optimization, Capital Allocation, Position Management, Portfolio Rebalancing, Parameter Registry |
-| `RISK_ENGINE.md` | Scanner, Options, Committee (via Risk Manager vote), Execution, Playbook Library, Parameter Registry, Engine Interface Contract |
+| `RISK_ENGINE.md` | Scanner, Options, Committee (via Risk Manager vote), Execution, Capital Allocation Engine, Playbook Library, Parameter Registry, Engine Interface Contract |
 | `SCANNER_ENGINE.md` | Playbook, Options, Committee, Red Team, Playbook Library, Parameter Registry, Engine Interface Contract |
 | `PLAYBOOK_ENGINE.md` | Options, Parameter Registry, Engine Interface Contract |
 | `DECISION_ENGINE.md` | Committee, Red Team, Engine Interface Contract |
-| `COMMITTEE_ENGINE.md` | Red Team, Parameter Registry, Engine Interface Contract |
+| `COMMITTEE_ENGINE.md` | Red Team, Position Management Engine (trigger document, §3C), Parameter Registry, Engine Interface Contract |
 | `RED_TEAM_ENGINE.md` | Parameter Registry, Engine Interface Contract |
 | `MASTER_DECISION_ENGINE.md` | Execution, Portfolio Optimization, Capital Allocation, Decision Snapshot Policy, Parameter Registry, Engine Interface Contract |
 | `PORTFOLIO_OPTIMIZATION_ENGINE.md` | Execution, Capital Allocation Engine, Output Contract, Parameter Registry, Engine Interface Contract |

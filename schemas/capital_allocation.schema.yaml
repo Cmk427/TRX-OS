@@ -1,6 +1,10 @@
 # Machine-readable rendering of system/ENGINE_INTERFACE_CONTRACT.md §13.
 # Non-authoritative: if this ever disagrees with that document, the
 # Markdown document wins and this file is a bug. See schemas/README.md.
+# schema_version bumped 1.0.0 -> 1.1.0: decision expanded from Deploy|Wait
+# to Deploy|Rotate|Reserve Cash|Wait, and shares/source_ticker were added
+# once this engine took over new-position sizing from
+# PORTFOLIO_OPTIMIZATION_ENGINE.md — a field/enum retyping per §1A's rule.
 $schema: "https://json-schema.org/draft/2020-12/schema"
 $id: "trx://schemas/capital_allocation.schema.yaml"
 title: TRX Capital Allocation Engine Output
@@ -16,7 +20,7 @@ $defs:
     properties:
       engine: { const: "CAPITAL_ALLOCATION_ENGINE" }
       engine_version: { type: string }
-      schema_version: { const: "1.0.0" }
+      schema_version: { const: "1.1.0" }
       failure_state:
         type: object
         additionalProperties: false
@@ -34,31 +38,35 @@ $defs:
       - engine
       - engine_version
       - schema_version
-      - source_ticker
-      - amount
       - decision
       - destination_ticker
+      - source_ticker
+      - shares
+      - amount
       - wait_category
       - reason
       - status
     properties:
       engine: { const: "CAPITAL_ALLOCATION_ENGINE" }
       engine_version: { type: string }
-      schema_version: { const: "1.0.0" }
-      source_ticker:
-        type: string
-        description: "The REDUCE/EXIT ticker that released this capital, per PORTFOLIO_OPTIMIZATION_ENGINE.md §6."
-      amount: { type: number }
+      schema_version: { const: "1.1.0" }
       decision:
         type: string
-        enum: [Deploy, Wait]
+        enum: [Deploy, Rotate, "Reserve Cash", Wait]
       destination_ticker:
         type: [string, "null"]
-        description: "The same-run EXECUTE candidate if Deploy; null if Wait."
+        description: "The same-run EXECUTE candidate if Deploy/Rotate; null otherwise."
+      source_ticker:
+        type: [string, "null"]
+        description: "The releasing REDUCE/EXIT ticker, if Rotate; null otherwise. Deploy never sets this (its capital source is general buying power, not a specific same-run release)."
+      shares:
+        type: [number, "null"]
+        description: "Computed per CAPITAL_ALLOCATION_ENGINE.md §5, never exceeding the Risk Engine-approved size for the destination candidate. null unless Deploy/Rotate."
+      amount: { type: number }
       wait_category:
         type: [string, "null"]
-        enum: ["Hold Cash", "Reserve for Earnings", "Reserve for Volatility", "Wait for Better Setup", null]
-        description: "One of PORTFOLIO_ENGINE.md §16's existing categories if Wait; null if Deploy."
+        enum: ["Reserve for Earnings", "Reserve for Volatility", "Wait for Better Setup", null]
+        description: "One of PORTFOLIO_ENGINE.md §16's remaining categories if Wait; null otherwise. Reserve Cash's purpose (building the INVESTMENT_POLICY.md §4 reserve) is stated in reason instead of a sub-category."
       reason: { type: string }
       status:
         type: string

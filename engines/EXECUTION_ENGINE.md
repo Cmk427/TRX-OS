@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-EXE-001
 Document Name    : Execution Engine
-Version          : 1.4.0
+Version          : 1.5.0
 Status           : Active
 Classification   : Critical
 Dependencies     : STATE_MACHINE.md
@@ -240,10 +240,12 @@ still individually satisfies §1A's Execution Gate and §3A–§3F:
 
 Each row is a complete Execution Package (§3) — never a bare action label.
 
-- **Action** and **Shares** come from `PORTFOLIO_OPTIMIZATION_ENGINE.md` §6
-  (Suggested Shares), never recomputed here. For a `Deploy` decision from
+- For an existing-position row, **Action** and **Shares** come from
+  `PORTFOLIO_OPTIMIZATION_ENGINE.md` §6 (Suggested Shares), never
+  recomputed here. For a `Deploy`/`Rotate` decision from
   `CAPITAL_ALLOCATION_ENGINE.md` (State 18), Action/Shares/capital instead
-  reflect that engine's destination ticker and amount.
+  reflect that engine's own §5 sizing, destination ticker, and amount —
+  never exceeding the Risk Engine's approved size.
 - **Preferred Order** and **Suggested Price / Alternative** follow §3A's
   spread/liquidity table.
 - **Valid For** is the order's time-in-force; **If Not Filled** is the

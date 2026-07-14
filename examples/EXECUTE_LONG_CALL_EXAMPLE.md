@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-EX-002
 Document Name    : Worked Example — EXECUTE Outcome (Long Call)
-Version          : 1.7.0
+Version          : 1.8.0
 Status           : Illustrative — fictional data
 Classification   : Example
 Dependencies     : templates/REPORT_TEMPLATE.md
@@ -17,6 +17,7 @@ Dependencies     : templates/REPORT_TEMPLATE.md
                    playbooks/PLAYBOOK_LIBRARY.md
                    system/DECISION_SNAPSHOT_POLICY.md
                    system/FAILURE_TAXONOMY.md
+                   system/INVESTMENT_POLICY.md
 Applies To       : Demonstration only
 ```
 
@@ -39,8 +40,8 @@ IV、財報日期與組合數值均為說明用途而編造，並非任何真實
 
 - TRX OS：v1.0（完整 Release Version Matrix 見 `docs/ARCHITECTURE.md`）
 - Confidence Model：`MASTER_DECISION_ENGINE.md` §7, v1.4.0
-- Playbook Library：v1.3.0（PB-003 Post Earnings Continuation）
-- Snapshot Policy：`DECISION_SNAPSHOT_POLICY.md` v1.1.0
+- Playbook Library：v1.4.0（PB-003 Post Earnings Continuation）
+- Snapshot Policy：`DECISION_SNAPSHOT_POLICY.md` v1.3.0
 - 本文件自身版本：見上方標頭 `Version` 欄位
 
 ---
@@ -124,13 +125,14 @@ Portfolio Health Score（0–100）：88（Healthy）
 可用購買力：等值於總組合的 40%
 最大持倉：ETF-CORE，佔組合 22%
 板塊曝險：科技股合計 26%，未達集中度上限
-Portfolio Construction 檢查（§9A）：單一個股 ≤10%？是（ACME 執行後預估 4%）
-  板塊 ≤30%？是（科技類執行後預估 29%，接近但未突破 30% 上限，Portfolio
+Portfolio Construction 檢查（§9A，門檻定義於 `INVESTMENT_POLICY.md` §2）：
+  單一個股是否在限額內？是（ACME 執行後預估 4%）
+  板塊是否在限額內？是（科技類執行後預估 29%，接近但未突破上限，Portfolio
   Manager 已於 Committee 標註為後續觀察重點）
-  主題 ≤40%？不適用（ACME 未歸類於現有追蹤主題）
+  主題是否在限額內？不適用（ACME 未歸類於現有追蹤主題）
 相關性風險：ACME 與現有持倉相關性低於 0.3，屬分散配置
-組合限制：無否決性限制，惟科技板塊集中度執行後將接近 §9A 30% 上限，後續
-  新增科技類部位須先減碼
+組合限制：無否決性限制，惟科技板塊集中度執行後將接近 §9A／`INVESTMENT_POLICY.md`
+  §2 之板塊上限，後續新增科技類部位須先減碼
 ```
 
 ---

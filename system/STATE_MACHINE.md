@@ -4,7 +4,7 @@
 ```text
 Document ID      : TRX-SM-001
 Document Name    : State Machine
-Version          : 1.5.0
+Version          : 1.6.0
 Status           : Active
 Classification   : Critical
 Dependencies     : CORE_PRINCIPLES.md
@@ -144,7 +144,7 @@ any other state of the new run it starts.
 | 15 FINAL RISK GATE | Risk Engine | Red Team result (14), Preliminary Risk Gate context (07) | Final sizing, maximum loss, portfolio heat, stop and event-risk review | Binding `NO TRADE`, `REDUCE`, or `EXIT` |
 | 16 MASTER DECISION | Master Decision Engine | All engine outputs from States 05–15 | One final outcome integrating valid outputs | Must honour prior vetoes and data failures |
 | 17 PORTFOLIO OPTIMIZATION | Portfolio Optimization Engine | Master Decision outcome (16), Portfolio Engine holdings/weights (06/08), Risk Engine sizing (07/15) | Per-position target weight, share count, capital released/required, and reallocation, echoing (never altering) each Decision from State 16 | Incomplete weight/cash data: `PORTFOLIO OPTIMIZATION INCOMPLETE — DATA REQUIRED`, non-blocking to the State 16 outcome |
-| 18 CAPITAL ALLOCATION | Capital Allocation Engine | Portfolio Optimization's capital released (17), Master Decision's already-published EXECUTE candidates (16), current cash/buying power | Deploy (into an already-approved same-run candidate) or Wait (categorized) decision for every released amount | Incomplete capital/candidate data: `CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED`, non-blocking to the State 16 outcome |
+| 18 CAPITAL ALLOCATION | Capital Allocation Engine | Portfolio Optimization's capital released (17), Master Decision's already-published EXECUTE candidates (16), Risk Engine's approved size per candidate, current cash/buying power | Deploy / Rotate / Reserve Cash / Wait decision for every EXECUTE candidate and released amount, plus computed share count for Deploy/Rotate (never exceeding Risk Engine's approved size) | Incomplete capital/candidate/sizing data: `CAPITAL ALLOCATION INCOMPLETE — DATA REQUIRED`, non-blocking to the State 16 outcome |
 | 19 EXECUTION PLAN | Execution Engine | Master Decision outcome (16), Portfolio Optimization output (17), Capital Allocation output (18), current verified pricing | Human-reviewable Execution Package (action, order type, price, size, Valid For, If Not Filled) for EXECUTE / REDUCE / EXIT | Stale execution data: `DO NOT EXECUTE — REVERIFY` |
 | 20 SELF AUDIT | Master Decision Engine | Full Decision Snapshot / all state outputs through State 19 | Contract, consistency, evidence, and veto checklist | Return to earliest defective state |
 | 21 FINAL REPORT | Master Decision Engine | Self Audit result (20) | Output Contract-compliant report | End |

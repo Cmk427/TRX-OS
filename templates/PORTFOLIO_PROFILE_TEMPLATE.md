@@ -6,7 +6,7 @@ Document ID      : TRX-TPL-004
 Document Name    : Portfolio Profile Template
 Owner            : TRX project owner
 Last Updated     : 2026-07-14
-Version          : 1.0.0
+Version          : 1.1.0
 Status           : Active
 Classification   : Template
 Dependencies     : INVESTMENT_POLICY.md
@@ -26,10 +26,13 @@ Profile, or any binding gate. It is a preference input, the same tier as
 the Watchlist or Trading Horizon fields `PORTFOLIO_ENGINE.md` §3 already
 accepts, not a policy document.
 
-This is a fill-in worksheet, not a runtime "AI memory" file — consistent
-with TRX v1.0 being document-driven with no implementation layer yet
-(`docs/ROADMAP.md` v2.1). Copy this file and complete it once; update it
-only when your actual preferences change, not per analysis run.
+This is a fill-in worksheet, not an automatically-accumulating runtime
+state file the way a future Decision History implementation would be
+(`DECISION_SNAPSHOT_POLICY.md` §5, `docs/ROADMAP.md` v2.1) — nothing here
+is written by an engine. **Do not edit this template directly.** Your
+actual, populated copy lives at the fixed path `memory/PORTFOLIO_PROFILE.md`
+— engines reference that path, not this template. Complete it once; update
+it only when your actual preferences change, not per analysis run.
 
 ---
 
@@ -41,6 +44,8 @@ Risk Tolerance (informational only — the binding profile is
   RISK_ENGINE.md §4 Account Risk Profile: Conservative / Balanced /
   Growth / Aggressive / Maximum Aggressive) :
 Preferred Holding Period (e.g. 3–9 months) :
+Preferred Sector (e.g. AI, Healthcare — informational weighting only,
+  never a bypass of Scanner/Playbook criteria) :
 Avoid List (e.g. High Debt, specific sectors, specific instruments) :
 Other notes (free text) :
 ```
@@ -49,9 +54,9 @@ Other notes (free text) :
 
 ## 3. How Engines Use This
 
-- **Scanner / Playbook Engines** MAY use Style and Avoid List to weight
-  candidate relevance — never to bypass a Scanner/Playbook criterion or
-  invent a setup absent evidence.
+- **Scanner / Playbook Engines** MAY use Style, Preferred Sector, and Avoid
+  List to weight candidate relevance — never to bypass a Scanner/Playbook
+  criterion or invent a setup absent evidence.
 - **Portfolio Engine** MAY use Preferred Holding Period as context for its
   own Trading Horizon input (§3) — it does not change any concentration or
   cash limit, which remain `INVESTMENT_POLICY.md`'s alone.
